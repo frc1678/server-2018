@@ -1,4 +1,4 @@
-#Last Updated: 12/13/17
+#Last Updated: 1/4/18
 import utils
 import json
 import datetime
@@ -11,7 +11,7 @@ class PyrebaseCommunicator(object):
 		super(PyrebaseCommunicator, self).__init__()
 		self.JSONmatches = []
 		self.JSONteams = []
-		self.url = 'scouting-2017-5f51c'
+		self.url = 'testing-so-extreme-it-hurts'
 		config = {
 			'apiKey': 'mykey',
 			'authDomain': self.url + '.firebaseapp.com',

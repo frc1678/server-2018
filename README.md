@@ -98,8 +98,6 @@ If you have trouble doing something in python, or you don't understand the code,
 
 Also, to learn more about the server, check [this](https://goo.gl/gkbAEH) documentation out!
 
-
 ### .DS_Store
 
 If you used `git pull origin master` to merge your code with the Github code and have made some changes yourself, type in `git status` and you will see an untracked file at the bottom, called .DS_Store. If you go to your server folder, you won't be able to find it. If you push, the .DS_Store file will be pushed along with your other changes! To delete this, type in `find . -name '.DS_Store' -type f -delete`
-
