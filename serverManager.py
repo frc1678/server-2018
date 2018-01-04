@@ -1,4 +1,4 @@
-#Last Updated: 12/7/17
+#Last Updated: 1/4/18
 import CSVExporter
 import DataModel
 import firebaseCommunicator
@@ -16,11 +16,12 @@ while(True):
 	cmd = raw_input('>>> ').split()
 	if cmd[0] == 'exp':
 		try:
-			if cmd[1] == 'all':
-				CSVExporter.CSVExportGeneral(comp, 'ALL')
-				comp.PBC.sendExport('EXPORT-ALL.csv')
-			elif cmd[1] == 'min':
-				CSVExportMini(comp)
+			if cmd[1] == 'timdall':
+				CSVExporter.CSVExportTIMDALL(comp)
+				comp.PBC.sendExport('EXPORT-TIMDALL.csv')
+			elif cmd[1] == 'teamall':
+				CSVExporter.CSVExportTeamALL(comp)
+				comp.PBC.sendExport('EXPORT-TEAMALL.csv')
 		except Exception as e:
 			print(traceback.format_exc())
 	elif cmd[0] == 'sns':
@@ -54,8 +55,8 @@ while(True):
 	elif cmd[0] == 'test':
 		print('Test completed.')
 	elif cmd[0] == 'help':
-		print('exp [all/min] - Tries to export')
-		print('sns - Prints scout not sent for current match')
+		print('exp [timdall/teamall] - Tries to export')
+		print('sns - Prints the scouts that haven\'t sent for current match')
 		print('test - prints Test Completed.')
 	else:
 		print("'" + str(cmd[0]) + "'" + ' is not a valid function. Type help for help.')

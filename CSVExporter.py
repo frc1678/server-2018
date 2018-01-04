@@ -1,5 +1,5 @@
 #CSV Exporter, by Bryton 2/10/16
-#Last Updated: 8/26/17
+#Last Updated: 1/4/18
 import utils
 from collections import OrderedDict
 from TBACommunicator import TBACommunicator
@@ -16,7 +16,7 @@ def CSVExportScoutZScores(zscores):
 			writer.writerow({'name' : k, 'spr' : zscores[k][1], 'Z-Score' : zscores[k][0]})
 
 #Puts some scouted and calculated data in csv file
-def CSVExport(comp, name, keys = []):
+def CSVExportTeam(comp, name, keys = []):
 	calculator = Math.Calculator(comp)
 	excluded = ['calculatedData', 'name', 'imageKeys', 'pitAllImageURLs', 'pitSelectedImageName']
 	with open('./EXPORT-' + name + '.csv', 'w') as f:
@@ -30,6 +30,23 @@ def CSVExport(comp, name, keys = []):
 			tDict = team.__dict__
 			tDict.update(team.calculatedData.__dict__)
 			keys = sorted(defaultKeys, key = lambda k: (k != 'number', k.lower()))
+			writer.writerow({k : tDict[k] for k in keys})
+
+#Puts some scouted and calculated data in csv file
+def CSVExportTIMD(comp, name, keys = []):
+	calculator = Math.Calculator(comp)
+	excluded = ['calculatedData', 'highShotTimesForBoilerAuto', 'highShotTimesForBoilerTele']
+	with open('./EXPORT-' + name + '.csv', 'w') as f:
+		defaultKeys = [k for k in TeamInMatchData().__dict__.keys() if k not in excluded and k in keys]
+		defaultKeys += [k for k in TeamInMatchData().calculatedData.__dict__.keys() if k in keys]
+		defaultKeys = sorted(defaultKeys, key = lambda k: (k != 'matchNumber' and k != 'teamNumber', k.lower()))
+		writer = csv.DictWriter(f, fieldnames = defaultKeys)
+		writer.writeheader()
+		comp.updateTIMDsFromFirebase()
+		for timd in comp.TIMDs:
+			tDict = timd.__dict__
+			tDict.update(timd.calculatedData.__dict__)
+			keys = sorted(defaultKeys, key = lambda k: (k != 'matchNumber' and k != 'teamNumber', k.lower()))
 			writer.writerow({k : tDict[k] for k in keys})
 
 #Creates a dictionary of teams and their keys are the data associated with them
@@ -63,5 +80,8 @@ def CSVExportTeamOPRDataForComp(dataFilePath, dataOutputFilePath):
 # CSVExportTeamOPRDataForComp('./ChampionshipHouston-Table 1.csv','./newton2017data.csv)
 
 #General export function for all of your basic data export needs
-def CSVExportGeneral(comp, name):
-	CSVExport(comp, name, keys = Team().__dict__.keys() + Team().calculatedData.__dict__.keys())
+def CSVExportTeamALL(comp):
+	CSVExportTeam(comp, 'TEAMALL', keys = Team().__dict__.keys() + Team().calculatedData.__dict__.keys())
+
+def CSVExportTIMDALL(comp):
+	CSVExportTIMD(comp, 'TIMDALL', keys = TeamInMatchData().__dict__.keys() + TeamInMatchData().calculatedData.__dict__.keys())

@@ -1,4 +1,4 @@
-#Last Updated: 8/26/17
+#Last Updated: 1/4/18
 import DataModel
 import json
 import time
@@ -123,7 +123,7 @@ def makeTIMDFromTeamNumberAndMatchNumber(teamNumber, matchNumber):
 
 def setDataForMatch(match):
 	m = DataModel.Match()
-	m.number, m.redAllianceTeamNumbers, m.blueAllianceTeamNumbers = int(match['match_number']), match['alliances']['red']['teams'], match['alliances']['blue']['teams']
+	m.number, m.redAllianceTeamNumbers, m.blueAllianceTeamNumbers = int(match['match_number']), match['alliances']['red']['team_keys'], match['alliances']['blue']['team_keys']
 	return m
 
 def setDataForTeam(team):
