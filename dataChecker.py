@@ -1,4 +1,4 @@
-#Last Updated: 10/12/17
+#Last Updated: 1/4/18
 import pyrebase
 import numpy as np
 import utils
@@ -6,6 +6,7 @@ import multiprocessing
 import firebaseCommunicator
 import time
 import pdb
+from TBACommunicator import TBACommunicator
 
 #These are the keys that have lists of dicts
 #Lists may have different numbers of dicts, but the keys in the dicts should be the same
@@ -22,6 +23,7 @@ standardDictKeys = ['gearsPlacedByLiftAuto', 'gearsPlacedByLiftTele']
 
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 firebase = PBC.firebase
+tbac = TBACommunicator()
 
 class DataChecker(multiprocessing.Process):
 	'''Combines data from tempTIMDs into TIMDs...'''
@@ -152,6 +154,17 @@ class DataChecker(multiprocessing.Process):
 	def run(self):
 		while(True):
 			tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
+			#prevents surrogateTIMDs from consolidation by removing them from tempTIMDs
+			surrogateTeamKeys = []
+			for TIMD in tempTIMDs:
+				teamKey = 'frc' + ((tempTIMDs.child(TIMD).get().key()).split('-')[0]).split['Q'][0]
+				matchStuffs = tbac.makeEventMatchesRequest().items()
+				for k, v in matchStuffs:
+					if 'surrogate_team_keys' in k:
+						surrogateTeamKeys += v
+				if teamKey in surrogateTeamKeys:
+					del tempTIMDs.child(TIMD)
+
 			#Keeps on iterating over the tempTIMDs until none exists on firebase
 			if tempTIMDs == None:
 				time.sleep(5)

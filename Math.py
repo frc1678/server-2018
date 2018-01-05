@@ -35,7 +35,6 @@ class Calculator(object):
         self.averageTeam.number = -1
         self.reportedTIMDs = []
         self.averageTeam.name = 'Average Team'
-        self.surrogateTIMDs = []
         self.writtenMatches = []
         self.teleGearIncrements = [0, 2, 6, 12]
         self.autoGearIncrements = [1, 3, 7, 13]

@@ -1,4 +1,4 @@
-#Last Updated: 10/12/17
+#Last Updated: 1/4/18
 import DataModel
 import pdb
 
@@ -110,6 +110,21 @@ class SchemaUtils(object):
     def retrieveCompletedTIMDsForTeam(self, team):
         return self.getCompletedTIMDsForTeam(team)
 
-    def isSurrogate(self, team, match):
-        timd = self.getTIMDForTeamNumberAndMatchNumber(team.number, match.number)
-        return timd in surrogateTIMDs
+    def findSurrogates(self):
+        tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
+        surrogateTeamKeys = []
+        surrogateTeamNumbers = []
+        surrogateMatchNumbers = []
+        for TIMD in tempTIMDs:
+            teamKey = 'frc' + ((tempTIMDs.child(TIMD).get().key()).split('-')[0]).split['Q'][0]
+            matchStuffs = tbac.makeEventMatchesRequest().items()
+            for k, v in matchStuffs:
+                if 'match_number' in k:
+                    surrogateMatchNumbers.append(str(v))
+                elif 'surrogate_team_keys' in k:
+                    surrogateTeamKeys += v
+        for key in surrogateTeamKeys:
+            key = key[3:]
+            surrogateTeamNumbers.append(key)
+
+        return surrogateTeamNumbers, surrogateMatchNumbers
