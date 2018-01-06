@@ -1,6 +1,7 @@
 #Last Updated: 1/4/18
 import DataModel
 import pdb
+from TBACommunicator import TBACommunicator
 
 class SchemaUtils(object):
     '''docstring for SchemaUtils'''
@@ -111,6 +112,7 @@ class SchemaUtils(object):
         return self.getCompletedTIMDsForTeam(team)
 
     def findSurrogates(self):
+        tbac = TBACommunicator()
         tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
         surrogateTeamKeys = []
         surrogateTeamNumbers = []
