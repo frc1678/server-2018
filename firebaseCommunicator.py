@@ -99,6 +99,12 @@ class PyrebaseCommunicator(object):
 		addTIMD = lambda m: map(lambda t: timdFunc(t, m), m.redAllianceTeamNumbers + m.blueAllianceTeamNumbers)
 		map(addTIMD, matches)
 
+	#Empties everything from firebase
+	def wipeDatabase(self):
+		map(utils.printWarningForSeconds, range(10, 0, -1))
+		print('\nWARNING: Wiping Firebase...')
+		self.firebase.remove()
+
 	#Puts all of firebase onto a local JSON
 	def cacheFirebase(self):
 		try:
@@ -112,12 +118,6 @@ class PyrebaseCommunicator(object):
 	def addCompInfoToFirebase(self):
 		#Doing these keys manually so less clicking in firebase is better and because just easier
 		self.firebase.child('code').set('cama')
-
-	#Empties everything from firebase
-	def wipeDatabase(self):
-		map(utils.printWarningForSeconds, range(10, 0, -1))
-		print('\nWARNING: Wiping Firebase...')
-		self.firebase.remove()
 
 	def getPythonObjectForFirebaseDataAtLocation(self, location):
 		return utils.makeASCIIFromJSON(self.firebase.child(location).get().val())

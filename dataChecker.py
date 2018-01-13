@@ -154,17 +154,6 @@ class DataChecker(multiprocessing.Process):
 	def run(self):
 		while(True):
 			tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
-			#prevents surrogateTIMDs from consolidation by removing them from tempTIMDs
-			surrogateTeamKeys = []
-			for TIMD in tempTIMDs:
-				teamKey = 'frc' + ((tempTIMDs.child(TIMD).get().key()).split('-')[0]).split['Q'][0]
-				matchStuffs = tbac.makeEventMatchesRequest().items()
-				for k, v in matchStuffs:
-					if 'surrogate_team_keys' in k:
-						surrogateTeamKeys += v
-				if teamKey in surrogateTeamKeys:
-					del tempTIMDs.child(TIMD)
-
 			#Keeps on iterating over the tempTIMDs until none exists on firebase
 			if tempTIMDs == None:
 				time.sleep(5)
