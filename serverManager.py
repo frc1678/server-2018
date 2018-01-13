@@ -1,9 +1,7 @@
-#Last Updated: 1/4/18
+#Last Updated: 1/13/18
 import CSVExporter
 import DataModel
 import firebaseCommunicator
-import os
-import time
 import traceback
 
 PBC = firebaseCommunicator.PyrebaseCommunicator()
@@ -16,12 +14,18 @@ while(True):
 	cmd = raw_input('>>> ').split()
 	if cmd[0] == 'exp':
 		try:
-			if cmd[1] == 'timdall':
-				CSVExporter.CSVExportTIMDALL(comp)
-				comp.PBC.sendExport('EXPORT-TIMDALL.csv')
-			elif cmd[1] == 'teamall':
-				CSVExporter.CSVExportTeamALL(comp)
-				comp.PBC.sendExport('EXPORT-TEAMALL.csv')
+			if cmd[1] == 'timd':
+				if cmd[2] == 'all':
+					CSVExporter.CSVExportTIMDALL(comp)
+					comp.PBC.sendExport('EXPORT-TIMDALL.csv')
+				elif cmd[2] == 'other'
+					print('')
+			elif cmd[1] == 'team':
+				if cmd[2] == 'all':
+					CSVExporter.CSVExportTeamALL(comp)
+					comp.PBC.sendExport('EXPORT-TEAMALL.csv')
+				elif cmd[2] == 'other':
+					print('')
 		except Exception as e:
 			print(traceback.format_exc())
 	elif cmd[0] == 'sns':
@@ -42,14 +46,12 @@ while(True):
 			if str(match) == curMatch:
 				scoutSentData.append(scout)
 		control = [str(x) for x in range(1, 19)]
-		for item in control:
-			if item not in scoutSentData:
-				scoutNotSentData.append(item)
+		for scout in control:
+			if scout not in scoutSentData:
+				scoutNotSentData.append(scout)
 		scoutNotSent = ''
-		for scout in scoutNotSentData: 
-			scoutNotSentUpdated += scout
-		if scoutNotSent != scoutNotSentData:
-			print('Scouts that have not inputted data in match', str(curMatch), '-', scoutNotSentUpdated)
+		if scoutNotSentData != scoutNotSent:
+			print('Scouts that have not inputted data in match:' + str(curMatch) + '-' + scoutNotSentData)
 		else:
 			print('All scouts have sent data.')
 	elif cmd[0] == 'test':
@@ -57,7 +59,6 @@ while(True):
 	elif cmd[0] == 'help':
 		print('exp [timdall/teamall] - Tries to export')
 		print('sns - Prints the scouts that haven\'t sent for current match')
-		print('test - prints Test Completed.')
+		print('test - Prints Test Completed.')
 	else:
-		print("'" + str(cmd[0]) + "'" + ' is not a valid function. Type help for help.')
-	time.sleep(1)
+		print('\'' + str(cmd[0]) + '\' is not a valid function. Type help for help.')
