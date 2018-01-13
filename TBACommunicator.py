@@ -41,3 +41,13 @@ class TBACommunicator(object):
 	def TBAIsBehind(self, matches):
 		TBACompletedMatches = len(filter(lambda m: m['comp_level'] == 'qm' and m['score_breakdown'], self.makeEventMatchesRequest()))
 		return abs(len(matches) - TBACompletedMatches) >= 3
+
+	def getSurrogateTIMDsFromFirebase(self):
+		surrogateTIMDs = {}
+		for match in self.makeEventMatchesRequest():
+			if match['alliances']['blue']['surrogate_team_keys'] != [] or match['alliances']['red']['surrogate_team_keys'] != []:
+				surrogateTIMDs[str(match['match_number'])] = match['alliances']['blue']['surrogate_team_keys'] + match['alliances']['red']['surrogate_team_keys']
+		for match in surrogateTIMDs:  
+			for team in surrogateTIMDs[match]:
+				surrogateTIMDs[match][surrogateTIMDs[match].index(team)] = team[3:]
+		return surrogateTIMDs

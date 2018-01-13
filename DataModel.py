@@ -28,81 +28,60 @@ class CalculatedTeamData(object):
 	def __init__(self, **args):
 		#initializes actual calculated team data
 		super(CalculatedTeamData, self).__init__()
-		self.firstPickAbility = None
-		self.disabledPercentage = None
-		self.incapacitatedPercentage = None
-		self.predictedSeed = None
-		self.actualSeed = None
-		self.predictedNumRPs = None
-		self.actualNumRPs = None
-		self.avgHighShotsTele = None
-		self.avgLowShotsTele = None
-		self.avgHighShotsAuto = None
-		self.avgLowShotsAuto = None
-		self.avgGearsPlacedAuto = None
-		self.avgGearsPlacedTele = None
-		self.avgGearsEjectedTele = None
-		self.avgGearsFumbledTele = None
-		self.avgGearLoaderIntakesTele = None
-		self.avgGearGroundIntakesTele = None
-		self.avgGearsPlacedByLiftAuto =  {
-			'allianceWall' : None,
-			'hpStation' : None,
-			'boiler' : None
-		}
-		self.avgGearsPlacedByLiftTele =  {
-			'allianceWall' : None,
-			'hpStation' : None,
-			'boiler' : None
-		}
-		self.avgHoppersOpenedAuto = None
-		self.avgHoppersOpenedTele = None
-		self.avgLiftoffTime = None
-		self.sdGearsPlacedTele = None
-		self.sdGearsPlacedAuto = None
-		self.sdHighShotsAuto = None
-		self.sdHighShotsTele = None
-		self.sdLowShotsAuto = None
-		self.sdLowShotsTele = None
-		self.avgKeyShotTime = None
-		self.avgHopperShotTime = None
-		self.avgAgility = None
-		self.avgSpeed = None
-		self.avgBallControl = None
-		self.avgGearControl = None
-		self.avgDefense = None
-		self.avgDrivingAbility = None
-		self.liftoffAbility = None
-		self.sdLiftoffAbility = None
-		self.liftoffPercentage = None
-		self.disfunctionalPercentage = None
-		self.firstPickRotorBonusChance = None
-		self.autoShootingPositions = None
-		self.gearScoringPositionsAuto = None
-		self.RScoreAgility = None
-		self.RScoreDefense = None
-		self.RScoreSpeed = None
-		self.RScoreBallControl = None
-		self.RScoreGearControl = None
-		self.RScoreDrivingAbility = None
-		self.allRotorsAbility = None
-		self.lfmDisabledPercentage = None
-		self.lfmIncapacitatedPercentage = None
-		self.lfmAvgGearsPlacedAuto = None
-		self.lfmAvgHighShotsAuto = None
-		self.lfmAvgLowShotsAuto = None
-		self.lfmAvgGearsPlacedTele = None
-		self.lfmAvgGearLoaderIntakesTele = None
-		self.lfmAvgHighShotsTele = None
-		self.lfmAvgLowShotsTele = None
-		self.lfmAvgKeyShotTime = None
-		self.lfmAvgLiftoffTime = None
-		self.lfmLiftoffPercentage = None
-		self.lfmAvgAgility = None
-		self.lfmAvgSpeed = None
-		self.lfmAvgBallControl = None
-		self.lfmAvgGearControl = None
-		self.lfmAvgDefense = None
+		self.firstPickAbility = None #Float
+		self.secondPickAbility = None #Float
+		self.disabledPercentage = None #Float
+		self.incapacitatedPercentage = None #Float
+		self.avgNumRedPlatformIntakeAuto = None #Int
+		self.avgNumBluePlatformIntakeAuto = None #Int CHANGED
+		self.avgNumPyramidIntakeAuto = None #Int
+		self.avgNumCubesFumbledAuto = None #Int
+		self.avgNumCubesFumbledTele = None #Int
+		self.avgNumPyramidIntakeTele = None #Int
+		self.avgNumRedPlatformIntakeTele = None #Int
+		self.avgNumBluePlatformIntakeTele = None #Int
+		self.avgNumGroundIntakeTele = None #Int
+		self.avgNumPortalIntakeTele = { #CHANGED
+			'groundIntake' : None, #Float
+			'humanIntake' : None #Float
+		} 
+		self.avgNumExchangeInputTele = None #Int
+		self.avgNumReturnIntakeTele = None #Int
+		self.avgCubesSpilledAuto = None #Int
+		self.avgCubesSpilledTele = None #Int
+		self.avgAgility = None #Float
+		self.avgSpeed = None #Float
+		self.avgDefense = None #Float
+		self.avgStacking = None #Float CHANGED
+		self.avgDrivingAbility = None #Float
+		self.lfmAvgNumRedPlatformIntakeAuto = None #Float
+		self.lfmAvgNumBluePlatformIntakeAuto = None #Float
+		self.lfmAvgNumPyramidIntakeAuto = None #Float
+		self.lfmAvgNumPyramidIntakeTele = None #Float
+		self.lfmAvgNumCubesFumbledAuto = None #Float
+		self.lfmAvgNumCubesFumbledTele = None #Float
+		self.lfmAvgNumRedPlatformIntakeTele = None #Float
+		self.lfmAvgNumBluePlatformIntakeTele = None #Float
+		self.lfmAvgNumGroundIntakeTele = None #Float
+		self.lfmAvgNumPortalIntakeTele = {
+			'groundIntake' : None, #Float
+			'humanIntake' : None #Float
+		} 
+		self.lfmAvgNumExchangeInputTele = None #Float
+		self.lfmAvgNumReturnIntakeTele = None #Float
+		self.lfmAvgCubesSpilledAuto = None #Float
+		self.lfmAvgCubesSpilledTele = None #Float
+		self.lfmAvgSpeed = None #Float
+		self.lfmAvgDefense = None #Float
+		self.lfmAvgAgility = None #Float
+		self.lfmAvgDrivingAbility = None #Float
+		self.lfmAvgStacking = None #Float CHANGED
+		self.predictedClimb = None #Float CHANGED
+		self.predictedNumBlueSwitchCubesAuto = None #Int CHANGED
+		self.predictedNumRedSwitchCubesAuto = None #Int CHANGED
+		self.predictedNumScaleCubesAuto = None #Int CHANGED
+		self.actualNumRPs = None #Float
+		self.predictedNumRPs = None #Float
 		self.__dict__.update(args) #DON'T DELETE THIS FOR ANY CLASS
 
 class Team(object):
@@ -110,16 +89,20 @@ class Team(object):
 	def __init__(self, **args):
 		#initializes variables for each team
 		super(Team, self).__init__()
-		self.name = None
-		self.number = None
+		self.name = None #String
+		self.number = None #Int
 		self.calculatedData = CalculatedTeamData()
-		self.numMatchesPlayed = None
-		self.pitSelectedImageName = None
-		self.pitAllImageURLs = {}
-		self.pitAvailableWeight = None
-		self.pitDriveTrain = None
-		self.pitCheesecake = None
-		self.pitProgrammingLanguage = None
+		self.numMatchesPlayed = None #Int
+		self.pitSelectedImageName = None #String
+		self.pitAllImageURLs = {} #String
+		self.pitAvailableWeight = None #Int
+		self.pitDriveTrain = None #String
+		self.pitImageKeys = {} #String CHANGED
+		self.pitDidDemonstrateCheesecakePotential = None #Bool
+		self.pitSEALSnotes = None #String
+		self.pitProgrammingLanguage = None #String
+		self.pitClimberType = None #String
+		self.pitMaxHeight = None #Probably Int, maybe float
 		self.__dict__.update(args)
 
 class CalculatedMatchData(object):
@@ -127,20 +110,16 @@ class CalculatedMatchData(object):
 	def __init__(self, **args):
 		#initializes actual calculated match data
 		super(CalculatedMatchData, self).__init__()
-		self.predictedRedScore = None
-		self.predictedBlueScore = None
-		self.sdPredictedRedScore = None
-		self.sdPredictedBlueScore = None
-		self.redWinChance = None
-		self.blueWinChance = None
-		self.predictedBlueRPs = None
-		self.actualBlueRPs = None
-		self.predictedRedRPs = None
-		self.actualRedRPs = None
-		self.fortyKilopascalChanceRed = None
-		self.fortyKilopascalChanceBlue = None
-		self.allRotorsTurningChanceRed = None
-		self.allRotorsTurningChanceBlue = None
+		self.predictedBlueScore = None #Float
+		self.predictedRedScore = None #Float
+		self.predictedBlueRPs = None #Float
+		self.actualBlueRPs = None #Int
+		self.predictedRedRPs = None #Float
+		self.actualRedRPs = None #Int
+		self.predictedBlueAutoQuest = None #Bool
+		self.predictedRedAutoQuest = None #Bool
+		self.redWinChance = None #Float
+		self.blueWinChance = None #Float
 		self.__dict__.update(args)
 
 
@@ -149,21 +128,50 @@ class Match(object):
 	def __init__(self, **args):
 		#initializes match object
 		super(Match, self).__init__()
-		self.number = None
+		self.number = None #Int
 		self.calculatedData = CalculatedMatchData()
-		self.redAllianceTeamNumbers = None
-		self.blueAllianceTeamNumbers = None
-		self.numRotorsSpinningRedAuto = None
-		self.numRotorsSpinningRedTele = None
-		self.numRotorsSpinningBlueAuto = None
-		self.numRotorsSpinningBlueTele = None
-		self.blueDidStartAllRotors = None
-		self.redDidReachFortyKilopascals = None
-		self.blueDidReachFortyKilopascals = None
-		self.redScore = None
-		self.blueScore = None
-		self.foulPointsGainedRed = None
-		self.foulPointsGainedBlue = None
+		self.redAllianceTeamNumbers = None #Strings in a list
+		self.blueAllianceTeamNumbers = None #Strings in a list
+		self.blueCubesForPowerup = {
+			'Boost' : None, #Int
+			'Force' : None, #Int
+			'Levitate' : None #Int
+		}
+		self.blueCubesInVaultFinal = {
+			'Boost' : None, #Int
+			'Force' : None, #Int
+			'Levitate' : None #Int
+		}
+		self.blueDidAutoQuest = None #Bool
+		self.blueDidFaceBoss = None #Bool
+		self.blueSwitch = {
+			'left' : None, #String
+			'right' : None #String
+		}
+		self.redCubesForPowerup = {
+			'Boost' : None, #Int
+			'Force' : None, #Int
+			'Levitate' : None #Int
+		}
+		self.redCubesInVaultFinal = {
+			'Boost' : None, #Int
+			'Force' : None, #Int
+			'Levitate' : None #Int
+		}
+		self.redDidAutoQuest = None #Bool
+		self.redDidFaceBoss = None #Bool
+		self.redSwitch = {
+			'left' : None, #String
+			'right' : None #String
+		}
+		self.scale = {
+			'left' : None, #String
+			'right' : None #String
+		}
+		self.redScore = None #Int
+		self.blueScore = None #Int
+		self.foulPointsGainedRed = None #Int
+		self.foulPointsGainedBlue = None #Int
 		self.__dict__.update(args)
 
 class CalculatedTeamInMatchData(object):
@@ -171,19 +179,31 @@ class CalculatedTeamInMatchData(object):
 	def __init__(self, **args):
 		#initializes actual CalculatedTIMDs
 		super(CalculatedTeamInMatchData, self).__init__()
-		self.numRPs = None
-		self.liftoffAbility = None
-		self.numHighShotsTele = None
-		self.numHighShotsAuto = None
-		self.numLowShotsTele = None
-		self.numLowShotsAuto = None
-		self.numGearsPlacedTele = None
-		self.numGearsPlacedAuto = None
-		self.wasDisfunctional = None
-		self.avgKeyShotTime = None
-		self.avgHopperShotTime = None
-		self.drivingAbility = None
-		self.disfunctionalPercentage = None
+		self.numRPs = None #Int
+		self.numRedSwitchSuccessAuto = None #Int
+		self.numRedSwitchSuccessTele = None #Int
+		self.numRedSwitchFailedAuto = None #Int
+		self.numRedSwitchFailedTele = None #Int
+		self.numBlueSwitchSuccessAuto = None #Int
+		self.numBlueSwitchSuccessTele = None #Int
+		self.numBlueSwitchFailedAuto = None #Int
+		self.numBlueSwitchFailedTele = None #Int
+		self.numScaleSuccessAuto = None #Int
+		self.numScaleFailedAuto = None #Int
+		self.numScaleSuccessTele = None #Int
+		self.numScaleFailedTele = None #Int
+		self.avgRedSwitchTimeTele = None #Float
+		self.avgBlueSwitchTimeTele = None #Float
+		self.avgScaleTimeAuto = None #Float
+		self.avgRedSwitchTimeAuto = None #Float
+		self.avgBlueSwitchTimeAuto = None #Float
+		self.avgScaleTimeTele = None #Float
+		self.numCubesPlacedAuto = None #Int
+		self.numCubesPlacedTele = None #Int
+		self.numClimbAttempts = None #Int
+		self.isDysfunctional = None #Bool
+		self.drivingAbility = None #Float probably
+		self.didConflictWithAuto = None #Bool
 		self.__dict__.update(args)
 
 class TeamInMatchData(object):
@@ -192,61 +212,113 @@ class TeamInMatchData(object):
 		#initializes actual TIMDs
 		super(TeamInMatchData, self).__init__()
 		self.calculatedData = CalculatedTeamInMatchData()
-		self.teamNumber = None
-		self.matchNumber = None
-		self.scoutName = None
-		self.superNotes = None
-		self.numHoppersUsedTele = None
-		self.numGroundGearIntakesTele = None
-		self.numHumanGearIntakesTele = None
-		self.numGearsEjectedTele = None
-		self.numGearsFumbledTele = None
-		self.numHoppersUsedAuto = None
-		self.didLiftoff = None
-		self.liftoffTime = None
-		self.didStartDisabled = None
-		self.didBecomeIncapacitated = None
-		self.rankSpeed = None
-		self.rankAgility = None
-		self.rankGearControl = None
-		self.rankBallControl = None
-		self.rankDefense = None
-		self.gearsPlacedByLiftAuto = {
-			'allianceWall' : None,
-			'hpStation' : None,
-			'boiler' : None
+		self.teamNumber = None #Int 
+		self.matchNumber = None #Int
+		self.scoutName = None #String
+		self.superNotes = None #String
+		self.blueSwitchAttemptAuto = [
+			{
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None #Float
+			}
+		]
+		self.blueSwitchAttemptTele = [
+			{
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None #Float
+			}
+		]
+		self.climb = {
+			'passiveLift' : {
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None #Float
+			},
+			'assistedLift' : {
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None #Float
+			},
+			'activeLift' : {
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None, #Float
+				'liftingPartner' : {
+					'liftType' : None
+				}
+			},
+			'climb' : {
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None #Float
+			}
+		}		
+		self.didGetDisabled = None #Bool
+		self.didGetIncapacitated = None #Bool
+		self.didMakeAutoRun = None #Bool
+		self.didPark = None #Bool
+		self.numBadDecisions = None #Int
+		self.numBluePlatformIntakeAuto = [] #List of Int
+		self.numBluePlatformIntakeTele = [] #List of Int
+		self.numCubesFumbledAuto = None #Int
+		self.numCubesFumbledTele = None #Int
+		self.numExchangeInput = None #Int
+		self.numGoodDecisions = None #Int
+		self.numGroundIntakeTele = None #Int
+		self.numPortalIntakeTele = { 
+			'groundIntake' : None, #Int
+			'humanIntake' : None #Int
 		}
-		self.gearsPlacedByLiftTele = {
-			'allianceWall' : None,
-			'hpStation' : None,
-			'boiler' : None
+		self.numPyramidIntakeAuto = {
+			'groundLevel' : None, #Int
+			'elevatedLevel' : None #Int
 		}
-		self.highShotTimesForBoilerAuto = [
+		self.numPyramidIntakeTele = {
+			'groundLevel' : None, #Int
+			'elevatedLevel' : None #Int
+		}
+		self.numRedPlatformIntakeAuto = [] #List of Int
+		self.numRedPlatformIntakeTele = [] #List of Int
+		self.numReturnIntake = None #Int
+		self.numSpilledCubesAuto = None #Int
+		self.numSpilledCubesTele = None #Int
+		self.rankAgility = None #Int
+		self.rankDefense = None #Int
+		self.rankSpeed = None #Int
+		self.rankStacking = None #Int
+		self.startingPosition = None #String 'left' 'right' or 'center' CHANGED
+		self.redSwitchAttemptAuto = [
 			{
-				'time' : None,
-				'numShots' : None,
-				'position' : None
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None #Float
 			}
 		]
-		self.lowShotTimesForBoilerAuto = [
+		self.redSwitchAttemptTele = [
 			{
-				'time' : None,
-				'numShots' : None,
-				'position' : None
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None #Float
 			}
 		]
-		self.highShotTimesForBoilerTele = [
+		self.scaleAttemptAuto = [
 			{
-				'time' : None,
-				'numShots' : None,
-				'position' : None
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None, #Float
+				'status' : None, #String
+				'layer' : None #Int
 			}
 		]
-		self.lowShotTimesForBoilerTele = [
+		self.scaleAttemptTele = [
 			{
-				'time' : None,
-				'numShots' : None,
-				'position' : None
+				'didSucceed' : None, #Bool
+				'startTime' : None, #Float
+				'endTime' : None, #Float
+				'status' : None, #String
+				'layer' : None #Int
 			}
 		]
 		self.__dict__.update(args)

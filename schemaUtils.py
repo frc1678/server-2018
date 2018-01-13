@@ -1,7 +1,6 @@
 #Last Updated: 1/4/18
 import DataModel
 import pdb
-from TBACommunicator import TBACommunicator
 
 class SchemaUtils(object):
     '''docstring for SchemaUtils'''
@@ -81,6 +80,9 @@ class SchemaUtils(object):
     def getTIMDsForMatch(self, match):
         return filter(lambda t: t.matchNumber == match.number, self.comp.TIMDs)
 
+    def getTIMDForTeamAndMatch(self, team, match):
+        return filter(lambda t: (t.matchNumber, t.teamNumber) == (match.number, team.number), self.comp.TIMDs)
+           
     def getCompletedTIMDsForTeam(self, team):
         return filter(self.timdIsCompleted, self.getTIMDsForTeam(team))
 
@@ -110,23 +112,3 @@ class SchemaUtils(object):
 
     def retrieveCompletedTIMDsForTeam(self, team):
         return self.getCompletedTIMDsForTeam(team)
-
-    def findSurrogates(self):
-        tbac = TBACommunicator()
-        tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
-        surrogateTeamKeys = []
-        surrogateTeamNumbers = []
-        surrogateMatchNumbers = []
-        for TIMD in tempTIMDs:
-            teamKey = 'frc' + ((tempTIMDs.child(TIMD).get().key()).split('-')[0]).split['Q'][0]
-            matchStuffs = tbac.makeEventMatchesRequest().items()
-            for k, v in matchStuffs:
-                if 'match_number' in k:
-                    surrogateMatchNumbers.append(str(v))
-                elif 'surrogate_team_keys' in k:
-                    surrogateTeamKeys += v
-        for key in surrogateTeamKeys:
-            key = key[3:]
-            surrogateTeamNumbers.append(key)
-
-        return surrogateTeamNumbers, surrogateMatchNumbers
