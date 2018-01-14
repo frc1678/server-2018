@@ -142,18 +142,24 @@ class Calculator(object):
         autoLowShots = sum(map(lambda v: (v.get('numShots') or 0), timd.lowShotTimesForBoilerAuto)) / 3.0
         return sum([teleHighShots, autoHighShots, teleLowShots, autoLowShots])
 
-    def weightFuelShotsForDataPoint(self, timd, match, boilerPoint, shotKey):
-        timds = self.su.getCompletedTIMDsForMatchForAllianceIsRed(match, timd.teamNumber in match.redAllianceTeamNumbers)
-        try:
-            tbam = filter(lambda m: m['match_number'] == match.number, self.cachedComp.TBAMatches)[0]
-            alliance = 'red' if timd.teamNumber in match.redAllianceTeamNumbers else 'blue'
-            actualFuel = tbam['scorebreakdown'][alliance][boilerPoint]
-            scoutedFuel = sum(map(lambda timd: self.fieldsForShot(timd, boilerPoint), timds))
-        except:
-            actualFuel = self.getShotPointsForMatchForAlliance(timds, timd.teamNumber in match.redAllianceTeamNumbers, match)
-            scoutedFuel = sum(map(lambda t: self.fieldsForShots(t), timds))
-        weightage = float(actualFuel) / scoutedFuel if scoutedFuel > 0 else None
-        return sum(map(lambda v: (v.get('numShots') or 0), shotKey)) * weightage if weightage != None and weightage > 0 else 0
+    # ADDED in 2018
+    def checkAutoForConflict(self):
+        # Need to know our AUTOs first
+        return None
+
+    # ADDED in 2018
+    def getClimbAttempts(self, climbData):
+        return len([climbAttempt['didSucceed'] for climbType in climbData for climbAttempt in climbData[climbType] if climbType != 'activeLift' and climbAttempt['didSucceed'] != None])
+            
+    # ADDED in 2018
+    def getClimbTime(self):
+        times = sorted([climbAttempt[climbAttemptTag] for climbType in climbData for climbAttempt in climbData[climbType] for climbAttemptTag in climbAttempt if climbType != 'activeLift' and climbAttempt['didSucceed']!=None and (climbAttemptTag =='startTime' or climbAttemptTag=='endTime')])
+        return (times[-1] - times[0])
+
+    # ADDED in 2018
+    def getDrivingAbility(self):
+        # Need to determine how driving ability is calculated
+        return None
 
     def getShotPointsForMatchForAlliance(self, timds, allianceIsRed, match):
         baselinePts = 5 * sum(map(lambda t: True, timds))
@@ -163,11 +169,19 @@ class Calculator(object):
         fuel = fields[0] - fields[4] - gearPts - 15 - liftoffPts if None not in [fields[0], fields[4]] else None
         return fuel
 
+    # ADDED in 2018
+    def getTotatAttemptsForValueListDicts(self, success, listDicts):
+        return len([attempt['didSucceed'] for attempt in listDicts if attempt['didSucceed'] == success])
+
     def getTotalAverageShotPointsForTeam(self, team):
         return sum([(team.calculatedData.avgHighShotsTele or 0) / 3.0, (team.calculatedData.avgLowShotsTele or 0) / 9.0, team.calculatedData.avgHighShotsAuto or 0, (team.calculatedData.avgLowShotsAuto or 0) / 3.0])
 
     def getTotalAverageRecentShotPointsForTeam(self, team):
         return sum([(team.calculatedData.lfmAvgHighShotsTele or 0) / 3.0, (team.calculatedData.lfmAvgLowShotsTele or 0) / 9.0, team.calculatedData.lfmAvgHighShotsAuto or 0, (team.calculatedData.lfmAvgLowShotsAuto or 0) / 3.0])
+
+    # ADDED in 2018
+    def getTotalSuccessForListListDicts(self, listListDicts):
+        return sum([ len([attempt['didSucceed'] for attempt in listDicts if attempt['didSucceed'] == True]) for listDicts in listListDicts ])
 
     def getStandardDevShotPointsForTeam(self, team):
         return utils.sumStdDevs([(team.calculatedData.sdHighShotsTele or 0) / 3.0, (team.calculatedData.sdLowShotsTele or 0) / 9.0, (team.calculatedData.sdHighShotsAuto or 0), (team.calculatedData.sdLowShotsAuto or 0) / 3.0])
@@ -176,23 +190,22 @@ class Calculator(object):
         shots = timd.highShotTimesForBoilerTele + timd.highShotTimesForBoilerAuto + timd.lowShotTimesForBoilerAuto + timd.lowShotTimesForBoilerTele
         return filter(lambda v: v.get('position') == key, shots)
 
-    def getAvgKeyShotTimeForTIMD(self, timd, key):
-        return np.mean(map(lambda t: (t.get('time') or 0), self.getAllBoilerFieldsForKey(timd, key))) if self.getAllBoilerFieldsForKey(timd, key) else None
-
     def getTotalAverageShotPointsForAlliance(self, alliance):
         return sum(map(self.getTotalAverageShotPointsForTeam, alliance))
 
     def getStandardDevShotPointsForAlliance(self, alliance):
         return self.standardDeviationForRetrievalFunctionForAlliance(self.getStandardDevShotPointsForTeam, alliance)
 
+    # ADDED in 2018
+    def getAvgSuccessTimeForListDicts(listDicts):
+        valuesList = [(attempt['endTime']-attempt['startTime']) for attempt in listDicts if attempt['didSucceed'] == True]
+        return sum(valuesList)/float(len(valuesList))
+
     def getAutoShootingPositions(self, team):
         timds = self.su.getCompletedTIMDsForTeam(team)
         return list(set([d.get('position') for timd in timds for d in timd.highShotTimesForBoilerAuto + timd.lowShotTimesForBoilerAuto]))
 
     #GEARS DATA
-    def getTotalValueForValueDict(self, valueDict):
-        return sum(filter(lambda v: v, valueDict.values()))
-
     def getAvgFuncForKeys(self, team, dic, retrievalFunction):
         timds = self.su.getCompletedTIMDsForTeam(team)
         getAvgForKey = lambda t: np.mean(map(lambda tm: (retrievalFunction(tm).get(t) or 0), timds))
@@ -249,11 +262,6 @@ class Calculator(object):
         #R Score: Method of testing college students academically in Quebec which we use for team and robot abilities
         #http://www.goforaplus.com/en/understanding-r-score/
         #R Score = (Z Score + ISG + C) * D       (ISG = Indicator of Group Strength, C & D are constants)
-
-    def liftoffAbilityForTIMD(self, timd):
-        team = self.su.getTeamForNumber(timd.teamNumber)
-        index = sorted(self.su.getTIMDsForTeam(team), key = lambda t: t.matchNumber).index(timd)
-        return 50 * timd.didLiftoff 
 
     #Gets Z-score for each super data point for all teams
     def rValuesForAverageFunctionForDict(self, averageFunction, d):
