@@ -12,7 +12,6 @@ from CrashReporter import reportServerCrash
 import dataChecker
 import scoutRotator
 import scheduleUpdater
-import APNServer
 import pprint
 
 PBC = firebaseCommunicator.PyrebaseCommunicator()
