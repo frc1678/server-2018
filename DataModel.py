@@ -32,16 +32,16 @@ class CalculatedTeamData(object):
 		self.secondPickAbility = None #Float
 		self.disabledPercentage = None #Float
 		self.incapacitatedPercentage = None #Float
-		self.avgNumRedPlatformIntakeAuto = None #Int
-		self.avgNumBluePlatformIntakeAuto = None #Int CHANGED
+		self.avgNumOpponentPlatformIntakeAuto = None #Int
+		self.avgNumAlliancePlatformIntakeAuto = None #Int CHANGED
 		self.avgNumGroundPyramidIntakeAuto = None #Int
 		self.avgNumElevatedPyramidIntakeAuto = None #Int
 		self.avgNumCubesFumbledAuto = None #Int
 		self.avgNumCubesFumbledTele = None #Int
 		self.avgNumGroundPyramidIntakeTele = None #Int
 		self.avgNumElevatedPyramidIntakeTele = None #Int
-		self.avgNumRedPlatformIntakeTele = None #Int
-		self.avgNumBluePlatformIntakeTele = None #Int
+		self.avgNumOpponentPlatformIntakeTele = None #Int
+		self.avgNumAlliancePlatformIntakeTele = None #Int
 		self.avgNumGroundIntakeTele = None #Int
 		self.avgNumGroundPortalIntakeTele = None
 		self.avgNumHumanPortalIntakeTele = None
@@ -60,16 +60,16 @@ class CalculatedTeamData(object):
 		self.avgSpeed = None #Float
 		self.avgDefense = None #Float
 		self.avgDrivingAbility = None #Float
-		self.lfmAvgNumRedPlatformIntakeAuto = None #Float
-		self.lfmAvgNumBluePlatformIntakeAuto = None #Float
+		self.lfmAvgNumOpponentPlatformIntakeAuto = None #Float
+		self.lfmAvgNumAlliancePlatformIntakeAuto = None #Float
 		self.lfmAvgNumGroundPyramidIntakeAuto = None #Float
 		self.lfmAvgNumGroundPyramidIntakeTele = None #Float
 		self.lfmAvgNumElevatedPyramidIntakeAuto = None #Float
 		self.lfmAvgNumElevatedPyramidIntakeTele = None #Float
 		self.lfmAvgNumCubesFumbledAuto = None #Float
 		self.lfmAvgNumCubesFumbledTele = None #Float
-		self.lfmAvgNumRedPlatformIntakeTele = None #Float
-		self.lfmAvgNumBluePlatformIntakeTele = None #Float
+		self.lfmAvgNumOpponentPlatformIntakeTele = None #Float
+		self.lfmAvgNumAlliancePlatformIntakeTele = None #Float
 		self.lfmAvgNumGroundIntakeTele = None #Float
 		self.lfmAvgNumGroundPortalIntakeTele = None #Float
 		self.lfmAvgNumHumanPortalIntakeTele = None #Float
@@ -89,7 +89,7 @@ class CalculatedTeamData(object):
 		self.predictedNumScaleCubesAuto = None #Int CHANGED
 		self.actualNumRPs = None #Float
 		self.predictedNumRPs = None #Float
-		#self.autoRunPercentage = None #Float
+		self.autoRunPercentage = None #Float
 		self.switchFailPercentageAuto = None #Float
 		self.scaleFailPercentageAuto = None #Float
 		self.switchFailPercentageTele = None #Float
@@ -203,7 +203,7 @@ class CalculatedTeamInMatchData(object):
 		self.numOpponentSwitchFailedTele = None #Int
 		self.numScaleSuccessAuto = None #Int
 		self.numScaleFailedAuto = None #Int
-		self.numScaleSuccessTele = None #Int
+		self.numScaleSuccessTele = None #numReturnIntake
 		self.numScaleFailedTele = None #Int
 		self.climbTime = None #Float
 		self.avgAllianceSwitchTimeTele = None #Float
@@ -260,10 +260,12 @@ class TeamInMatchData(object):
 				'endTime' : None #Float
 			},
 			'activeLift' : {
-				'didSucceed' : None, #Bool
+				'didSucceed' : None, #Bool 
 				'startTime' : None, #Float
 				'endTime' : None, #Float
-				'liftingPartnerType' : None #String
+				'partnerLiftType' : None, #String
+				'didFailToLift' : None, #Bool
+				'numRobotsLifted' : None #Int
 			},
 			'climb' : {
 				'didSucceed' : None, #Bool
@@ -276,8 +278,8 @@ class TeamInMatchData(object):
 		self.didMakeAutoRun = None #Bool
 		self.didPark = None #Bool
 		self.numBadDecisions = None #Int
-		self.numBluePlatformIntakeAuto = [] #List of Int
-		self.numBluePlatformIntakeTele = [] #List of Int
+		self.numAlliancePlatformIntakeAuto = [] #List of Int
+		self.numAlliancePlatformIntakeTele = [] #List of Int
 		self.numCubesFumbledAuto = None #Int
 		self.numCubesFumbledTele = None #Int
 		self.numExchangeInput = None #Int
@@ -289,8 +291,8 @@ class TeamInMatchData(object):
 		self.numGroundPyramidIntakeTele = None
 		self.numElevatedPyramidIntakeAuto = None
 		self.numElevatedPyramidIntakeTele = None 
-		self.numRedPlatformIntakeAuto = [] #List of Int
-		self.numRedPlatformIntakeTele = [] #List of Int
+		self.numOpponentPlatformIntakeAuto = [] #List of Int
+		self.numOpponentPlatformIntakeTele = [] #List of Int
 		self.numReturnIntake = None #Int
 		self.numSpilledCubesAuto = None #Int
 		self.numSpilledCubesTele = None #Int
