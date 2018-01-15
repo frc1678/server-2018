@@ -1,4 +1,4 @@
-#Last Updated: 1/4/18
+#Last Updated: 1/14/18
 import requests
 import json
 import utils
@@ -18,6 +18,21 @@ class TBACommunicator(object):
 
 	def makeRequest(self, url):
 		return utils.makeASCIIFromJSON(requests.get(url, headers = {self.headerKey: self.headerValue, self.authHeaderKey: self.authCode}).json())
+
+	# Makes request with additional headers, sends back status code, sends back return headers if requested
+	def makeAdvancedRequest(self, url, headers, shouldReturnHeaders):
+		headersDict = {self.headerKey: self.headerValue, self.authHeaderKey: self.authCode}
+		headersDict.update(headers)
+		r = requests.get(url, headers = headersDict)
+		if r.status_code == 200:
+			responseData = utils.makeASCIIFromJSON(r.json())
+		else:
+			return [r.status_code, None, None]
+		return [r.status_code, r.headers, responseData] if shouldReturnHeaders else [r.status_code, None, responseData]
+
+	def makeScheduleUpdaterRequest(self, matchNum, headers):
+		url = self.basicURL + 'match/' + str(self.key) + '_qm' + str(matchNum)
+		return self.makeAdvancedRequest(url, headers, True)
 
 	def makeEventKeyRequestURL(self, key):
 		return self.basicURL + 'event/' + self.key + '/' + key 
