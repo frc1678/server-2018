@@ -1,26 +1,24 @@
-#Last Updated: 8/26/17
-import pyrebase
+#Last Updated: 1/14/18
 import firebaseCommunicator
-import sys
+import TBACommunicator
 
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 fb = PBC.firebase
+tbac = TBACommunicator.TBACommunicator()
 
-def update(data):
-	print(data)
-	#prints and updates schedule on firebase based on the data
-	if data['data'] == None:
-		latest = 1
-	elif data['data'] == 1:
-		keys = map(lambda k: int(k.split('Q')[1].split('-')[0]), fb.child('TempTeamInMatchDatas').shallow().get().each())
-		#makes a list of keys by sorting through every TempTIMD on firebase
-		latest = sorted(keys, reverse = True)[0] + 1
-		#sorts the keys to find the latest
-		fb.child('matchFinished').set(0)
+lastUpdated = None
+
+# Checks current match, updates currentMatchNum 1 (ONE) time when called
+def update():
+	global lastUpdated
+	currentMatchNum = fb.child('currentMatchNum').get().val()
+	if lastUpdated == None:
+		request = tbac.makeScheduleUpdaterRequest(currentMatchNum, {})
 	else:
-		fb.child('currentMatchNum').set(latest)
-		#sets currentMatchNum on firebase
+		request = tbac.makeScheduleUpdaterRequest(currentMatchNum, {'If-Modified-Since':lastUpdated})
+	if request[0] == 200: # Ensures request succeeds
+		lastUpdated = request[1]['Last-Modified']
+		if request[2]['match_number'] > 0:
+			fb.child('currentMatchNum').set(currentMatchNum+1)
+			lastUpdated = None
 
-def scheduleListener():
-	#call after update(), starts an update stream on firebase
-	fb.child('matchFinished').stream(update)
