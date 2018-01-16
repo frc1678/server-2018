@@ -597,7 +597,7 @@ class Calculator(object):
 
     def doCalculations(self, PBC):
         isData = len(self.su.getCompletedTIMDsInCompetition()) > 0
-        if True:
+        if isData:
             startTime = time.time() #Gets time to later calculate time for a server cycle...
             self.cacheTBAMatches()
             threads = [] #Creates an empty list for timds accessible in multiple processes (manager.list)
