@@ -1,4 +1,4 @@
-#Last Updated: 1/4/18
+#Last Updated: 1/15/18
 import DataModel
 import pdb
 
@@ -29,7 +29,7 @@ class SchemaUtils(object):
         return filter(lambda team: len(self.getCompletedMatchesForTeam(team)) > 0, self.comp.teams)
 
     def teamCalculatedDataHasValues(self, calculatedData):
-        return calculatedData.avgHighShotsTele != None
+        return calculatedData.avgClimbTime != None
 
     def replaceWithAverageIfNecessary(self, team):
         return team if team and self.teamCalculatedDataHasValues(team.calculatedData) and len(self.getCompletedMatchesForTeam(team)) > 0 else self.calc.averageTeam
@@ -102,10 +102,10 @@ class SchemaUtils(object):
         return filter(self.timdIsCompleted, self.comp.TIMDs)
 
     def TIMCalculatedDataHasValues(self, calculatedData):
-        return calculatedData.liftoffAbility != None
+        return calculatedData.climbTime != None
 
     def timdIsCompleted(self, timd):
-        return timd.rankSpeed != None and timd.numGroundGearIntakesTele != None
+        return timd.rankDefense != None and timd.numCubesFumbledTele != None
 
     def matchHasValuesSet(self, match):
         return match.redScore != None and match.blueScore != None

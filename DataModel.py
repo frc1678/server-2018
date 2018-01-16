@@ -1,4 +1,4 @@
-#Last Updated: 10/12/17
+#Last Updated: 1/15/17
 import firebaseCommunicator
 import utils
 
@@ -32,28 +32,31 @@ class CalculatedTeamData(object):
 		self.secondPickAbility = None #Float
 		self.disabledPercentage = None #Float
 		self.incapacitatedPercentage = None #Float
-		self.avgNumOpponentPlatformIntakeAuto = None #Int
-		self.avgNumAlliancePlatformIntakeAuto = None #Int CHANGED
-		self.avgNumGroundPyramidIntakeAuto = None #Int
-		self.avgNumElevatedPyramidIntakeAuto = None #Int
-		self.avgNumCubesFumbledAuto = None #Int
-		self.avgNumCubesFumbledTele = None #Int
-		self.avgNumGroundPyramidIntakeTele = None #Int
-		self.avgNumElevatedPyramidIntakeTele = None #Int
-		self.avgNumOpponentPlatformIntakeTele = None #Int
-		self.avgNumAlliancePlatformIntakeTele = None #Int
-		self.avgNumGroundIntakeTele = None #Int
-		self.avgNumGroundPortalIntakeTele = None
-		self.avgNumHumanPortalIntakeTele = None
-		self.avgNumExchangeInputTele = None #Int
-		self.avgNumReturnIntakeTele = None #Int Add Schema Change
-		self.avgCubesSpilledAuto = None #Int
-		self.avgCubesSpilledTele = None #Int
+		self.dysfunctionalPercentage = None #Float
+		self.avgNumOpponentPlatformIntakeAuto = None #Float
+		self.avgNumAlliancePlatformIntakeAuto = None #Float
+		self.avgNumGroundPyramidIntakeAuto = None #Float
+		self.avgNumElevatedPyramidIntakeAuto = None #Float
+		self.avgNumCubesFumbledAuto = None #Float
+		self.avgNumCubesFumbledTele = None #Float
+		self.avgNumGroundPyramidIntakeTele = None #Float
+		self.avgNumElevatedPyramidIntakeTele = None #Float
+		self.avgNumOpponentPlatformIntakeTele = None #Float
+		self.avgNumAlliancePlatformIntakeTele = None #Float
+		self.avgNumGroundIntakeTele = None #Float
+		self.avgNumGroundPortalIntakeTele = None #Float
+		self.avgNumHumanPortalIntakeTele = None #Float
+		self.avgNumExchangeInputTele = None #Float
+		self.avgNumReturnIntakeTele = None #Float
+		self.avgCubesSpilledAuto = None #Float
+		self.avgCubesSpilledTele = None #Float
 		self.avgCubesPlacedInScaleAuto = None #Float
-		self.avgCubesPlacedInSwitchAuto = None #Float
 		self.avgCubesPlacedInScaleTele = None #Float
-		self.avgCubesPlacedInSwitchTele = None #Float
-		self.avgNumGoodDecicions = None #Float
+		self.avgOpponentSwitchCubesAuto = None #Float
+		self.avgOpponentSwitchCubesTele = None #Float
+		self.avgAllianceSwitchCubesAuto = None #Float
+		self.avgAllianceSwitchCubesTele = None #Float
+		self.avgNumGoodDecisions = None #Float
 		self.avgNumBadDecisions = None #Float
 		self.avgClimbTime = None #Float
 		self.avgAgility = None #Float
@@ -79,14 +82,30 @@ class CalculatedTeamData(object):
 		self.lfmAvgNumBadDecisions = None #Float
 		self.lfmAvgCubesSpilledAuto = None #Float
 		self.lfmAvgCubesSpilledTele = None #Float
+		self.lfmAvgCubesPlacedInScaleAuto = None #Float
+		self.lfmAvgCubesPlacedInScaleTele = None #Float
+		self.lfmAvgOpponentSwitchCubesAuto = None #Float
+		self.lfmAvgOpponentSwitchCubesTele = None #Float
+		self.lfmAvgAllianceSwitchCubesAuto = None #Float
+		self.lfmAvgAllianceSwitchCubesTele = None #Float
 		self.lfmAvgSpeed = None #Float
 		self.lfmAvgDefense = None #Float
 		self.lfmAvgAgility = None #Float
 		self.lfmAvgDrivingAbility = None #Float
+		self.totalNumGoodDecisions = None #Int
+		self.totalNumBadDecisions = None #Int
+		self.totalNumParks = None #Int
+		self.totalNumRobotsLifted = None #Int
+		self.totalNumRobotLiftAttempts = None #Int
+		self.totalNumRobotsGroundLifted = None #Int
+		self.totalNumRobotGroundLiftAttempts = None #Int
+		self.numSuccessfulClimbs = None #Int
 		self.predictedClimb = None #Float CHANGED
 		self.climbPercentage = None #Float
-		self.predictedNumAllianceSwitchCubesAuto = None #Int CHANGED
-		self.predictedNumScaleCubesAuto = None #Int CHANGED
+		self.predictedSeed = None #Int
+		self.actualSeed = None #Int
+		self.predictedNumAllianceSwitchCubesAuto = None #Float CHANGED
+		self.predictedNumScaleCubesAuto = None #Float CHANGED
 		self.actualNumRPs = None #Float
 		self.predictedNumRPs = None #Float
 		self.autoRunPercentage = None #Float
@@ -116,6 +135,7 @@ class Team(object):
 		self.pitProgrammingLanguage = None #String
 		self.pitClimberType = None #String
 		self.pitMaxHeight = None #Probably Int, maybe float
+		self.pitAutoRunTime = None #Float
 		self.__dict__.update(args)
 
 class CalculatedMatchData(object):
@@ -211,6 +231,10 @@ class CalculatedTeamInMatchData(object):
 		self.avgScaleTimeAuto = None #Float
 		self.avgAllianceSwitchTimeAuto = None #Float
 		self.avgOpponentSwitchTimeAuto = None #Float
+		self.numOpponentPlatformIntakeAuto = None #Int
+		self.numOpponentPlatformIntakeTele = None #Int
+		self.numAlliancePlatformIntakeAuto = None #Int
+		self.numAlliancePlatformIntakeTele = None #Int
 		self.avgScaleTimeTele = None #Float
 		self.numCubesPlacedAuto = None #Int
 		self.numCubesPlacedTele = None #Int
@@ -248,7 +272,7 @@ class TeamInMatchData(object):
 				'layer' : None #Int
 			}
 		]
-		self.climb = {
+		self.climb = [ {
 			'passiveLift' : {
 				'didSucceed' : None, #Bool
 				'startTime' : None, #Float
@@ -261,6 +285,7 @@ class TeamInMatchData(object):
 			},
 			'activeLift' : {
 				'didSucceed' : None, #Bool 
+				'didClimb' : None, #Bool
 				'startTime' : None, #Float
 				'endTime' : None, #Float
 				'partnerLiftType' : None, #String
@@ -272,18 +297,21 @@ class TeamInMatchData(object):
 				'startTime' : None, #Float
 				'endTime' : None #Float
 			}
-		}		
+		} ]		
 		self.didGetDisabled = None #Bool
 		self.didGetIncapacitated = None #Bool
 		self.didMakeAutoRun = None #Bool
 		self.didPark = None #Bool
+		self.numGoodDecisions = None #Int
 		self.numBadDecisions = None #Int
-		self.numAlliancePlatformIntakeAuto = [] #List of Int
-		self.numAlliancePlatformIntakeTele = [] #List of Int
+		self.didCrossAutoZone = None #Bool
+		self.alliancePlatformIntakeAuto = [] #List of Int
+		self.alliancePlatformIntakeTele = [] #List of Int
+		self.opponentPlatformIntakeAuto = [] #List of Int
+		self.opponentPlatformIntakeTele = [] #List of Int
 		self.numCubesFumbledAuto = None #Int
 		self.numCubesFumbledTele = None #Int
 		self.numExchangeInput = None #Int
-		self.numGoodDecisions = None #Int
 		self.numGroundIntakeTele = None #Int
 		self.numGroundPortalIntakeTele = None #Int
 		self.numHumanPortalIntakeTele = None #Int
@@ -291,8 +319,6 @@ class TeamInMatchData(object):
 		self.numGroundPyramidIntakeTele = None
 		self.numElevatedPyramidIntakeAuto = None
 		self.numElevatedPyramidIntakeTele = None 
-		self.numOpponentPlatformIntakeAuto = [] #List of Int
-		self.numOpponentPlatformIntakeTele = [] #List of Int
 		self.numReturnIntake = None #Int
 		self.numSpilledCubesAuto = None #Int
 		self.numSpilledCubesTele = None #Int

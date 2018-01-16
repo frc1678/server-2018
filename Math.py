@@ -575,6 +575,7 @@ class Calculator(object):
         print('> Completed calculations for match ' + str(match.number))
 
     def doFirstTeamCalculations(self):
+        self.comp.updateTIMDsFromFirebase()
         map(self.doFirstCalculationsForTeam, self.comp.teams)
         self.getFirstCalculationsForAverageTeam()
 
@@ -596,7 +597,7 @@ class Calculator(object):
 
     def doCalculations(self, PBC):
         isData = len(self.su.getCompletedTIMDsInCompetition()) > 0
-        if isData:
+        if True:
             startTime = time.time() #Gets time to later calculate time for a server cycle...
             self.cacheTBAMatches()
             threads = [] #Creates an empty list for timds accessible in multiple processes (manager.list)

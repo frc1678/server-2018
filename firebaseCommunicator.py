@@ -11,7 +11,7 @@ class PyrebaseCommunicator(object):
 		super(PyrebaseCommunicator, self).__init__()
 		self.JSONmatches = []
 		self.JSONteams = []
-		self.url = 'testing-so-extreme-it-hurts'
+		self.url = 'scouting-2018-9023a'
 		config = {
 			'apiKey': 'mykey',
 			'authDomain': self.url + '.firebaseapp.com',
