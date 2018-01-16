@@ -1,5 +1,5 @@
 #By Bryton Moeller (2015-2016)
-#Last Updated: 10/5/17
+#Last Updated: 1/15/17
 import sys
 import traceback
 import DataModel
@@ -20,11 +20,9 @@ comp.updateTeamsAndMatchesFromFirebase()
 comp.updateTIMDsFromFirebase()
 calculator = Math.Calculator(comp)
 cycle = 1
-scheduleUpdater.scheduleListener()
 shouldSlack = True
 consolidator = dataChecker.DataChecker()
 consolidator.start()
-APNServer.startNotiStream()
 fb = PBC.firebase
 fb.child('availabilityUpdated').set(0)
 

@@ -575,6 +575,7 @@ class Calculator(object):
         print('> Completed calculations for match ' + str(match.number))
 
     def doFirstTeamCalculations(self):
+        self.comp.updateTIMDsFromFirebase()
         map(self.doFirstCalculationsForTeam, self.comp.teams)
         self.getFirstCalculationsForAverageTeam()
 
