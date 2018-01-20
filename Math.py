@@ -170,7 +170,7 @@ class Calculator(object):
         return fuel
 
     # ADDED in 2018
-    def getTotatAttemptsForValueListDicts(self, success, listDicts):
+    def getTotalAttemptsForValueListDicts(self, success, listDicts):
         return len([attempt['didSucceed'] for attempt in listDicts if attempt['didSucceed'] == success])
 
     def getTotalAverageShotPointsForTeam(self, team):
