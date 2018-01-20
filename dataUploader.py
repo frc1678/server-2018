@@ -338,36 +338,20 @@ for i in range(len(testScouts)):
 	testScoutNums[testScouts[i]] = i + 1
 cm = 1
 mnum = 1
-nnum = 1
-TIMDs = fb.child('TeamInMatchDatas').get().val()
 newTempTIMDs = TempTeamInMatchDatas()
-tempTIMDs = fb.child('tempTeamInMatchDatas').get().val()
-numTempTIMDs = 0
+TIMDs = fb.child('TeamInMatchDatas').get().val()
+#First removes all tempTIMDs from current firebase
 print('Removing old tempTIMDs...')
-time.sleep(0.5)
-for tTIMD in tempTIMDs:
-	numTempTIMDs += 1
-	if numTempTIMDs > 1:
-		fb.child('tempTeamInMatchDatas').child(tTIMD).remove()
-		print('Successfully removed ' + tTIMD + ' | ' + str(nnum))
-		nnum += 1
-time.sleep(1)
-print('Creating and uploading random data...')
+fb.child('TempTeamInMatchDatas').remove()
+print('Successfully removed all tempTIMDs\nCreating and uploading random data...')
+#Uploads the random data
 for TIMD in TIMDs:
 	name = fb.child('TeamInMatchDatas').child(TIMD).get().key()
-	scoutsPerMatch = random.randint(1, 5)
+	scoutsPerMatch = random.randint(1, 3)
 	for num in range(0, scoutsPerMatch):
 		randScout = random.choice(testScouts)
-		fb.child('tempTeamInMatchDatas').child((str(name) + '-' + str(testScoutNums[randScout]))).set(newTempTIMDs.__dict__)
+		fb.child('TempTeamInMatchDatas').child((str(name) + '-' + str(testScoutNums[randScout]))).set(newTempTIMDs.__dict__)
 	print('Created and uploaded a tempTIMD- ' + str(name) + ' | ' + str(mnum))
 	mnum += 1
-	# m = Match(number = cm, redAllianceTeamNumbers = match['redAllianceTeamNumbers'], blueAllianceTeamNumbers = match['blueAllianceTeamNumbers'])
-	# pyrebase.set('/Matches/', str(cm), m.__dict__)
-	# for team in match['redAllianceTeamNumbers'] + match['blueAllianceTeamNumbers']:
-	#	 fb.child('TeamInMatchDatas').child(str(team) + 'Q' + str(match['number'])).set(TeamInMatchData().__dict__)
-	#	 time.sleep(4)
-	# print('Done with match' + str(cm))
-	# cm += 1
-	# time.sleep(20)
 time.sleep(1)
-print('Done with all of the random data.')
+print('Done.')
