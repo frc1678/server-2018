@@ -1,4 +1,4 @@
-#Last Updated: 8/26/17
+#Last Updated: 1/20/17
 import utils
 import DataModel
 import pdb
@@ -27,25 +27,30 @@ def firstCalculationDict(team, calc):
         avgNumGroundPyramidIntakeTele = lambda tm: tm.numGroundPyramidIntakeTele,
         avgNumElevatedPyramidIntakeAuto = lambda tm: tm.numElevatedPyramidIntakeAuto,
         avgNumElevatedPyramidIntakeTele = lambda tm: tm.numElevatedPyramidIntakeTele,
-        avgNumReturnIntake = lambda tm: tm.numReturnIntake,
+        avgNumReturnIntakeTele = lambda tm: tm.numReturnIntake,
         avgCubesSpilledAuto = lambda tm: tm.numSpilledCubesAuto,
         avgCubesSpilledTele = lambda tm: tm.numSpilledCubesTele,
-        avgAgility = lambda tm: tm.rankAgility,
+        avgAgility = lambda tm: tm.rankAgility,    
         avgDefense = lambda tm: tm.rankDefense, 
         avgSpeed = lambda tm: tm.rankSpeed,
         avgDrivingAbility = lambda tm: tm.calculatedData.drivingAbility,
         actualNumRPs = lambda tm: tm.calculatedData.numRPs,
-        avgAllianceSwitchCubesAuto = lambda tm: tm.calculatedData.numAllianceSwitchSuccessAuto,
+        avgAllianceSwitchCubesAuto = lambda tm: tm.calculatedData.numAllianceSwitchSuccessAuto, 
         avgAllianceSwitchCubesTele = lambda tm: tm.calculatedData.numAllianceSwitchSuccessTele,
-        avgOpponentSwitchCubesAuto = lambda tm: tm.calculatedData.numOpponentSwitchSuccessAuto,
         avgOpponentSwitchCubesTele = lambda tm: tm.calculatedData.numOpponentSwitchSuccessTele,
-        avgCubesPlacedInScaleAuto = lambda tm: tm.calculatedData.numScaleSuccessAuto,
+        avgCubesPlacedInScaleAuto = lambda tm: tm.calculatedData.numScaleSuccessAuto,   
         avgCubesPlacedInScaleTele = lambda tm: tm.calculatedData.numScaleSuccessTele,
+        avgScaleTimeAuto = lambda tm: tm.calculatedData.avgScaleTimeAuto,
+        avgScaleTimeTele = lambda tm: tm.calculatedData.avgScaleTimeTele,
+        avgAllianceSwitchTimeAuto = lambda tm: tm.calculatedData.avgAllianceSwitchTimeAuto,
+        avgAllianceSwitchTimeTele = lambda tm: tm.calculatedData.avgAllianceSwitchTimeTele,
+        avgOpponentSwitchTimeTele = lambda tm: tm.calculatedData.avgOpponentSwitchTimeTele,
         avgClimbTime = lambda tm: tm.calculatedData.climbTime,
         disabledPercentage = lambda tm: tm.didGetDisabled,
         incapacitatedPercentage = lambda tm: tm.didGetIncapacitated,
         dysfunctionalPercentage = lambda tm: tm.calculatedData.isDysfunctional,
         autoRunPercentage = lambda tm: tm.didMakeAutoRun,
+        climbPercentage = lambda tm: tm.calculatedData.didClimb,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getRecentAverageForDataFunctionForTeam(team, f),
         lfmAvgNumBadDecisions = lambda tm: tm.numBadDecisions, 
@@ -63,7 +68,7 @@ def firstCalculationDict(team, calc):
         lfmAvgNumGroundPyramidIntakeTele = lambda tm: tm.numGroundPyramidIntakeTele,
         lfmAvgNumElevatedPyramidIntakeAuto = lambda tm: tm.numElevatedPyramidIntakeAuto,
         lfmAvgNumElevatedPyramidIntakeTele = lambda tm: tm.numElevatedPyramidIntakeTele,
-        lfmAvgNumReturnIntake = lambda tm: tm.numReturnIntake,
+        lfmAvgNumReturnIntakeTele = lambda tm: tm.numReturnIntake,
         lfmAvgCubesSpilledAuto = lambda tm: tm.numSpilledCubesAuto,
         lfmAvgCubesSpilledTele = lambda tm: tm.numSpilledCubesTele,
         lfmAvgAgility = lambda tm: tm.rankAgility,
@@ -73,23 +78,31 @@ def firstCalculationDict(team, calc):
         lfmActualNumRPs = lambda tm: tm.calculatedData.numRPs,
         lfmAvgAllianceSwitchCubesAuto = lambda tm: tm.calculatedData.numAllianceSwitchSuccessAuto,
         lfmAvgAllianceSwitchCubesTele = lambda tm: tm.calculatedData.numAllianceSwitchSuccessTele,
-        lfmAvgOpponentSwitchCubesAuto = lambda tm: tm.calculatedData.numOpponentSwitchSuccessAuto,
         lfmAvgOpponentSwitchCubesTele = lambda tm: tm.calculatedData.numOpponentSwitchSuccessTele,
         lfmAvgCubesPlacedInScaleAuto = lambda tm: tm.calculatedData.numScaleSuccessAuto,
         lfmAvgCubesPlacedInScaleTele = lambda tm: tm.calculatedData.numScaleSuccessTele,
+        lfmAvgScaleTimeAuto = lambda tm: tm.calculatedData.avgScaleTimeAuto,
+        lfmAvgScaleTimeTele = lambda tm: tm.calculatedData.avgScaleTimeTele,
+        lfmAvgAllianceSwitchTimeAuto = lambda tm: tm.calculatedData.avgAllianceSwitchTimeAuto,
+        lfmAvgAllianceSwitchTimeTele = lambda tm: tm.calculatedData.avgAllianceSwitchTimeTele,
+        lfmAvgOpponentSwitchTimeTele = lambda tm: tm.calculatedData.avgOpponentSwitchTimeTele,
+        )
+    mapFuncForCalcAvgsForTeam(team, lambda f: calc.getSumForDataFunctionForTeam(team, f),
+        totalNumGoodDecisions = lambda tm: tm.numGoodDecisions,
+        totalNumBadDecisions = lambda tm: tm.numBadDecisions,
+        totalNumParks = lambda tm: tm.didPark,
+        numSuccessfulClimbs = lambda tm: tm.calculatedData.didClimb,
         )
 
 def Rscorecalcs(team, calc):
     cd = team.calculatedData
     cd.RScoreDefense = calc.cachedComp.defenseZScores[team.number]
-    cd.RScoreBallControl = calc.cachedComp.ballControlZScores[team.number]
-    cd.RScoreGearControl = calc.cachedComp.gearControlZScores[team.number]
     cd.RScoreSpeed = calc.cachedComp.speedZScores[team.number]
     cd.RScoreAgility = calc.cachedComp.agilityZScores[team.number]
-    cd.avgDrivingAbility = calc.drivingAbilityForTeam(team)
-    # cd.lfmAvgDrivingAbility = calc.recentDrivingAbilityForTeam(team)
+    cd.RScoreDrivingAbility = calc.cachedComp.drivingAbilityZScores[team.number]
 
 def secondCalculationDict(team, calc):
+    '''
     cd = team.calculatedData
     cd.predictedNumRPs = calc.predictedNumberOfRPs(team)
     cd.firstPickRotorBonusChance = calc.firstPickAllRotorsChance(team)
@@ -105,6 +118,7 @@ def secondCalculationDict(team, calc):
         cd.predictedSeed = calc.cachedComp.predictedSeedings.index(team) + 1
     cd.firstPickAbility = calc.firstPickAbility(team)
     cd.allRotorsAbility = calc.allRotorsAbility(team)
+    '''
 
 def TIMDCalcDict(timd, calc):
     if (not calc.su.TIMCalculatedDataHasValues(timd.calculatedData)):
@@ -112,101 +126,70 @@ def TIMDCalcDict(timd, calc):
     team = calc.su.getTeamForNumber(timd.teamNumber)
     match = calc.su.getMatchForNumber(timd.matchNumber)
     c = timd.calculatedData
-    c.numRedSwitchSuccessAuto = calc.getTotalAttemptsForValueListDicts(True, timd.redSwitchAttemptAuto)
-    c.numRedSwitchSuccessTele = calc.getTotalAttemptsForValueListDicts(True, timd.redSwitchAttemptTele)
-    c.numRedSwitchFailedAuto = calc.getTotalAttemptsForValueListDicts(False, timd.redSwitchAttemptAuto)
-    c.numRedSwitchFailedTele = calc.getTotalAttemptsForValueListDicts(False, timd.redSwitchAttemptTele)
-    c.numBlueSwitchSuccessAuto = calc.getTotalAttemptsForValueListDicts(True, timd.blueSwitchAttemptAuto)
-    c.numBlueSwitchSuccessTele = calc.getTotalAttemptsForValueListDicts(True, timd.blueSwitchAttemptTele)
-    c.numBlueSwitchFailedAuto = calc.getTotalAttemptsForValueListDicts(False, timd.blueSwitchAttemptAuto)
-    c.numBlueSwitchFailedTele = calc.getTotalAttemptsForValueListDicts(False, timd.blueSwitchAttemptTele)
+    c.numAllianceSwitchSuccessAuto = calc.getTotalAttemptsForValueListDicts(True, timd.allianceSwitchAttemptAuto)
+    c.numAllianceSwitchSuccessTele = calc.getTotalAttemptsForValueListDicts(True, timd.allianceSwitchAttemptTele)
+    c.numAllianceSwitchFailedAuto = calc.getTotalAttemptsForValueListDicts(False, timd.allianceSwitchAttemptAuto)
+    c.numAllianceSwitchFailedTele = calc.getTotalAttemptsForValueListDicts(False, timd.allianceSwitchAttemptTele)
+    c.numOpponentSwitchSuccessTele = calc.getTotalAttemptsForValueListDicts(True, timd.opponentSwitchAttemptTele)
+    c.numOpponentSwitchFailedTele = calc.getTotalAttemptsForValueListDicts(False, timd.opponentSwitchAttemptTele)
     c.numScaleSuccessAuto = calc.getTotalAttemptsForValueListDicts(True, timd.scaleAttemptAuto)
     c.numScaleSuccessTele = calc.getTotalAttemptsForValueListDicts(True, timd.scaleAttemptTele)
     c.numScaleFailedAuto = calc.getTotalAttemptsForValueListDicts(False, timd.scaleAttemptAuto)
     c.numScaleFailedTele = calc.getTotalAttemptsForValueListDicts(False, timd.scaleAttemptTele)
-
-    c.avgRedSwitchTimeAuto = calc.getAvgSuccessTimeForListDicts(timd.redSwitchAttemptAuto)
-    c.avgRedSwitchTimeTele = calc.getAvgSuccessTimeForListDicts(timd.redSwitchAttemptTele)
-    c.avgBlueSwitchTimeAuto = calc.getAvgSuccessTimeForListDicts(timd.blueSwitchAttemptAuto)
-    c.avgBlueSwitchTimeTele = calc.getAvgSuccessTimeForListDicts(timd.blueSwitchAttemptTele)
+    c.avgAllianceSwitchTimeAuto = calc.getAvgSuccessTimeForListDicts(timd.allianceSwitchAttemptAuto)
+    c.avgAllianceSwitchTimeTele = calc.getAvgSuccessTimeForListDicts(timd.allianceSwitchAttemptTele)
+    c.avgOpponentSwitchTimeTele = calc.getAvgSuccessTimeForListDicts(timd.opponentSwitchAttemptTele)
     c.avgScaleTimeAuto = calc.getAvgSuccessTimeForListDicts(timd.scaleAttemptAuto)
     c.avgScaleTimeTele = calc.getAvgSuccessTimeForListDicts(timd.scaleAttemptTele)
-
-    c.numCubesPlacedAuto = calc.getTotalSuccessForListListDicts([timd.blueSwitchAttemptAuto, timd.redSwitchAttemptAuto, timd.scaleAttemptAuto])
-    c.numCubesPlacedTele = calc.getTotalSuccessForListListDicts([timd.blueSwitchAttemptTele, timd.redSwitchAttemptTele, timd.scaleAttemptTele])
-
+    c.numCubesPlacedAuto = calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptAuto, timd.scaleAttemptAuto])
+    c.numCubesPlacedTele = calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptTele, timd.opponentSwitchAttemptTele, timd.scaleAttemptTele])
     c.numClimbAttempts = calc.getClimbAttempts(timd.climb)
+    c.climbTime = calc.getClimbTime(timd.climb)
     c.drivingAbility = calc.getDrivingAbility()
     c.didConflictWithAuto = calc.checkAutoForConflict()
-
-    c.isDisfunctional = utils.convertFirebaseBoolean(timd.didGetDisabled + utils.convertFirebaseBoolean(timd.didGetIncapacitated))
+    c.isDysfunctional = utils.convertFirebaseBoolean(timd.didGetDisabled + utils.convertFirebaseBoolean(timd.didGetIncapacitated))
     c.numRPs = calc.RPsGainedFromMatchForAlliance(team.number in match.redAllianceTeamNumbers, match)
     
 def averageTeamDict(calc):
     a = calc.averageTeam
     mapFuncForCalcAvgsForTeam(calc.averageTeam, lambda f: calc.getAverageOfDataFunctionAcrossCompetition(f),
-        avgNumBadDecisions = lambda tm: tm.numBadDecisions, 
-        avgNumCubesFumbledAuto = lambda tm: tm.numCubesFumbledAuto,
-        avgNumCubesFumbledTele = lambda tm: tm.numCubesFumbledTele,
-        #avgNumExchangeInput = lambda tm: tm.numExchangeInput,
-        avgNumGoodDecisions = lambda tm: tm.numGoodDecisions,
-        avgNumGroundIntakeTele = lambda tm: tm.numGroundIntakeTele,
-        avgNumAlliancePlatformIntakeAuto = lambda tm: tm.numAlliancePlatformIntakeAuto,
-        avgNumAlliancePlatformIntakeTele = lambda tm: tm.numAlliancePlatformIntakeTele,
-        avgNumOpponentPlatformIntakeAuto = lambda tm: tm.numOpponentPlatformIntakeAuto,
-        avgNumGroundPortalIntakeTele = lambda tm: tm.numGroundPortalIntakeTele,
-        avgNumHumanPortalIntakeTele = lambda tm: tm.numHumanPortalIntakeTele,
-        avgNumGroundPyramidIntakeAuto = lambda tm: tm.numGroundPyramidIntakeAuto,
-        avgNumGroundPyramidIntakeTele = lambda tm: tm.numGroundPyramidIntakeTele,
-        avgNumElevatedPyramidIntakeAuto = lambda tm: tm.numElevatedPyramidIntakeAuto,
-        avgNumElevatedPyramidIntakeTele = lambda tm: tm.numElevatedPyramidIntakeTele,
-        avgNumReturnIntake = lambda tm: tm.numReturnIntake,
-        #avgSpilledCubesAuto = lambda tm: tm.numSpilledCubesAuto,
-        #avgSpilledCubesTele = lambda tm: tm.numSpilledCubesTele,
-
-        avgAgility = lambda tm: tm.rankAgility,
-        avgDefense = lambda tm: tm.rankDefense, 
-        avgSpeed = lambda tm: tm.rankSpeed,
-        avgDrivingAbility = lambda tm: tm.drivingAbility,
-
-        avgRPs = lambda tm: tm.calculatedData.numRPs,
-        avgAllianceSwitchSuccessAuto = lambda tm: tm.calculatedData.numAllianceSwitchSuccessAuto,
-        avgAllianceSwitchSuccessTele = lambda tm: tm.calculatedData.numAllianceSwitchSuccessTele,
-        avgAllianceSwitchFailedAuto = lambda tm: tm.calculatedData.numAllianceSwitchFailedAuto,
-        avgAllianceSwitchFailedTele = lambda tm: tm.calculatedData.numAllianceSwitchFailedTele,
-        avgOpponentSwitchSuccessAuto = lambda tm: tm.calculatedData.numOpponentSwitchSuccessAuto,
-        avgOpponentSwitchSuccessTele = lambda tm: tm.calculatedData.numOpponentSwitchSuccessTele,
-        avgOpponentSwitchFailedAuto = lambda tm: tm.calculatedData.numOpponentSwitchFailedAuto,
-        avgOpponentSwitchFailedTele = lambda tm: tm.calculatedData.numOpponentSwitchFailedTele,
-        avgScaleSuccessAuto = lambda tm: tm.calculatedData.numScaleSuccessAuto,
-        avgScaleFailedAuto = lambda tm: tm.calculatedData.numScaleFailedAuto,
-        avgScaleSuccessTele = lambda tm: tm.calculatedData.numScaleSuccessTele,
-        avgScaleFailedTele = lambda tm: tm.calculatedData.numScaleFailedTele,
-        avgCubesPlacedAuto = lambda tm: tm.calculatedData.numCubesPlacedAuto,
-        avgCubesPlacedTele = lambda tm: tm.calculatedData.numCubesPlacedTele,
-        avgClimbAttempts = lambda tm: tm.calculatedData.numClimbAttempts,
-        avgClimbTime = lambda tm: tm.calculatedData.climbTime,
-
-        disabledPercentage = lambda tm: tm.didGetDisabled,
-        incapacitatedPercentage = lambda tm: tm.didGetIncapacitated,
-        disfunctionalPercentage = lambda tm: tm.calculatedData.isDisfunctional,
-
-        autoRunPercentage = lambda tm: tm.calculatedData.didMakeAutoRun,
-        parkPercentage = lambda tm: tm.calculatedData.didPark,
-
-        conflictWithAutoPercentage = lambda tm: tm.calculatedData.didConflictWithAuto,
-        )
-    mapFuncForCalcAvgsForTeam(calc.averageTeam, lambda f: calc.getStandardDeviationOfDataFunctionAcrossCompetition(f),
-        sdLiftoffAbility = lambda t: t.calculatedData.sdLiftoffAbility,
-        sdGearsPlacedTele = lambda t: t.calculatedData.sdGearsPlacedTele,
-        sdGearsPlacedAuto = lambda t: t.calculatedData.sdGearsPlacedAuto,
-        sdHighShotsAuto = lambda t: t.calculatedData.sdHighShotsAuto,
-        sdHighShotsTele = lambda t: t.calculatedData.sdHighShotsTele,
-        sdLowShotsAuto = lambda t: t.calculatedData.sdLowShotsAuto,
-        sdLowShotsTele = lambda t: t.calculatedData.sdLowShotsTele,
+        avgNumBadDecisions = lambda t: t.calculatedData.avgNumBadDecisions, 
+        avgNumCubesFumbledAuto = lambda t: t.calculatedData.avgNumCubesFumbledAuto,
+        avgNumCubesFumbledTele = lambda t: t.calculatedData.avgNumCubesFumbledTele,
+        avgNumExchangeInputTele = lambda t: t.calculatedData.avgNumExchangeInputTele,
+        avgNumGoodDecisions = lambda t: t.calculatedData.avgNumGoodDecisions,
+        avgNumGroundIntakeTele = lambda t: t.calculatedData.avgNumGroundIntakeTele,
+        avgNumAlliancePlatformIntakeAuto = lambda t: t.calculatedData.avgNumAlliancePlatformIntakeAuto,
+        avgNumAlliancePlatformIntakeTele = lambda t: t.calculatedData.avgNumAlliancePlatformIntakeTele,
+        avgNumOpponentPlatformIntakeTele = lambda t: t.calculatedData.avgNumOpponentPlatformIntakeTele,
+        avgNumGroundPortalIntakeTele = lambda t: t.calculatedData.avgNumGroundPortalIntakeTele,
+        avgNumHumanPortalIntakeTele = lambda t: t.calculatedData.avgNumHumanPortalIntakeTele,
+        avgNumGroundPyramidIntakeAuto = lambda t: t.calculatedData.avgNumGroundPyramidIntakeAuto,
+        avgNumGroundPyramidIntakeTele = lambda t: t.calculatedData.avgNumGroundPyramidIntakeTele,
+        avgNumElevatedPyramidIntakeAuto = lambda t: t.calculatedData.avgNumElevatedPyramidIntakeAuto,
+        avgNumElevatedPyramidIntakeTele = lambda t: t.calculatedData.avgNumElevatedPyramidIntakeTele,
+        avgNumReturnIntakeTele = lambda t: t.calculatedData.avgNumReturnIntakeTele,
+        avgCubesSpilledAuto = lambda t: t.calculatedData.avgCubesSpilledAuto,
+        avgCubesSpilledTele = lambda t: t.calculatedData.avgCubesSpilledTele,
+        avgAgility = lambda t: t.calculatedData.avgAgility,
+        avgDefense = lambda t: t.calculatedData.avgDefense, 
+        avgSpeed = lambda t: t.calculatedData.avgSpeed,
+        avgDrivingAbility = lambda t: t.calculatedData.avgDrivingAbility,
+        actualNumRPs = lambda t: t.calculatedData.actualNumRPs,
+        avgAllianceSwitchCubesAuto = lambda t: t.calculatedData.avgAllianceSwitchCubesAuto,
+        avgAllianceSwitchCubesTele = lambda t: t.calculatedData.avgAllianceSwitchCubesTele,
+        avgOpponentSwitchCubesTele = lambda t: t.calculatedData.avgOpponentSwitchCubesTele,
+        avgCubesPlacedInScaleAuto = lambda t: t.calculatedData.avgCubesPlacedInScaleAuto,
+        avgCubesPlacedInScaleTele = lambda t: t.calculatedData.avgCubesPlacedInScaleTele,
+        avgClimbTime = lambda t: t.calculatedData.avgClimbTime,
+        disabledPercentage = lambda t: t.calculatedData.disabledPercentage,
+        incapacitatedPercentage = lambda t: t.calculatedData.incapacitatedPercentage,
+        dysfunctionalPercentage = lambda t: t.calculatedData.dysfunctionalPercentage,
+        autoRunPercentage = lambda t: t.calculatedData.autoRunPercentage,
         )
 
 def matchDict(match, calc):
+    '''
     if calc.su.matchIsCompleted(match):
         match.calculatedData.actualBlueRPs = calc.RPsGainedFromMatchForAlliance(True, match)
         match.calculatedData.actualRedRPs = calc.RPsGainedFromMatchForAlliance(False, match)
@@ -220,3 +203,4 @@ def matchDict(match, calc):
     match.calculatedData.redWinChance = calc.winChanceForMatchForAllianceIsRed(match, True)
     match.calculatedData.predictedBlueRPs = calc.predictedRPsForAllianceForMatch(False, match)
     match.calculatedData.predictedRedRPs = calc.predictedRPsForAllianceForMatch(True, match)
+    '''
