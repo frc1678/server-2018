@@ -1,4 +1,4 @@
-#Last Updated: 1/15/17
+#Last Updated: 1/20/17
 import pyrebase
 import random
 import time
@@ -20,10 +20,10 @@ class CalculatedTeamInMatchData(object):
 		self.numOpponentSwitchSuccessTele = random.randint(0, 12)
 		self.numOpponentSwitchFailedAuto = random.randint(0, 3)
 		self.numOpponentSwitchFailedTele = random.randint(0, 8)
-		self.numAlliancePlatformIntakeAuto = random.randint(0, 3)
-		self.numAlliancePlatformIntakeTele = random.randint(0, 8)
-		self.numOpponentPlatformIntakeAuto = random.randint(0, 3)
-		self.numOpponentPlatFormIntakeTele = random.randint(0, 8)
+		self.numAlliancePlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.numAlliancePlatformIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.numOpponentPlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.numOpponentPlatFormIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
 		self.numScaleSuccessAuto = random.randint(0, 2)
 		self.numScaleFailedAuto = random.randint(0, 2)
 		self.numScaleSuccessTele = random.randint(0, 12)
@@ -59,7 +59,7 @@ class TeamInMatchData(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 		self.allianceSwitchAttemptTele = [
 			{
@@ -68,15 +68,15 @@ class TeamInMatchData(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 		self.climb = [ {
-			'passiveLift' : {
+			'passiveClimb' : {
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135))
 			},
-			'assistedLift' : {
+			'assistedClimb' : {
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135))
@@ -86,24 +86,24 @@ class TeamInMatchData(object):
 				'didClimb' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135)),
-				'partnerLiftType' : random.choice(['passiveLift', 'assistedLift']),
+				'partnerLiftType' : random.choice(['assisted', 'lifted']),
 				'didFailToLift' : bool(random.randint(0, 1)),
 				'numRobotsLifted' : random.randint(1, 3)
 			},
-			'climb' : {
+			'soloClimb' : {
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135))
 			}
-		} ]		
+		} for num in range(1, random.randint(1, 4))]			
 		self.didGetDisabled = bool(random.randint(0, 1))
 		self.didGetIncapacitated = bool(random.randint(0, 1))
 		self.didMakeAutoRun = bool(random.randint(0, 1))
 		self.didPark = bool(random.randint(0, 1))
 		self.numGoodDecisions = random.randint(0, 24)
 		self.numBadDecisions = random.randint(0, 24)
-		self.alliancePlatformIntakeAuto = [random.randint(4, 7), random.randint(0, 3)]
-		self.alliancePlatformIntakeTele = [random.randint(0, 3), random.randint(4, 7), random.randint(0, 3), random.randint(4, 7)]
+		self.alliancePlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.alliancePlatformIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
 		self.numCubesFumbledAuto = random.randint(0, 3)
 		self.numCubesFumbledTele = random.randint(0, 16)
 		self.numExchangeInput = random.randint(0, 9)
@@ -114,8 +114,8 @@ class TeamInMatchData(object):
 		self.numGroundPyramidIntakeTele = random.randint(0, 10)
 		self.numElevatedPyramidIntakeAuto = random.randint(0, 4)
 		self.numElevatedPyramidIntakeTele = random.randint(0, 5)
-		self.opponentPlatformIntakeAuto = [random.randint(4, 7), random.randint(0, 3)]
-		self.opponentPlatformIntakeTele = [random.randint(0, 3), random.randint(4, 7), random.randint(0, 3), random.randint(4, 7)]
+		self.opponentPlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.opponentPlatformIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
 		self.numReturnIntake = random.randint(0, 5)
 		self.numSpilledCubesAuto = random.randint(0, 2)
 		self.numSpilledCubesTele = random.randint(0, 8)
@@ -130,7 +130,7 @@ class TeamInMatchData(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 		self.scaleAttemptAuto = [
 			{
@@ -139,7 +139,7 @@ class TeamInMatchData(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 		self.scaleAttemptTele = [
 			{
@@ -148,7 +148,7 @@ class TeamInMatchData(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 
 class TempTeamInMatchDatas(object):
@@ -164,7 +164,7 @@ class TempTeamInMatchDatas(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 		self.allianceSwitchAttemptTele = [
 			{
@@ -173,15 +173,15 @@ class TempTeamInMatchDatas(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 		self.climb = [ {
-			'passiveLift' : {
+			'passiveClimb' : {
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135))
 			},
-			'assistedLift' : {
+			'assistedClimb' : {
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135))
@@ -191,22 +191,22 @@ class TempTeamInMatchDatas(object):
 				'didClimb' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135)),
-				'partnerLiftType' : random.choice(['passiveLift', 'assistedLift']),
+				'partnerLiftType' : random.choice(['assisted', 'lifted']),
 				'didFailToLift' : bool(random.randint(0, 1)),
 				'numRobotsLifted' : random.randint(1, 3)
 			},
-			'climb' : {
+			'soloClimb' : {
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135))
 			}
-		} ]		
+		} for num in range(1, random.randint(1, 4))]
 		self.didGetDisabled = bool(random.randint(0, 1))
 		self.didGetIncapacitated = bool(random.randint(0, 1))
 		self.didMakeAutoRun = bool(random.randint(0, 1))
 		self.didPark = bool(random.randint(0, 1))
-		self.alliancePlatformIntakeAuto = [random.randint(4, 7), random.randint(0, 3)]
-		self.alliancePlatformIntakeTele = [random.randint(0, 3), random.randint(4, 7), random.randint(0, 3), random.randint(4, 7)]
+		self.alliancePlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.alliancePlatformIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
 		self.numCubesFumbledAuto = random.randint(0, 3)
 		self.numCubesFumbledTele = random.randint(0, 16)
 		self.numExchangeInput = random.randint(0, 9)
@@ -217,8 +217,8 @@ class TempTeamInMatchDatas(object):
 		self.numGroundPyramidIntakeTele = random.randint(0, 10)
 		self.numElevatedPyramidIntakeAuto = random.randint(0, 4)
 		self.numElevatedPyramidIntakeTele = random.randint(0, 5)
-		self.opponentPlatformIntakeAuto = [random.randint(4, 7), random.randint(0, 3)]
-		self.opponentPlatformIntakeTele = [random.randint(0, 3), random.randint(4, 7), random.randint(0, 3), random.randint(4, 7)]
+		self.opponentPlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.opponentPlatformIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
 		self.numReturnIntake = random.randint(0, 5)
 		self.numSpilledCubesAuto = random.randint(0, 2)
 		self.numSpilledCubesTele = random.randint(0, 8)
@@ -230,7 +230,7 @@ class TempTeamInMatchDatas(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 		self.scaleAttemptAuto = [
 			{
@@ -239,7 +239,7 @@ class TempTeamInMatchDatas(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 		self.scaleAttemptTele = [
 			{
@@ -248,7 +248,7 @@ class TempTeamInMatchDatas(object):
 				'endTime' : float(random.randint(50, 100)),
 				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
-			} for num in range(1, 10)
+			} for num in range(1, random.randint(1, 10))
 		]
 
 class Match(object):
