@@ -1,4 +1,4 @@
-#Last Updated: 1/15/18
+#Last Updated: 1/20/18
 import DataModel
 import pdb
 
@@ -64,8 +64,8 @@ class SchemaUtils(object):
         return self.getAllianceForMatch(match, self.getTeamAllianceIsRedInMatch(team, match))
 
     def getFieldsForAllianceForMatch(self, allianceIsRed, match):
-        return (match.redScore, match.redDidReachFortyKilopascals, match.numRotorsSpinningRedAuto, match.numRotorsSpinningRedTele, match.foulPointsGainedRed) if allianceIsRed else (
-            match.blueScore, match.blueDidReachFortyKilopascals, match.numRotorsSpinningBlueAuto, match.numRotorsSpinningBlueTele, match.foulPointsGainedBlue)
+        return (match.redScore, match.redDidFaceBoss, match.redDidAutoQuest, match.foulPointsGainedRed) if allianceIsRed else (
+            match.blueScore, match.blueDidFaceBoss, match.blueDidAutoQuest, match.foulPointsGainedBlue)
 
     def getTeamAllianceIsRedInMatch(self, team, match):
         if team.number == -1 or team.number in match.redAllianceTeamNumbers: return True

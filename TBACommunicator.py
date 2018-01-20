@@ -1,4 +1,4 @@
-#Last Updated: 1/14/18
+#Last Updated: 1/20/18
 import requests
 import json
 import utils
@@ -44,7 +44,7 @@ class TBACommunicator(object):
 		return self.makeRequest(self.basicURL + 'team/' + teamKey + '/media/' + str(self.year))
 
 	def makeEventRankingsRequest(self):
-		return self.makeRequest(self.makeEventKeyRequestURL('rankings'))[1:]
+		return self.makeRequest(self.makeEventKeyRequestURL('rankings'))['rankings']
 
 	def makeEventMatchesRequest(self):
 		return self.makeRequest(self.makeEventKeyRequestURL('matches'))
@@ -66,3 +66,4 @@ class TBACommunicator(object):
 			for team in surrogateTIMDs[match]:
 				surrogateTIMDs[match][surrogateTIMDs[match].index(team)] = team[3:]
 		return surrogateTIMDs
+
