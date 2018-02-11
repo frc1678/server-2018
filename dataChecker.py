@@ -1,4 +1,4 @@
-#Last Updated: 1/4/18
+#Last Updated: 2/11/18
 import pyrebase
 import numpy as np
 import utils
@@ -62,6 +62,8 @@ class DataChecker(multiprocessing.Process):
 			mCV = values[a.index(max(a))]
 			try:
 				return mCV if values.count(mCV) > len(values) / 2 else np.mean(values)
+			except KeyboardInterrupt:
+				break
 			except:
 				return
 
@@ -166,6 +168,8 @@ class DataChecker(multiprocessing.Process):
 				try:
 					firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key))
 					index += 1
+				except KeyboardInterrupt:
+					break
 				except:
 					continue
 			time.sleep(10)

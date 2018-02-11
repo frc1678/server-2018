@@ -1,4 +1,4 @@
-#Last Updated: 1/20/17
+#Last Updated: 2/11/18
 import utils
 import DataModel
 import pdb
@@ -109,7 +109,9 @@ def secondCalculationDict(team, calc):
     try:
         cd.actualNumRPs = calc.getTeamRPsFromTBA(team)
         cd.actualSeed = calc.getTeamSeed(team)
-    except Exception as e:
+    except KeyboardInterrupt:
+        break
+    except:
         if team in calc.cachedComp.actualSeedings:
             cd.actualSeed = calc.cachedComp.actualSeedings.index(team) + 1
             cd.actualNumRPs = calc.actualNumberOfRPs(team)

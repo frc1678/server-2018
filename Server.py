@@ -1,5 +1,5 @@
 #By Bryton Moeller (2015-2016)
-#Last Updated: 2/1/18
+#Last Updated: 2/11/18
 import sys
 import traceback
 import DataModel
@@ -61,20 +61,23 @@ while(True):
 			comp.updateTeamsAndMatchesFromFirebase()
 			comp.updateTIMDsFromFirebase()
 			break
+		except KeyboardInterrupt:
+			break
 		except Exception as e:
 			print(e)
+			print(traceback.format_exc())
 	checkForMissingData() #opens missing_data.txt and prints all missing data if there is missing data each cycle
 	try:
 		calculator.doCalculations(PBC)
 	except OSError:
 		continue
+	except KeyboardInterrupt:
+		break
 	except:
 		#reports error to slack
 		if shouldSlack:
 			reportServerCrash(traceback.format_exc())
-		#prints the error if shouldSlack isn't True
-		else:
-			print(traceback.format_exc())
+		print(traceback.format_exc())
 		sys.exit(0)
 	time.sleep(1)
 	cycle += 1

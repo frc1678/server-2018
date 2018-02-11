@@ -1,4 +1,4 @@
-#Last Updated: 1/20/18
+#Last Updated: 2/11/18
 import DataModel
 import pdb
 
@@ -13,6 +13,8 @@ class SchemaUtils(object):
     def getTeamForNumber(self, teamNumber):
         try:
             return [team for team in self.comp.teams if team.number == teamNumber][0]
+        except KeyboardInterrupt:
+            break
         except:
             print(str(teamNumber), 'does not exist.')
 

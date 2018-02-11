@@ -1,4 +1,4 @@
-#Last Updated: 1/13/18
+#Last Updated: 2/11/18
 import CSVExporter
 import DataModel
 import firebaseCommunicator
@@ -26,6 +26,8 @@ while(True):
 					comp.PBC.sendExport('EXPORT-TEAMALL.csv')
 				elif cmd[2] == 'other':
 					print('')
+		except KeyboardInterrupt:
+			break
 		except Exception as e:
 			print(traceback.format_exc())
 	elif cmd[0] == 'sns':

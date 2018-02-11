@@ -1,4 +1,4 @@
-#Last Updated: 10/5/17
+#Last Updated: 2/11/18
 import pyrebase
 import DataModel
 import SPR
@@ -31,6 +31,8 @@ def doSPRsAndAssignments(data):
 	while(True):
 		try:
 			availabilityUpdated = fb.child('availabilityUpdated').get().val()
+		except KeyboardInterrupt:
+			break
 		except:
 			availabilityUpdated = 0
 		if availabilityUpdated: break
@@ -54,6 +56,8 @@ def doSPRsAndAssignments(data):
 		#And it is put on firebase
 		fb.child('scouts').update(newAssignments)
 		print('New Assignments added')
+	except KeyboardInterrupt:
+		break
 	except:
 		print(traceback.format_exc())
 		# CrashReporter.reportServerCrash(traceback.format_exc())

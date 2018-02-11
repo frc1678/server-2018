@@ -1,4 +1,4 @@
-#Last Updated: 2/1/18
+#Last Updated: 2/11/18
 import utils
 import json
 import datetime
@@ -106,6 +106,8 @@ class PyrebaseCommunicator(object):
 			now = str(datetime.datetime.now())
 			with open('./CachedFirebases/' + now + '.json', 'w+') as f:
 				json.dump(data, f)
+		except KeyboardInterrupt:
+			break
 		except:
 			pass
 

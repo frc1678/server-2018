@@ -1,4 +1,4 @@
-#Last Updated: 1/20/17
+#Last Updated: 2/11/18
 import math
 import time
 import random
@@ -116,6 +116,8 @@ class Calculator(object):
         try:
             t = stats.ttest_ind_from_stats(mean1, std1, sampleSize1, mean2, std2, sampleSize2, False).statistic #False means the variances are unequal
             return t if t != np.nan else mean1 > mean2
+        except KeyboardInterrupt:
+            break
         except:
             return 0.0
 
@@ -126,6 +128,8 @@ class Calculator(object):
         try:
             numerator = ((s1 ** 4 / n1) + (s2 ** 4 / n2)) ** 2
             denominator = (s1 ** 8 / ((n1 ** 2) * (n1 - 1))) + (s2 ** 8 / ((n2 ** 2) * (n2 - 1)))
+        except KeyboardInterrupt:
+            break
         except:
             numerator = 0.0
             denominator = 0.0
@@ -403,7 +407,9 @@ class Calculator(object):
         map(self.doSecondCachingForTeam, self.comp.teams)
         try:
             self.cachedComp.actualSeedings = self.TBAC.makeEventRankingsRequest()
-        except Exception as e:
+        except KeyboardInterrupt:
+            break
+        except:
             self.cachedComp.actualSeedings = self.teamsSortedByRetrievalFunctions(self.getSeedingFunctions())
         # self.cachedComp.predictedSeedings = self.teamsSortedByRetrievalFunctions(self.getPredictedSeedingFunctions())
         print('dth')
@@ -413,6 +419,8 @@ class Calculator(object):
     def doCachingForTeam(self, team):
         try:
             cachedData = self.cachedTeamDatas[team.number]
+        except KeyboardInterrupt:
+            break
         except:
             self.cachedTeamDatas[team.number] = cache.CachedTeamData(**{'teamNumber': team.number})
             cachedData = self.cachedTeamDatas[team.number]
@@ -428,6 +436,8 @@ class Calculator(object):
     def cacheTBAMatches(self):
         try:
             self.cachedComp.TBAMatches = filter(lambda m: m['comp_level'] == 'qm', self.TBAC.makeEventMatchesRequest())
+        except KeyboardInterrupt:
+            break
         except:
             print(traceback.format_exc())
 

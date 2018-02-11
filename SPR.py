@@ -1,4 +1,4 @@
-#Last Updated: 2/9/18
+#Last Updated: 2/11/18
 import utils
 import Math
 import random
@@ -175,6 +175,8 @@ class ScoutPrecision(object):
 			try:
 				print(x[key] if t.get('scoutName') else None)
 				print('success')
+			except KeyboardInterrupt:
+				break
 			except:
 				pass
 				tempTIMDs[ tempTIMDs.index(x) ][key] = None
@@ -363,6 +365,8 @@ class ScoutPrecision(object):
 				for key in self.disagreementBreakdown[scout].keys():
 					try:
 						self.disagreementBreakdown[scout].update({key: float(self.disagreementBreakdown[scout][key]) / float(self.getTotalTIMDsForScoutName(scout, temp))})
+					except KeyboardInterrupt:
+						break
 					except:
 						pass
 			for scout in self.disagreementBreakdown.keys():
