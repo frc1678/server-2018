@@ -7,6 +7,22 @@ import scipy.stats as stats
 import CSVExporter
 import pprint
 
+import pyrebase
+
+url = 'servervartest-2018'
+
+config = {
+	"apiKey": "AIzaSyBXfDygtDWxzyRaLFO75XeGc2xhfvLLwkU ",
+    "authDomain": url + ".firebaseapp.com",
+    "databaseURL": "https://" + url + ".firebaseio.com",
+    "projectId": url,
+    "storageBucket": url + ".appspot.com",
+    "messagingSenderId": "333426669167"
+
+}
+firebase = pyrebase.initialize_app(config)
+db = firebase.database()
+
 #Scout Performance Analysis
 class ScoutPrecision(object):
 	'''Scores and ranks scouts and assigns them to robots'''
@@ -491,3 +507,9 @@ class ScoutPrecision(object):
 			zscores = {k : (zscore, self.sprs[k]) for (k, zscore) in zip(self.sprs.keys(), stats.zscore(self.sprs.values()))}
 		CSVExporter.CSVExportScoutZScores(zscores)
 		PBC.sendExport('SPRExport.csv')
+
+availability = [k for (k, v) in db.child('availability').get().val().items() if v == 1]
+temp_timds = db.child("TempTeamInMatchDatas").get().val()
+
+spr = ScoutPrecision()
+spr.calculateScoutPrecisionScores(temp_timds, availability)
