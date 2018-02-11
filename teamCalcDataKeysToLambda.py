@@ -93,6 +93,8 @@ def firstCalculationDict(team, calc):
         totalNumParks = lambda tm: tm.didPark,
         numSuccessfulClimbs = lambda tm: tm.calculatedData.didClimb,
         )
+    cd.predictedPark = calc.predictedParkForTeam(team)
+
 
 def Rscorecalcs(team, calc):
     cd = team.calculatedData
@@ -145,10 +147,10 @@ def TIMDCalcDict(timd, calc):
     c.numCubesPlacedTele = calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptTele, timd.opponentSwitchAttemptTele, timd.scaleAttemptTele])
     c.numClimbAttempts = calc.getClimbAttempts(timd.climb)
     c.climbTime = calc.getClimbTime(timd.climb)
-    c.drivingAbility = calc.getDrivingAbility()
+    c.drivingAbility = calc.getDrivingAbility(timd)
     c.didConflictWithAuto = calc.checkAutoForConflict()
     c.isDysfunctional = utils.convertFirebaseBoolean(timd.didGetDisabled + utils.convertFirebaseBoolean(timd.didGetIncapacitated))
-    c.numRPs = calc.RPsGainedFromMatchForAlliance(team.number in match.redAllianceTeamNumbers, match)
+    #c.numRPs = calc.RPsGainedFromMatchForAlliance(team.number in match.redAllianceTeamNumbers, match)
     
 def averageTeamDict(calc):
     a = calc.averageTeam
@@ -189,18 +191,14 @@ def averageTeamDict(calc):
         )
 
 def matchDict(match, calc):
-    '''
-    if calc.su.matchIsCompleted(match):
-        match.calculatedData.actualBlueRPs = calc.RPsGainedFromMatchForAlliance(True, match)
-        match.calculatedData.actualRedRPs = calc.RPsGainedFromMatchForAlliance(False, match)
-    match.calculatedData.predictedBlueScore = calc.predictedScoreForAllianceWithNumbers(match.blueAllianceTeamNumbers)
-    match.calculatedData.predictedRedScore = calc.predictedScoreForAllianceWithNumbers(match.redAllianceTeamNumbers)
-    match.calculatedData.sdPredictedBlueScore = calc.stdDevPredictedScoreForAllianceNumbers(match.blueAllianceTeamNumbers)
-    match.calculatedData.sdPredictedRedScore = calc.stdDevPredictedScoreForAllianceNumbers(match.redAllianceTeamNumbers)
-    match.calculatedData.predictedBlueAutoQuest = calc.getAutoQuestChanceForAllianceWithNumbers(match.redAllianceTeamNumbers)
-    match.calculatedData.predictedRedAutoQuest = calc.getAutoQuestChanceForAllianceWithNumbers(match.blueAllianceTeamNumbers)
-    match.calculatedData.blueWinChance = calc.winChanceForMatchForAllianceIsRed(match, False)
-    match.calculatedData.redWinChance = calc.winChanceForMatchForAllianceIsRed(match, True)
-    match.calculatedData.predictedBlueRPs = calc.predictedRPsForAllianceForMatch(False, match)
-    match.calculatedData.predictedRedRPs = calc.predictedRPsForAllianceForMatch(True, match)
-    '''
+    hello = True
+    #print('Death')
+    #if calc.su.matchIsCompleted(match):
+    #match.calculatedData.actualBlueRPs = calc.RPsGainedFromMatchForAlliance(True, match)
+    #match.calculatedData.actualRedRPs = calc.RPsGainedFromMatchForAlliance(False, match)
+    #print('Kill')
+    #match.calculatedData.predictedBlueAutoQuest = calc.predictedAutoQuestRP(match, True)
+    #match.calculatedData.predictedRedAutoQuest = calc.predictedAutoQuestRP(match, False)
+    #print('Haru')
+    #match.calculatedData.predictedBlueRPs = calc.predictedRPsForAlliance(match, False)
+    #match.calculatedData.predictedRedRPs = calc.predictedRPsForAlliance(match, False)

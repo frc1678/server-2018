@@ -3,6 +3,7 @@ import pyrebase
 import random
 import time
 import DataModel
+import firebaseCommunicator
 
 #Makes a lot of random data and sets data on firebase for testing
 
@@ -205,8 +206,8 @@ class TempTeamInMatchDatas(object):
 		self.didGetIncapacitated = bool(random.randint(0, 1))
 		self.didMakeAutoRun = bool(random.randint(0, 1))
 		self.didPark = bool(random.randint(0, 1))
-		self.alliancePlatformIntakeAuto = [random.randint(4, 7), random.randint(0, 3)]
-		self.alliancePlatformIntakeTele = [random.randint(0, 3), random.randint(4, 7), random.randint(0, 3), random.randint(4, 7)]
+		self.alliancePlatformIntakeAuto = [bool(random.getrandbits(1)) for x in range(6)]
+		self.alliancePlatformIntakeTele = [bool(random.getrandbits(1)) for x in range(6)]
 		self.numCubesFumbledAuto = random.randint(0, 3)
 		self.numCubesFumbledTele = random.randint(0, 16)
 		self.numExchangeInput = random.randint(0, 9)
@@ -217,8 +218,8 @@ class TempTeamInMatchDatas(object):
 		self.numGroundPyramidIntakeTele = random.randint(0, 10)
 		self.numElevatedPyramidIntakeAuto = random.randint(0, 4)
 		self.numElevatedPyramidIntakeTele = random.randint(0, 5)
-		self.opponentPlatformIntakeAuto = [random.randint(4, 7), random.randint(0, 3)]
-		self.opponentPlatformIntakeTele = [random.randint(0, 3), random.randint(4, 7), random.randint(0, 3), random.randint(4, 7)]
+		self.opponentPlatformIntakeAuto = [bool(random.getrandbits(1)) for x in range(6)]
+		self.opponentPlatformIntakeTele = [bool(random.getrandbits(1)) for x in range(6)]
 		self.numReturnIntake = random.randint(0, 5)
 		self.numSpilledCubesAuto = random.randint(0, 2)
 		self.numSpilledCubesTele = random.randint(0, 8)
@@ -320,9 +321,9 @@ class CalculatedMatchData(object):
 
 config = {
 	'apiKey': 'mykey',
-	'authDomain': 'scouting-2018-9023a.firebaseapp.com',
-	'storageBucket': 'scouting-2018-9023a.appspot.com',
-	'databaseURL': 'https://scouting-2018-9023a.firebaseio.com/'
+	'authDomain': 'testing-so-extreme-it-hurts.firebaseapp.com',
+	'storageBucket': 'testing-so-extreme-it-hurts.appspot.com',
+	'databaseURL': 'testing-so-extreme-it-hurts.firebaseio.com/'
 	# 'authDomain': '1678-scouting-2016.firebaseapp.com',
 	# 'storageBucket': '1678-scouting-2016.appspot.com',
 	# 'databaseURL': 'https://1678-scouting-2016.firebaseio.com/'
@@ -330,8 +331,9 @@ config = {
 	# 'storageBucket': '1678-dev-2016.appspot.com',
 	# 'databaseURL': 'https://1678-dev-2016.firebaseio.com/'
 }
+pbc = firebaseCommunicator.PyrebaseCommunicator()
 app = pyrebase.initialize_app(config)
-fb = app.database()
+fb = pbc.firebase
 testScouts = 'a b c d e f g h i j k l m n o p q r'.split()
 testScoutNums = {}
 for i in range(len(testScouts)):

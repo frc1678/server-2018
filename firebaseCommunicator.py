@@ -11,7 +11,9 @@ class PyrebaseCommunicator(object):
 		super(PyrebaseCommunicator, self).__init__()
 		self.JSONmatches = []
 		self.JSONteams = []
-		self.url = 'scouting-2018-9023a'
+		self.teamsList = []
+		self.url = 'scouting-2018-temp'
+		#self.url = 'testing-so-extreme-it-hurts'
 		config = {
 			'apiKey': 'mykey',
 			'authDomain': self.url + '.firebaseapp.com',
@@ -25,7 +27,10 @@ class PyrebaseCommunicator(object):
 	#Turns inputted team (class) object into dict and puts on firebase
 	def updateFirebaseWithTeam(self, team):
 		print(str(team.number) + ',',)
+		print(team)
+		print(team.number)
 		teamDict = utils.makeDictFromTeam(team)
+		self.teamsList.append(team.number)
 		self.firebase.child('Teams').child(team.number).set(teamDict)
 
 	#Turns inputted match (class) object into dict, condenses team numbers, and puts on firebase
@@ -85,6 +90,7 @@ class PyrebaseCommunicator(object):
 	def addTeamsToFirebase(self):
 		print('\nDoing Teams...')
 		map(lambda t: self.updateFirebaseWithTeam(utils.setDataForTeam(t)), self.JSONteams)
+		self.firebase.child('TeamsList').set(self.teamsList)
 
 	#Puts all qual matches from local JSON list (probably from TBA) onto firebase
 	def addMatchesToFirebase(self):

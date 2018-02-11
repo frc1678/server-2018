@@ -1,5 +1,5 @@
 #By Bryton Moeller (2015-2016)
-#Last Updated: 1/15/17
+#Last Updated: 2/7/18
 import sys
 import traceback
 import DataModel
@@ -13,7 +13,9 @@ import dataChecker
 import scoutRotator
 import scheduleUpdater
 import pprint
+import APNServer
 
+APNServer.startNotiStream()
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 comp = DataModel.Competition(PBC)
 comp.updateTeamsAndMatchesFromFirebase()
@@ -52,9 +54,9 @@ def checkForMissingData():
 		missingDataFile.write(str(missingDatas))
 
 while(True):
-	print("\033[0;37m")
+	print('\033[0;37m')
 	print('\033[1;32mCalcs Cycle ' + str(cycle) + '...')
-	print("\033[0;37m")
+	print('\033[0;37m')
 	if cycle % 5 == 1:
 		PBC.cacheFirebase()
 	while(True):

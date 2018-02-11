@@ -5,6 +5,7 @@ import time
 import math
 import numpy as np
 import pdb
+import firebaseCommunicator
 
 ########## Defining Util/Convenience Functions ############
 '''If there were too many more of these, or if this
@@ -79,7 +80,10 @@ def makeTeamsFromDicts(dicts):
 	return map(makeTeamFromDict, dicts.values())
 
 def makeMatchesFromDicts(dicts):
-	return [makeMatchFromDict(m) for m in dicts if m != None]
+	try:
+		return [makeMatchFromDict(dicts[m]) for m in dicts if m != None]
+	except:
+		return [makeMatchFromDict(m) for m in dicts if m != None]
 
 def makeDictFromObject(o):
 	if isinstance(o, dict):

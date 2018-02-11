@@ -67,3 +67,6 @@ class TBACommunicator(object):
 				surrogateTIMDs[match][surrogateTIMDs[match].index(team)] = team[3:]
 		return surrogateTIMDs
 
+	def getScoreBreakdownForMatch(self, matchNum):
+		return self.makeSingleMatchRequest(matchNum)['score_breakdown']
+

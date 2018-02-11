@@ -5,7 +5,6 @@ import firebaseCommunicator
 import traceback
 
 PBC = firebaseCommunicator.PyrebaseCommunicator()
-
 fb = PBC.firebase
 comp = DataModel.Competition(PBC)
 
@@ -18,7 +17,7 @@ while(True):
 				if cmd[2] == 'all':
 					CSVExporter.CSVExportTIMDALL(comp)
 					comp.PBC.sendExport('EXPORT-TIMDALL.csv')
-				elif cmd[2] == 'other'
+				elif cmd[2] == 'other':
 					print('')
 			elif cmd[1] == 'team':
 				if cmd[2] == 'all':
@@ -26,8 +25,7 @@ while(True):
 					comp.PBC.sendExport('EXPORT-TEAMALL.csv')
 				elif cmd[2] == 'other':
 					print('')
-		except Exception as e:
-			print(traceback.format_exc())
+		except Exception as e:			print(traceback.format_exc())
 	elif cmd[0] == 'sns':
 		#idea for faster method- under TempTIMDs, have data organized by match, and under that, the data, so we don't have to iterate through every TIMD
 		scoutSentData = []

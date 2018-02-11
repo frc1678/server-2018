@@ -1,4 +1,4 @@
-#Last Updated: 1/20/17
+#Last Updated: 2/7/18
 import math
 import time
 import random
@@ -131,37 +131,35 @@ class Calculator(object):
             denominator = 0.0
         return numerator / denominator if denominator != 0 else 0.0
 
-    # ADDED in 2018
+    #TIMD CALCS - We're just getting started
+
     def checkAutoForConflict(self):
         # Need to know our AUTOs first
         return False
 
-    # ADDED in 2018
+    def getDrivingAbility(self, timd):
+        # Wait for calculations
+        return timd.rankAgility
+
     def getClimbAttempts(self, climbData):
         return len([climbType[climbAttempt]['didSucceed'] for climbType in climbData for climbAttempt in climbType if climbType[climbAttempt]['didSucceed'] != None])
             
-    # ADDED in 2018
     def getClimbTime(self, climbData):
         times = sorted([climbType[climbAttempt][climbAttemptTag] for climbType in climbData for climbAttempt in climbType for climbAttemptTag in climbType[climbAttempt] if climbType[climbAttempt]['didSucceed'] != None and (climbAttemptTag == 'startTime' or climbAttemptTag == 'endTime')])
         return (times[-1] - times[0])
 
-    # ADDED in 2018
-    def getDrivingAbility(self):
-        # Need to determine how driving ability is calculated
-        return 1
-
-    # ADDED in 2018
     def getTotalAttemptsForValueListDicts(self, success, listDicts):
         return len([attempt['didSucceed'] for attempt in listDicts if attempt['didSucceed'] == success])
 
-    # ADDED in 2018
     def getTotalSuccessForListListDicts(self, listListDicts):
         return sum([len([attempt['didSucceed'] for attempt in listDicts if attempt['didSucceed'] == True]) for listDicts in listListDicts])
 
-    # ADDED in 2018
     def getAvgSuccessTimeForListDicts(self, listDicts):
         valuesList = [(attempt['endTime']-attempt['startTime']) for attempt in listDicts if attempt['didSucceed'] == True]
         return sum(valuesList)/float(len(valuesList))
+
+    def getCanGroundIntake(self, team):
+        return True if (team.calculatedData.avgNumGroundIntake) > 0 else False
 
     #OVERALL DATA
 
@@ -175,6 +173,7 @@ class Calculator(object):
         #R Score = (Z Score + ISG + C) * D       (ISG = Indicator of Group Strength, C & D are constants)
 
     #Gets Z-score for each super data point for all teams
+    
     def rValuesForAverageFunctionForDict(self, averageFunction, d):
         values = map(averageFunction, self.cachedComp.teamsWithMatchesCompleted)
         for index, value in enumerate(values):
@@ -188,51 +187,195 @@ class Calculator(object):
             zscores = list(stats.zscore(values))
         [utils.setDictionaryValue(d, self.cachedComp.teamsWithMatchesCompleted[i].number, zscores[i]) for i in range(len(self.cachedComp.teamsWithMatchesCompleted))]
 
-    def drivingAbilityForTeam(self, team):
-        gCWeight = 0.22
-        bCWeight = 0.0
-        spWeight = 0.28
-        agWeight = 0.50
-        dfWeight = 0.0
-        data = [team.calculatedData.RScoreSpeed, team.calculatedData.RScoreGearControl, team.calculatedData.RScoreBallControl, team.calculatedData.RScoreAgility]
-        if None in data:
-            return
-        return team.calculatedData.RScoreSpeed * spWeight + team.calculatedData.RScoreGearControl * gCWeight + team.calculatedData.RScoreAgility * agWeight
+    #TBA INVOLVEMENT FOR SCORE BREAKDOWN - Add real keys for score_breakdown once they come out
 
-    # def recentDrivingAbility(self, team):
+    '''
+    def getPointsEarnedOnScaleForAllianceAuto(self, match, allianceIsRed):
+        return self.TBAC.getScoreBreakdownForMatch(match.number)['redScalePointsAuto'] if allianceIsRed else self.TBAC.getScoreBreakdownForMatch(match.number)['blueScalePointsAuto']
 
-    def predictedScoreForAllianceWithNumbers(self, allianceNumbers):
-        return self.predictedScoreForAlliance(self.su.teamsForTeamNumbersOnAlliance(allianceNumbers))
+    def getPointsEarnedOnScaleForAllianceTele(self, match, allianceIsRed):
+        return self.TBAC.getScoreBreakdownForMatch(match.number)['redScalePointsTele'] if allianceIsRed else self.TBAC.getScoreBreakdownForMatch(match.number)['blueScalePointsTele']
 
-    def stdDevPredictedScoreForAlliance(self, alliance):
-        alliance = map(self.su.replaceWithAverageIfNecessary, alliance)
-        fuelPts = self.getStandardDevShotPointsForAlliance(alliance)
-        liftoffPts = utils.sumStdDevs(map(lambda t: (t.calculatedData.sdLiftoffAbility or 0), alliance))
-        gearPts = self.getStdDevGearPointsForAlliance(alliance)
-        return utils.sumStdDevs([fuelPts, liftoffPts, gearPts])
+    def getPointsEarnedOnAllianceSwitchForAllianceAuto(self, match, allianceIsRed):
+        return self.TBAC.getScoreBreakdownForMatch(match.number)['redAllianceSwitchPointsAuto'] if allianceIsRed else self.TBAC.getScoreBreakdownForMatch(match.number)['blueAllianceSwitchPointsAuto']
 
-    def stdDevPredictedScoreForAllianceNumbers(self, allianceNumbers):
-        return self.stdDevPredictedScoreForAlliance(self.su.teamsForTeamNumbersOnAlliance(allianceNumbers))
+    def getPointsEarnedOnAllianceSwitchForAllianceTele(self, match, allianceIsRed):
+        return self.TBAC.getScoreBreakdownForMatch(match.number)['redAllianceSwitchPointsTele'] if allianceIsRed else self.TBAC.getScoreBreakdownForMatch(match.number)['blueAllianceSwitchPointsTele']
+        
+    #Save for in case tba api doesn't come out with score_breakdown
+    '''
 
-    def predictedScoreForAlliance(self, alliance):
-        alliance = map(self.su.replaceWithAverageIfNecessary, alliance)
-        fuelPts = self.getTotalAverageShotPointsForAlliance(alliance)
-        liftoffPoints = sum(map(lambda t: (t.calculatedData.liftoffAbility or 0), alliance))
-        autoGears = sum(map(lambda t: t.calculatedData.avgGearsPlacedAuto or 0, alliance))
-        gearPts = self.predictedGearPointsForAlliance(alliance)
-        return fuelPts + liftoffPoints + gearPts + 15
+    def getPointsEarnedOnScaleForAllianceAuto(self, match, allianceIsRed):
+        print(self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed))
+        print([item for sublist in [timd.scaleAttemptAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)] for item in sublist])
+        allianceScaleSuccessEndTimes = [round(attempt.endTime + 0.499) for attempt in filter(lambda x: x.didSucceed == True, [item for sublist in [timd.scaleAttemptAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)] for item in sublist])]
+        opponentScaleSuccessEndTimes = [round(attempt.endTime + 0.499) for attempt in filter(lambda x: x.didSucceed == True, [item for sublist in [timd.scaleAttemptAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, not allianceIsRed)] for item in sublist])]
+        print(allianceScaleSuccessEndTimes)
+        print(opponentScaleSuccessEndTimes)
+        dictEndTimes = sorted(({time : True for time in allianceScaleSuccessEndTimes}.update({time : False for time in opponentScaleSuccessEndTimes})).update({15 : 0}))
+        allianceScore, opponentScore, allianceCubeScore, opponentCubeScore = 0, 0, 0, 0
+        oldTime = dictEndTimes.keys()[0]
+        for time, alliance in dictEndTimes:
+            if allianceCubeScore > opponentCubeScore:
+                allianceScore += (time - oldTime) * 2
+            elif allianceCubeScore < opponentCubeScore:
+                opponentScore += (time - oldTime) * 2
+            if alliance:
+                allianceCubeScore ++ 1
+            else:
+                opponentCubeScore ++ 1
+        return [allianceScore, opponentScore, allianceCubeScore, opponetCubeScore]
 
-    def predictedPlayoffScoreForAlliance(self, alliance):
-        return 20 * self.get40KilopascalChanceForAlliance(alliance) + self.predictedScoreForAlliance(alliance) + 100 * self.getAllRotorsTurningChanceForAlliance(alliance)
+    def getPointsEarnedOnScaleForAllianceTele(self, match, allianceIsRed, allianceCubeScore, opponentCubeScore):
+        allianceScaleSuccessEndTimes = [round(attempt.endTime + 0.499) for attempt in filter(lambda x: x.didSucceed == True, [item for sublist in [timd.scaleAttemptTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)] for item in sublist])]
+        opponentScaleSuccessEndTimes = [round(attempt.endTime + 0.499) for attempt in filter(lambda x: x.didSucceed == True, [item for sublist in [timd.scaleAttemptTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, not allianceIsRed)] for item in sublist])]
+        dictEndTimes = sorted({time : True for time in allianceScaleSuccessEndTimes} + {time : False for time in opponentScaleSuccessEndTimes} +  + {135 : 0})
+        allianceScore, opponentScore = 0, 0
+        oldTime = dictEndTimes.keys()[0]
+        for time, alliance in dictEndTimes:
+            if allianceCubeScore > opponentCubeScore:
+                allianceScore += (time - oldTime)
+            elif allianceCubeScore < opponentCubeScore:
+                opponentScore += (time - oldTime)
+            if alliance:
+                allianceCubeScore ++ 1
+            else:
+                opponentCubeScore ++ 1
+        positionEndOfAuto = 'alliance' if allianceCubeScore > opponentCubeScore else 'neutral' if allianceCubeScore == opponentCubeScore else 'opponent'
+        return [allianceScore, opponentScore, positionEndOfAuto]
+
+    #PREDICTIONS - The real juicy stuff
+
+    def predictedParkForTeam(self, team):
+        return (team.calculatedData.totalNumParks / (team.numMatchesPlayed - team.calculatedData.numSuccessfulClimbs))
+
+    def predictedParkForAlliance(self, match, allianceIsRed):
+        return reduce(lambda x, y: x + y, [self.su.getTeamForNumber(teamNumber).calculatedData.predictedPark for teamNumber in ([match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers][0])])
+
+    def levitateProbabilityForAlliance(self, match, allianceIsRed):
+        return 1 - reduce(lambda x, y: x * y, [1 - self.su.getTeamForNumber(teamNumber).calculatedData.didThreeExchangeInputPercentage for teamNumber in ([match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers][0])])
+
+    def predictedAutoRunForAlliance(self, match, allianceIsRed):
+        return reduce(lambda x, y: x * y, [self.su.getTeamForNumber(teamNumber).calculatedData.autoRunPercentage for teamNumber in ([match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers][0])])
+
+    def predictedFaceTheBossForTeamInMatch(self, match, team):
+        climbPercentages = {'sc' : team.calculatedData.soloClimbPercentage, 'aa' : team.calculatedData.activeAssistClimbPercentage, 'al' : team.calculatedData.activeLiftClimbPercentage, 'ancl' : team.calculatedData.activeNoClimbLiftClimbPercentage, 'ac' : team.calculatedData.assistedClimbPercentage}
+        return (max(climbPercentages, key = (lambda k: climbPercentages[k])), climbPercentages[max(climbPercentages, key = (lambda key: climbPercentages[key]))]) 
+
+    def predictedFaceTheBoss(self, match, allianceIsRed):
+        climbPercentages = dict([self.predictedFaceTheBossForTeamInMatch(match, team) for team in self.su.getAllianceForMatch(match, allianceIsRed)])
+        a = {x : climbPercentages[x] for x in climbPercentages if x == 'sc' or x == 'ac'}
+        b = {x : climbPercentages[x] for x in climbPercentages if x == 'aa' or x == 'al' or x == 'ancl'}
+        try: 
+            a = sorted(a.values())[-1] * sorted(a.values())[-2]
+            return max((max(b.values()), a))
+        except:
+            pass
+        return max(b.values())
+
+    def predictedScaleAuto(self, match, allianceIsRed):
+        return max([self.su.getTeamForNumber(teamNumber).calculatedData.scaleSuccessPercentageAuto for teamNumber in [match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers]])
     
-    def firstPickAbility(self, team):
-        team = self.su.replaceWithAverageIfNecessary(team)
-        ourTeam = self.su.replaceWithAverageIfNecessary(self.su.getTeamForNumber(self.ourTeamNum)) or self.averageTeam
-        shots = self.getTotalAverageShotPointsForTeam(team)
-        gears = 3 * ((team.calculatedData.avgGearsPlacedAuto or 0) + (team.calculatedData.avgGearsPlacedTele or 0))
-        autoBonus = (team.calculatedData.avgGearsPlacedAuto or 0) * 20
-        liftoff = team.calculatedData.liftoffAbility or 0
-        return gears + shots + liftoff + autoBonus
+    def predictedSwitchAuto(self, match, allianceIsRed):
+        return max([self.su.getTeamForNumber(teamNumber).calculatedData.allianceSwitchSuccessPercentageAuto for teamNumber in ([match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers][0])])
+
+    def predictedScaleTimeAuto(self, match, allianceIsRed):
+        return (sorted([self.su.getTeamForNumber(teamNumber) for teamNumber in [match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers]], key = lambda tm: tm.calculatedData.scaleSuccessPercentageAuto)[0]).calculatedData.avgScaleTimeAuto
+
+    def predictedSwitchTimeAuto(self, match, allianceIsRed):
+        return (sorted([self.su.getTeamForNumber(teamNumber) for teamNumber in [match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers]], key = lambda tm: tm.calculatedData.allianceSwitchSuccessPercentageAuto)[0]).calculatedData.avgAllianceSwitchTimeAuto
+
+    def predictedRPsForAlliance(self, match, allianceIsRed):
+        return self.predictedWinRP(match, allianceIsRed) + self.predictedAutoQuestRP(match, allianceIsRed) + self.predictedFaceTheBossRP(match, allianceIsRed)
+
+    def predictedWinRP(self, match, allianceIsRed):
+        if allianceIsRed:
+            return 2 if match.predictedRedScore > match.predictedBlueScore else 1 if match.predictedRedScore == match.predictedBlueScore else 0
+        return 2 if match.predictedBlueScore > match.predictedRedScore else 1 if match.predictedBlueScore == match.predictedRedScore else 0
+
+    def predictedAutoQuestRP(self, match, allianceIsRed):
+        return self.predictedAutoRunForAlliance(match, allianceIsRed) * self.predictedSwitchAuto(match, allianceIsRed)
+
+    def predictedFaceTheBossRP(self, match, allianceIsRed):
+        return self.predictedFaceTheBoss(match, allianceIsRed) * match.redLevitateProbability if allianceIsRed else self.predictedFaceTheBoss(match, allianceIsRed) * match.blueLevitateProbability
+
+    def predictedScalePointsAuto(self, match, allianceIsRed):
+        return (15 - self.predictedScaleTimeAuto(match, allianceIsRed)) * 2 * self.predictedScaleAuto(match, allianceIsRed)
+
+    def predictedSwitchPointsAuto(self, match, allianceIsRed):
+        return (15 - self.predictedSwitchTimeAuto(match, allianceIsRed)) * 2 * self.predictedSwitchAuto(match, allianceIsRed)
+
+    def predictedScoreForAllianceAuto(self, match, allianceIsRed):
+        return 5 * self.predictedAutoRunForAlliance(match, allianceIsRed) + 2 * self.predictedSwitchAuto(match, allianceIsRed) + 2 * self.predictedScaleAuto(match, allianceIsRed) + [self.predictedScalePointsAuto(match, allianceIsRed) / (self.predictedScalePointsAuto(match, allianceIsRed) + self.predictedScalePointsAuto(match, not allianceIsRed))] * min(30, self.predictedScalePointsAuto(match, allianceIsRed) + self.predictedScalePointsAuto(match, not allianceIsRed)) + self.predictedSwitchPointsAuto(match, allianceIsRed)
+
+    def predictedScoreForAlliance(self, match, allianceIsRed):
+        return self.predictedScoreForAllianceAuto(match, allianceIsRed) + self.predictedScoreForAllianceTele(match, allianceIsRed) + (self.predictedFaceTheBoss(match, allianceIsRed) * 60)
+
+    #ABILITIES AND POINT CALCULATIONS - please help
+
+    def getPointsPerVaultCube(self):
+        return avg([self.getPointsPerVaultCubeForMatch(match) for match in self.su.getCompletedMatchesInCompetition()])
+
+    def getPointsPerVaultCubeForMatch(self, match):
+        levitate = 60 if match.redCubesForPowerUp['Levitate'] == 3 and match.blueCubesForPowerUp['Levitate'] == 3 else 30 if match.redCubesForPowerUp['Levitate'] == 3 or match.blueCubesForPowerUp['Levitate'] == 3 else 0
+        return (((sum(match.redCubesInVaultFinal.values()) + sum(match.redCubesInVaultFinal.values())) * 5) + levitate) / (sum(match.redCubesInVaultFinal.values()) + sum(match.redCubesInVaultFinal.values()))
+
+    def getPointsPerScaleCube(self):
+        return sum([self.getPointsPerScaleCubeForMatch(match) for match in self.comp.matches]) / len(self.su.getCompletedMatchesInCompetition())
+
+    def getPointsPerScaleCubeForMatch(self, match):
+        return avg((self.getPointsPerScaleCubeForAlliance(match, True), self.getPointsPerScaleCubeForAlliance(match, False)))
+
+    def getPointsPerScaleCubeForAlliance(self, match, allianceIsRed):
+        return self.getPointsEarnedOnScaleForAlliance(match, allianceIsRed) / sum([timd.calculatedData.numScaleSuccessTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)])
+
+    def getPointsPerAllianceSwitchCube(self):
+        return sum([self.getPointsPerAllianceSwitchCubeForMatch(match) for match in self.comp.matches]) / len(self.su.getCompletedMatchesInCompetition())
+    
+    def getPointsPerAllianceSwitchCubeForMatch(self, match):
+        return avg((self.getPointsPerAllianceSwitchCubeForAlliance(match, True), self.getPointsPerAllianceSwitchCubeForAlliance(match, False)))
+
+    def getPointsPerAllianceSwitchCubeForAlliance(self, match, allianceIsRed):
+        return avg((self.getPointsPerOpponentSwitchCube(match, not allianceIsRed) / (sum([timd.calculatedData.numOpponentSwitchSuccessTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, not allianceIsRed)]) + sum([timd.calculatedData.numOpponentSwitchSuccessAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, not allianceIsRed)]) + sum([timd.calculatedData.numAllianceSwitchSuccessTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)]) + sum([timd.calculatedData.numAllianceSwitchSuccessAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)])), self.getPointsEarnedOnAllianceSwitchForAllianceTele(match, allianceIsRed) / (sum([timd.calculatedData.numOpponentSwitchSuccessTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, not allianceIsRed)]) + sum([timd.calculatedData.numOpponentSwitchSuccessAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, not allianceIsRed)]) + sum([timd.calculatedData.numAllianceSwitchSuccessTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)]) + sum([timd.calculatedData.numAllianceSwitchSuccessAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)]))))
+
+    def getPointsPerOpponentSwitchCube(self):
+        return sum([self.getPointsPerOpponentSwitchCubeForMatch(match) for match in self.comp.matches]) / len(self.su.getCompletedMatchesInCompetition())
+
+    def getPointsPerOpponentSwitchCubeForMatch(self, match):
+        return avg((self.getPointsPerOpponentSwitchCubeForAlliance(match, True), self.getPointsPerOpponentSwitchCubeForAlliance(match, False)))
+
+    def getPointsPerOpponentSwitchCubeForAlliance(self, match, allianceIsRed):
+        return (155 - (self.getPointsEarnedOnAllianceSwitchForAllianceTele(match, not allianceIsRed) + self.getPointsEarnedOnAllianceSwitchForAllianceAuto(match, not allianceIsRed))) / (sum([timd.calculatedData.numOpponentSwitchSuccessTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)]) + sum([timd.calculatedData.numOpponentSwitchSuccessAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, allianceIsRed)]) + sum([timd.calculatedData.numAllianceSwitchSuccessTele for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, not allianceIsRed)]) + sum([timd.calculatedData.numAllianceSwitchSuccessAuto for timd in self.su.getTIMDsForMatchForAllianceIsRed(match, not allianceIsRed)]))
+
+    def getTeleopExchangeAbilityForAlliance(self, match, allianceIsRed):
+        return min(9, sum([self.su.getTeamForNumber(teamNumber).calculatedData.avgNumExchangeInput for teamNumber in [match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers]])) * 5 + (match.redLevitateProbabilility if allianceIsRed else match.blueLevitateProbability) * 30
+
+    def getTeleopScaleAbilityForTeam(self, team):
+        return (team.calculatedData.avgCubesPlacedInScaleTele) * self.getPointsPerScaleCube() 
+
+    def getTeleopScaleAbilityForAlliance(self, match, allianceIsRed):
+        return sum([self.getTeleopScaleAbilityForTeam(team) for team in self.su.getAllianceForMatch(match, allianceIsRed)])
+
+    def getTeleopAllianceSwitchAbilityForTeam(self, team):
+        return (team.calculatedData.avgAllianceSwitchCubesTele) * self.getPointsPerAllianceSwitchCube() 
+
+    def getTeleopScaleAbilityForAlliance(self, match, allianceIsRed):
+        return sum([self.getTeleopAllianceSwitchAbilityForTeam(team) for team in self.su.getAllianceForMatch(match, allianceIsRed)])
+
+    def getDrivingAbilityForTeam(self, team):
+        return team.calculatedData.avgAgility
+
+    def getFirstPickAbilityForTeam(self, team):
+        #Fix this
+        autoPoints = 1
+        scalePoints = 1
+        switchPoints = 1
+        groundPickup = 1 if team.calculatedData.canGroundIntake else 0
+        exchangePoints = team.calculatedData.teleopExchangeAbility * self.getPointsPerVaultCube()
+        drivingAbility = team.calculatedData.avgDrivingAbility
+        return (drivingAbility + exchangePoints + switchPoints + autoPoints) + ((switchPoints + scalePoints) * groundPickup)
+    
+    # def recentDrivingAbility(self, team):
 
     def firstPickAllRotorsChance(self, team):
         ourTeam = self.su.getTeamForNumber(self.ourTeamNum) or self.averageTeam
@@ -269,7 +412,6 @@ class Calculator(object):
         functionalPercentage = (1 - team.calculatedData.disfunctionalPercentage)
         return functionalPercentage * (driving + liftoffAbility + autoBonus + teleBonus)
 
-    #PROBABILITIES - Needs to be accurate
     def winChanceForMatchForAllianceIsRed(self, match, allianceIsRed):
         alliance = self.su.getAllianceForMatch(match, allianceIsRed)
         predictedScore  = self.predictedScoreForMatchForAlliance(match, allianceIsRed)
@@ -361,10 +503,14 @@ class Calculator(object):
         return 1 if score == opposingScore else 2 * (score > opposingScore)
 
     def RPsGainedFromMatchForAlliance(self, allianceIsRed, match):
-        ourFields = self.su.getFieldsForAllianceForMatch(allianceIsRed, match)
-        opposingFields = self.su.getFieldsForAllianceForMatch(not allianceIsRed, match)
-        numRPs = self.scoreRPsGainedFromMatchWithScores(ourFields[0], opposingFields[0])
-        return numRPs + ourFields[1] + ourFields[2]
+        winRPs = self.scoreRPsGainedFromMatchWithScores(match.redScore, match.blueScore) if allianceIsRed else self.scoreRPsGainedFromMatchWithScores(match.blueScore, match.redScore)
+        if allianceIsRed:
+            autoQuestRP = 1 if match.redDidAutoQuest else 0
+            faceTheBossRP = 1 if match.redDidFaceBoss else 0
+        else:
+            autoQuestRP = 1 if match.blueDidAutoQuest else 0
+            faceTheBossRP = 1 if match.redDidFaceBoss else 0
+        return winRPs + autoQuestRP + faceTheBossRP
 
     def predictedRPsForAllianceForMatch(self, allianceIsRed, match):
         alliance = map(self.su.replaceWithAverageIfNecessary, self.su.getAllianceForMatch(match, allianceIsRed)) #Gets the correct alliance, either red or blue based on the boolean
@@ -406,7 +552,6 @@ class Calculator(object):
         except Exception as e:
             self.cachedComp.actualSeedings = self.teamsSortedByRetrievalFunctions(self.getSeedingFunctions())
         # self.cachedComp.predictedSeedings = self.teamsSortedByRetrievalFunctions(self.getPredictedSeedingFunctions())
-        print('dth')
         map(lambda t: Rscorecalcs(t, self), self.cachedComp.teamsWithMatchesCompleted)
         self.rValuesForAverageFunctionForDict(lambda t: t.calculatedData.avgDrivingAbility, self.cachedComp.drivingAbilityZScores)
 
@@ -431,21 +576,6 @@ class Calculator(object):
         except:
             print(traceback.format_exc())
 
-    def autoGear(self):
-        center = 0
-        none = 0
-        side = 0
-        for team in self.comp.teams:
-            if 'lift1' in team.calculatedData.gearScoringPositionsAuto:
-                center += 1
-            if 'lift2' in team.calculatedData.gearScoringPositionsAuto or 'lift3' in team.calculatedData.gearScoringPositionsAuto:
-                side += 1
-            if len(team.calculatedData.gearScoringPositionsAuto) == 0:
-                none += 1
-        print(center / float(center + side + none))
-        print(none / float(center + side + none))
-        print(side / float(center + side + none))
-
     #CALCULATIONS
     def getFirstCalculationsForAverageTeam(self):
         averageTeamDict(self)
@@ -456,7 +586,7 @@ class Calculator(object):
                 team.calculatedData = DataModel.CalculatedTeamData()
             t = team.calculatedData
             firstCalculationDict(team, self)
-            print('> Completed first calcs for ' + str(team.number))
+        print('> Completed first calcs for ' + str(team.number))
 
     def doSecondCalculationsForTeam(self, team):
         if len(self.su.getCompletedMatchesForTeam(team)):
@@ -496,6 +626,7 @@ class Calculator(object):
             threads = [] #Creates an empty list for timds accessible in multiple processes (manager.list)
             manager = multiprocessing.Manager()
             calculatedTIMDs = manager.list()
+            print(calculatedTIMDs)
             for timd in self.comp.TIMDs:
                 #Does TIMD calculations to each TIMD in the competition, and puts the process into a list
                 #the calculation results get put into
@@ -504,12 +635,14 @@ class Calculator(object):
                 thread.start()
             #The main function does not continue until all of the TIMD processes are done (join)
             map(lambda t: t.join(), threads)
-            #Converts the shared list into a normal list
+            #Converts the shared list into a normal list            
             self.comp.TIMDs = [timd for timd in calculatedTIMDs]
             self.cacheFirstTeamData()
             self.doFirstTeamCalculations()
             self.cacheSecondTeamData()
+            print('Saru')
             self.doMatchesCalculations()
+            print('Koko')
             self.doSecondTeamCalculations()
             print('> Calculations finished, adding data to firebase')
             PBC.addCalculatedTIMDatasToFirebase(self.su.getCompletedTIMDsInCompetition())
