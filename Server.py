@@ -1,5 +1,5 @@
 #By Bryton Moeller (2015-2016)
-#Last Updated: 1/15/17
+#Last Updated: 2/1/18
 import sys
 import traceback
 import DataModel
@@ -10,7 +10,7 @@ import CSVExporter
 import pdb
 from CrashReporter import reportServerCrash
 import dataChecker
-import scoutRotator
+from scoutRotator import ScoutRotator
 import scheduleUpdater
 import pprint
 
@@ -20,6 +20,7 @@ comp.updateTeamsAndMatchesFromFirebase()
 comp.updateTIMDsFromFirebase()
 calculator = Math.Calculator(comp)
 cycle = 1
+scheduleUpdater.scheduleListener()
 shouldSlack = True
 consolidator = dataChecker.DataChecker()
 consolidator.start()
@@ -29,20 +30,17 @@ fb.child('availabilityUpdated').set(0)
 #Scout assignment streams:
 
 #Note: availability child on firebase should have each scout with an availability of 1 or 0
-	#If that isn't the case, use scoutRotator.tabletHandoutStream() for resetAvailability()
+	#If that isn't the case, use ScoutRotator.tabletHandoutStream() for resetAvailability()
 
-#Use this if tablets need assigned to scouts by the server, and will then be given to the correct scouts
-#This means at the beginning of a competition day
-scoutRotator.tabletHandoutStream()
-
-#Use this for running the server again (e.g. after a crash) to avoid reassigning scouts or tablets
-# scoutRotator.alreadyAssignedStream()
+#Assign Scouts and Tablet Handouts- reset ALL scouts at beggining of day in a comp
+#If the server crashes and you don't wanna reset scouts already on fb, then input 'no'
+ScoutRotator.notSimpleStream()
 
 #Use this if you are restarting the server and need to reassign scouts but scouts already have tablets
 #Also useful for unexpected changes in availability
 #Note: Only use if availability child on Firebase has each scout with a value of 1 or 0
 
-# scoutRotator.simpleStream()
+# ScoutRotator.simpleStream()
 
 def checkForMissingData():
 	with open('missing_data.txt', 'w') as missingDataFile:

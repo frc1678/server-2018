@@ -1,4 +1,4 @@
-#Last Updated: 1/4/18
+#Last Updated: 2/1/18
 import utils
 import json
 import datetime
@@ -11,12 +11,12 @@ class PyrebaseCommunicator(object):
 		super(PyrebaseCommunicator, self).__init__()
 		self.JSONmatches = []
 		self.JSONteams = []
-		self.url = 'scouting-2018-9023a'
+		self.url = 'scouting-2018-temp'
 		config = {
 			'apiKey': 'mykey',
 			'authDomain': self.url + '.firebaseapp.com',
-			'databaseURL': 'https://' + self.url + '.firebaseio.com/',
-			'storageBucket': self.url + '.appspot.com'
+			'storageBucket': self.url + 'appspot.com',
+			'databaseURL': 'https://' + self.url + '.firebaseio.com/'
 		}
 		app = pyrebase.initialize_app(config)
 		self.firebase = app.database()
@@ -99,12 +99,6 @@ class PyrebaseCommunicator(object):
 		addTIMD = lambda m: map(lambda t: timdFunc(t, m), m.redAllianceTeamNumbers + m.blueAllianceTeamNumbers)
 		map(addTIMD, matches)
 
-	#Empties everything from firebase
-	def wipeDatabase(self):
-		map(utils.printWarningForSeconds, range(10, 0, -1))
-		print('\nWARNING: Wiping Firebase...')
-		self.firebase.remove()
-
 	#Puts all of firebase onto a local JSON
 	def cacheFirebase(self):
 		try:
@@ -118,6 +112,12 @@ class PyrebaseCommunicator(object):
 	def addCompInfoToFirebase(self):
 		#Doing these keys manually so less clicking in firebase is better and because just easier
 		self.firebase.child('code').set('cama')
+
+	#Empties everything from firebase
+	def wipeDatabase(self):
+		map(utils.printWarningForSeconds, range(10, 0, -1))
+		print('\nWARNING: Wiping Firebase...')
+		self.firebase.remove()
 
 	def getPythonObjectForFirebaseDataAtLocation(self, location):
 		return utils.makeASCIIFromJSON(self.firebase.child(location).get().val())

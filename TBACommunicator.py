@@ -66,4 +66,3 @@ class TBACommunicator(object):
 			for team in surrogateTIMDs[match]:
 				surrogateTIMDs[match][surrogateTIMDs[match].index(team)] = team[3:]
 		return surrogateTIMDs
-
