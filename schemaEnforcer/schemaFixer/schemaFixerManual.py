@@ -28,7 +28,7 @@ config = {
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
 
-fixList = [
+fixList = [ # Set 2nd item in list to '' (empty string) to delete data instead of move
 	['/Matches/*/blueAllianceTeamNumbers/calculatedData/blueCubesForPowerup', '/Matches/*/blueCubesForPowerup'],
 	['/Matches/*/calculatedData/test/blueScore', '/Matches/*/blueScore'],
 ]
@@ -86,7 +86,8 @@ for item in fixList:
 			for child in wildcardChildren:
 				data = db.child(paths[0][0]+str(child)+'/'+paths[0][1]).get().val()
 				if data != None:
-					db.child(paths[1][0]+str(child)+'/'+paths[1][1]).set(data)
+					if item[1] != '':
+						db.child(paths[1][0]+str(child)+'/'+paths[1][1]).set(data)
 					db.child(paths[0][0]+str(child)+'/'+paths[0][1]).remove()
 
 		else:
@@ -94,7 +95,8 @@ for item in fixList:
 	else:
 		data = db.child(item[0]).get().val()
 		if data != None:
-			db.child(item[1]).set(data)
+			if item[1] != '':
+				db.child(item[1]).set(data)
 			db.child(item[0]).remove()
 
 print("Done.")

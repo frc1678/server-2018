@@ -1,5 +1,5 @@
 # Created by Carl Csaposs
-# Last Updated: 2/3/18
+# Last Updated: 2/11/18
 
 import pyrebase
 import time
@@ -254,9 +254,9 @@ try:
 	for x in cF:
 		if x not in sD:
 			formatKeyWarning(x, [], cF[x])
-		elif x in ['AppTokens', 'scouts', 'availability', 'availabilityUpdated', 'code']:
+		elif x in ['AppTokens', 'scouts']:
 			continue # Who cares about app tokens?
-		elif x == "TempTeamInMatchDatas" or x == "TeamInMatchDatas" or x == "Teams" or x == "AppTokens":
+		elif x in ["TempTeamInMatchDatas", "TeamInMatchDatas", "Teams"]: # Doesn't check first child name
 			if type(cF[x]) == dict and type(sD[x]) == dict:
 				for y in cF[x]:
 					if y not in sD[x]:
@@ -265,7 +265,6 @@ try:
 						ry = y
 					if type(cF[x][y]) == dict and type(sD[x][ry]) == dict:
 						for z in cF[x][y]:
-							#print('z', z)
 							if z == 'imageKeys' or z == 'pitAllImageURLs':
 								doNothing = None
 							elif z not in sD[x][ry]:
@@ -299,74 +298,54 @@ try:
 														problemsInList += 1
 												if problemsInList > 0:
 													formatListTypeWarning(cF[x][y][z][a], problemsInList, type(sD[x][ry][z][a][0]), [x,y,z,a])
-
-
 									else:
-										if a not in sD[x][ry][z]:
-											formatKeyWarning(z, [x,y], cF[x][y][z])
-										elif type(cF[x][y][z][a]) != type(sD[x][ry][z][a]):
+										if type(cF[x][y][z][a]) != type(sD[x][ry][z][a]):
 											formatTypeWarning(a, type(cF[x][y][z][a]), type(sD[x][ry][z][a]), [x,y,z], cF[x][y][z][a])
 							elif type(cF[x][y][z]) == list and type(sD[x][ry][z]) == list:
 								if type(cF[x][y][z][0]) == dict and type(sD[x][ry][z][0]) == dict:
 									for b in cF[x][y][z]:
-										'''
-										if b not in sD[x][ry][z]:
+										for c in b:
 											h = cF[x][y][z].index(b)
-											print('g')
-											formatKeyWarning(b, [x,y,z], cF[x][y][z][h])
-										'''
-										if False:
-											print('nope')
-										else:
-											for c in b:
-												h = cF[x][y][z].index(b)
-												if c not in sD[x][ry][z][0]:
-													formatKeyWarning(c, [x,y,z,h], cF[x][y][z][h][c])
-												elif type(b[c]) == dict:
-													for d in b[c]:
-														if type(b[c][d]) == dict:
-															print('Error 52G: Script needs more continuation')
-														elif type(b[c][d]) == list:
-															print('Error 52F: Script needs more continuation')
-														else:
-															h = cF[x][y][z].index(b)
-															if d not in sD[x][ry][z][0][c]:
-																formatKeyWarning(d, [x,y,z,h,c], cF[x][y][z][h][c][d])
-															elif type(b[c][d]) != type(sD[x][ry][z][0][c][d]):
-																formatTypeWarning(d, type(b[c][d]), type(sD[x][ry][z][0][c][d]), [x,y,z,h,c], cF[x][y][z][h][c][d])
-												elif type(b[c]) == list:
-													print('Error 52E: Script needs more continuation')
-												else:
-													h = cF[x][y][z].index(b)
-													if c not in sD[x][ry][z][0]:
-														formatKeyWarning(c, [x,y,z,h], cF[x][y][z][c])
-													elif type(b[c]) != type(sD[x][ry][z][0][c]):
-														formatTypeWarning(c, type(b[c]), type(sD[x][ry][z][0][c]), [x,y,z,h], cF[x][y][z][h][c])
+											if c not in sD[x][ry][z][0]:
+												formatKeyWarning(c, [x,y,z,h], cF[x][y][z][h][c])
+											elif type(b[c]) == dict:
+												for d in b[c]:
+													if type(b[c][d]) == dict:
+														print('Error 52G: Script needs more continuation')
+													elif type(b[c][d]) == list:
+														print('Error 52F: Script needs more continuation')
+													else:
+														h = cF[x][y][z].index(b)
+														if d not in sD[x][ry][z][0][c]:
+															formatKeyWarning(d, [x,y,z,h,c], cF[x][y][z][h][c][d])
+														elif type(b[c][d]) != type(sD[x][ry][z][0][c][d]):
+															formatTypeWarning(d, type(b[c][d]), type(sD[x][ry][z][0][c][d]), [x,y,z,h,c], cF[x][y][z][h][c][d])
+											elif type(b[c]) == list:
+												print('Error 52E: Script needs more continuation')
+											else:
+												if type(b[c]) != type(sD[x][ry][z][0][c]):
+													formatTypeWarning(c, type(b[c]), type(sD[x][ry][z][0][c]), [x,y,z,h], cF[x][y][z][h][c])
 								elif type(cF[x][y][z][0]) == list and type(sD[x][ry][z][0]) == list:
 									print('Error 52B: Script needs more continuation')
 								else:
-									problemsInList = 0
-									for b in cF[x][y][z]:
-										if type(b) != type(sD[x][ry][z][0]):
-											problemsInList += 1
-									if problemsInList > 0:
-										formatListTypeWarning(cF[x][y][z], problemsInList, type(sD[x][ry][z][0]), [x, y, z])
+									if z not in ['pitDriveTimes', 'pitRampTimes']: # these have multiple correct types in list, can't check, so ignore
+										problemsInList = 0
+										for b in cF[x][y][z]:
+											if type(b) != type(sD[x][ry][z][0]):
+												problemsInList += 1
+										if problemsInList > 0:
+											formatListTypeWarning(cF[x][y][z], problemsInList, type(sD[x][ry][z][0]), [x, y, z])
 							else:
-								if z not in sD[x][ry]:
-									formatKeyWarning(z, [x,y], cF[x][y][z])
-								elif type(cF[x][y][z]) != type(sD[x][ry][z]):
+								if type(cF[x][y][z]) != type(sD[x][ry][z]):
 									formatTypeWarning(z, type(cF[x][y][z]), type(sD[x][ry][z]), [x,y], cF[x][y][z])
 					elif type(cF[x][y]) == list and type(sD[x][ry]) == list:
 						print("Error 53B: Needs restructuring")
 					else:
-						if y not in sD[x]:
-							formatKeyWarning(y, [x], cF[x][y])
 						if type(cF[x][y]) != type(sD[x][ry]):
 							formatTypeWarning(y, type(cF[x][y]), type(sD[x][ry]), [x], cF[x][y])
 			else:
 				if type(cF[x]) != type(sD[x]):
 					formatTypeWarning(x, type(cF[x]), type(sD[x]), [], sD[x])
-				print("Error 50A: Script needs more continuation")
 		elif type(cF[x]) == list and type(sD[x]) == list:		
 			if type(cF[x][1]) == dict and type(sD[x][1]) == dict:
 				for y in cF[x]: # cF[x] is a list
@@ -374,7 +353,7 @@ try:
 						print("Error #1A: Script cannot handle double nested lists")
 					elif type(y) == dict:
 						for z in y:
-							ix = 1#cF[x].index(y)
+							ix = 1
 							aix = cF[x].index(y)
 							if aix == 0 and x == 'Matches':
 								if (not match0Checked) and cF[x][0] != None:
@@ -386,7 +365,6 @@ try:
 								if type(y[z][0]) == dict or type(y[z][0]) == list:
 									print("Error #1B: Script cannot handle double nested lists")
 								else:
-									ix = 1#ix = cF[x].index(y)
 									if ix == 0 and x == 'Matches':
 										if (not match0Checked) and cF[x][0] != None:
 											formatKeyWarning(aix, [x], cF[x][aix])
@@ -405,26 +383,17 @@ try:
 											formatListTypeWarning(y[z], problemsInList, type(sD[x][ix][z][0]), [x, aix, z])
 							elif type(y[z]) == dict:
 								for a in y[z]:
-									ix = 1#ix = cF[x].index(y)
 									b = y[z][a]
 									if a not in sD[x][ix][z]:
 										formatKeyWarning(a, [x,aix,z], cF[x][aix][z][a])
 									elif type(b) == dict or type(b) == list:
 										print("Error #2A: Script needs more continuation")
 									else:
-										f = ix#cF[x].index(y)
-										h = sD[x][f][z]
-										if a not in h:
-											formatKeyWarning(a, [x,f,z], cF[x][f][z][a])
-										elif type(b) != type(h[a]):
-											formatTypeWarning(a, type(b), type(h[a]), [x,f,z], cF[x][f][z][a])
+										if type(b) != type(sD[x][ix][z][a]):
+											formatTypeWarning(a, type(b), type(sD[x][f][z][a]), [x,ix,z], cF[x][ix][z][a])
 							else:
-								f = ix#cF[x].index(y)
-								h = sD[x][1]
-								if z not in h:
-									formatKeyWarning(z, [x,f], cF[x][f][z])
-								elif type(y[z]) != type(h[z]):
-									formatTypeWarning(z, type(y[z]), type(h[z]), [x,f], cF[x][f][z])
+								if type(y[z]) != type(sD[x][ix][z]):
+									formatTypeWarning(z, type(y[z]), type(sD[x][ix][z]), [x,ix], cF[x][ix][z])
 					else:
 						if y == None and x == "Matches":
 							continue
@@ -449,9 +418,7 @@ try:
 						formatListTypeWarning(x, problemsInList, type(sD[x][0]), [])
 
 		elif type(cF[x]) == dict and type(sD[x]) == dict:
-			#print(x)
 			for y in cF[x]:
-				#print(y)
 				if y not in sD[x]:
 					formatKeyWarning(y, [x], cF[x][y])
 				elif type(cF[x][y]) == dict and type(sD[x][y]) == dict:
@@ -499,21 +466,15 @@ try:
 								print('Error 4C: Script needs more continuation')
 							'''
 						else:
-							if z not in sD[x][y]:
-								formatKeyWarning(z, [x,y], cF[x][y][z])
-							elif type(cF[x][y][z]) != type(sD[x][y][z]):
+							if type(cF[x][y][z]) != type(sD[x][y][z]):
 								formatTypeWarning(z, type(cF[x][y][z]), type(sD[x][y][z]), [x,y], cF[x][y][z])
 				elif type(cF[x][y]) == list and type(sD[x][y]) == list:
 					print("Error 3B: Needs restructuring")
 				else:
-					if y not in sD[x]:
-						formatKeyWarning(y, [x], cF[x][y])
-					elif type(cF[x][y]) != type(sD[x][y]):
+					if type(cF[x][y]) != type(sD[x][y]):
 						formatTypeWarning(y, type(cF[x][y]), type(sD[x][y]), [x], cF[x][y])
 		else:
-			if x not in sD:
-				formatKeyWarning(x, [], cF[x])
-			elif type(cF[x]) != type(sD[x]):
+			if type(cF[x]) != type(sD[x]):
 				formatTypeWarning(x, type(cF[x]), type(sD[x]), [], cF[x])
 except Exception as e:
 	#sendSlack("ERROR: "+ str(e), 'danger')
@@ -564,8 +525,8 @@ if areErrors:
 				'color':istatus, 
 				'text':attachmentsText['key'], 'title':'Key Errors:',
 	        })
-	        if numKey > 5:
-	        	attachments[len(attachments)-1]['footer'] = 'NOTE: This message can be expanded'
+	        #if numKey > 5:
+	        #	attachments[len(attachments)-1]['footer'] = 'NOTE: This message can be expanded'
 
 
 		if numType > 0:
@@ -577,8 +538,8 @@ if areErrors:
 				'color':istatus, 
 				'text':attachmentsText['type'], 'title':'Type Errors:',
 	        })
-	        if numType > 5:
-	        	attachments[len(attachments)-1]['footer'] = 'NOTE: This message can be expanded'
+	        #if numType > 5:
+	        #	attachments[len(attachments)-1]['footer'] = 'NOTE: This message can be expanded'
 
 		if numList > 0:
 			istatus = getColorForKey(numList)
@@ -589,8 +550,8 @@ if areErrors:
 				'color':istatus, 
 				'text':attachmentsText['list'], 'title':'List Type Errors:',
 	        })
-	        if numList > 5:
-	        	attachments[len(attachments)-1]['footer'] = 'NOTE: This message can be expanded'
+	        #if numList > 5:
+	        #	attachments[len(attachments)-1]['footer'] = 'NOTE: This message can be expanded'
 
 		attachments[0]['pretext'] = pretext
 		attachments[0]['fallback'] = str(totalConflicts) + ' total discrepancies' if totalConflicts != 1 else str(totalConflicts) + ' total discrepancy'
