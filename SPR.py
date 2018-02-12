@@ -505,4 +505,4 @@ class ScoutPrecision(object):
 		else:
 			zscores = {k : (zscore, self.sprs[k]) for (k, zscore) in zip(self.sprs.keys(), stats.zscore(self.sprs.values()))}
 		CSVExporter.CSVExportScoutZScores(zscores)
-		PBC.sendExport('SPRExport.csv')
+
