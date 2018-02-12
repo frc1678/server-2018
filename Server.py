@@ -15,6 +15,7 @@ import scheduleUpdater
 import pprint
 import APNServer
 
+
 APNServer.startNotiStream()
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 comp = DataModel.Competition(PBC)

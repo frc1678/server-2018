@@ -12,7 +12,9 @@ import pprint
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 fb = PBC.firebase
 
-scouts = 'Jon Jim Bob Bill Joe Bran Ken Mat Dog End Mrs Hi Death The Adhoc Pro 001 Ergo'.split()
+numScouts = 18
+scouts = ['scout'+str(num) for num in range(1,numScouts+1)]
+
 SPR = SPR.ScoutPrecision()
 
 #Creates list of availability values in firebase for each scout

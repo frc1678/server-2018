@@ -137,9 +137,15 @@ class Calculator(object):
         # Need to know our AUTOs first
         return False
 
+    def getDidThreeExchangeInput(self, timd):
+        return True if timd.numExchangeInput >= 3 else False
+
     def getDrivingAbility(self, timd):
         # Wait for calculations
         return timd.rankAgility
+
+    def getDidClimb(self, climbData):
+        return True if True in [climbType[climbAttempt]['didSucceed'] for climbType in climbData for climbAttempt in climbType if climbType[climbAttempt]['didSucceed'] != None] else False
 
     def getClimbAttempts(self, climbData):
         return len([climbType[climbAttempt]['didSucceed'] for climbType in climbData for climbAttempt in climbType if climbType[climbAttempt]['didSucceed'] != None])
@@ -157,6 +163,12 @@ class Calculator(object):
     def getAvgSuccessTimeForListDicts(self, listDicts):
         valuesList = [(attempt['endTime']-attempt['startTime']) for attempt in listDicts if attempt['didSucceed'] == True]
         return sum(valuesList)/float(len(valuesList))
+
+    def getTotalSuccessForListOfBools(self, boolList):
+        try:
+            return sum(boolList)
+        except:
+            return sum(boolList.values())
 
     def getCanGroundIntake(self, team):
         return True if (team.calculatedData.avgNumGroundIntake) > 0 else False
@@ -247,7 +259,10 @@ class Calculator(object):
     #PREDICTIONS - The real juicy stuff
 
     def predictedParkForTeam(self, team):
-        return (team.calculatedData.totalNumParks / (team.numMatchesPlayed - team.calculatedData.numSuccessfulClimbs))
+        try:
+            return (team.calculatedData.totalNumParks / (sum(self.su.getCompletedTIMDsForTeam(team)) - team.calculatedData.numSuccessfulClimbs))
+        except:
+            return 0
 
     def predictedParkForAlliance(self, match, allianceIsRed):
         return reduce(lambda x, y: x + y, [self.su.getTeamForNumber(teamNumber).calculatedData.predictedPark for teamNumber in ([match.redAllianceTeamNumbers if allianceIsRed else match.blueAllianceTeamNumbers][0])])
@@ -311,7 +326,7 @@ class Calculator(object):
     def predictedScoreForAlliance(self, match, allianceIsRed):
         return self.predictedScoreForAllianceAuto(match, allianceIsRed) + self.predictedScoreForAllianceTele(match, allianceIsRed) + (self.predictedFaceTheBoss(match, allianceIsRed) * 60)
 
-    #ABILITIES AND POINT CALCULATIONS - please help
+    #ABILITIES AND POINT CALCULATIONS - Different abilities for teams and alliances
 
     def getPointsPerVaultCube(self):
         return avg([self.getPointsPerVaultCubeForMatch(match) for match in self.su.getCompletedMatchesInCompetition()])
@@ -359,118 +374,44 @@ class Calculator(object):
     def getTeleopAllianceSwitchAbilityForTeam(self, team):
         return (team.calculatedData.avgAllianceSwitchCubesTele) * self.getPointsPerAllianceSwitchCube() 
 
-    def getTeleopScaleAbilityForAlliance(self, match, allianceIsRed):
+    def getTeleopAllianceSwitchAbilityForAlliance(self, match, allianceIsRed):
         return sum([self.getTeleopAllianceSwitchAbilityForTeam(team) for team in self.su.getAllianceForMatch(match, allianceIsRed)])
+
+    def getTeleopOpponentSwitchAbilityForTeam(self, team):
+        return (team.calculatedData.avgOpponentSwitchCubesTele) * self.getPointsPerOpponentSwitchCube()
+
+    def getTeleopOpponentSwitchAbilityForAlliance(self, match, allianceIsRed):
+        return sum([self.getTeleopOppoentSwitchAbilityForTeam(team) for team in self.su.getAllianceForMatch(match, allianceIsRed)])
 
     def getDrivingAbilityForTeam(self, team):
         return team.calculatedData.avgAgility
 
     def getFirstPickAbilityForTeam(self, team):
-        #Fix this
-        autoPoints = 1
-        scalePoints = 1
-        switchPoints = 1
+        autoPoints = (team.calculatedData.avgCubesPlacedInScaleAuto * 30 + team.calculatedData.avgAllianceSwitchCubesAuto * 10 + team.calculatedData.autoRunPercentage * 10)
+        scalePoints = team.calculatedData.teleopScaleAbility
+        switchPoints = team.calculatedData.teleopAllianceSwitchAbility + team.calculatedData.teleopOpponentSwitchAbility
         groundPickup = 1 if team.calculatedData.canGroundIntake else 0
         exchangePoints = team.calculatedData.teleopExchangeAbility * self.getPointsPerVaultCube()
         drivingAbility = team.calculatedData.avgDrivingAbility
-        return (drivingAbility + exchangePoints + switchPoints + autoPoints) + ((switchPoints + scalePoints) * groundPickup)
+        climb = (60 * team.calculatedData.activeLiftClimbPercentage) + ((team.calculatedData.soloClimbPercentage + team.calculatedData.activeNoClimbLiftClimbPercentage + team.calculatedData.assistedClimbPercentage + team.calculatedData.activeAssistClimbPercentage) * 30)
+        functionalPercentage = (1 - team.calculatedData.dysfunctionalPercentage)
+        return ((drivingAbility + exchangePoints + autoPoints) + ((switchPoints + scalePoints) * groundPickup)) * functionalPercentage
     
-    # def recentDrivingAbility(self, team):
+    def getSecondPickAbilityForTeam(self, team):
+        autoPoints = (team.calculatedData.avgAllianceSwitchCubesAuto * 20 + team.calculatedData.autoRunPercentage * 10)
+        switchPoints = team.calculatedData.teleopAllianceSwitchAbility + team.calculatedData.teleopOpponentSwitchAbility
+        groundPickup = 1 if team.calculatedData.canGroundIntake else 0
+        exchangePoints = team.calculatedData.teleopExchangeAbility * self.getPointsPerVaultCube()
+        drivingAbility = team.calculatedData.avgDrivingAbility
+        climb = (team.calculatedData.predictedPark + team.calculatedData.assistedClimbPercentage) * 30
+        functionalPercentage = (1 - team.calculatedData.dysfunctionalPercentage)
+        return ((drivingAbility + exchangePoints + switchPoints + autoPoints) + (switchPoints * groundPickup)) * functionalPercentage
 
-    def firstPickAllRotorsChance(self, team):
-        ourTeam = self.su.getTeamForNumber(self.ourTeamNum) or self.averageTeam
-        return self.getAllRotorsTurningChanceForTwoRobotAlliance([ourTeam, team])
+    #HEAVY PREDICTIONS AND ABILITIES - "Only one regression in it!" - Ethan
 
-    def overallSecondPickAbility(self, team):
-        driving = ((team.calculatedData.RScoreDrivingAbility or 0) + 2) * 34
-        liftoffAbility = team.calculatedData.liftoffAbility or 0
-        gearAbility = 3 * ((team.calculatedData.avgGearsPlacedAuto or 0) + (team.calculatedData.avgGearsPlacedTele or 0))
-        autoBonus = (team.calculatedData.avgGearsPlacedAuto or 0) * 20
-        functionalPercentage = (1 - team.calculatedData.disfunctionalPercentage)
-        return functionalPercentage * (driving + liftoffAbility + gearAbility + autoBonus)
+    
+    #SEEDING - How each team seeds in the competition
 
-    def predictedScoreForMatchForAlliance(self, match, allianceIsRed):
-        return match.calculatedData.predictedRedScore if allianceIsRed else match.calculatedData.predictedBlueScore
-
-    def sdPredictedScoreForMatchForAlliance(self, match, allianceIsRed):
-        return match.calculatedData.sdPredictedRedScore if allianceIsRed else match.calculatedData.sdPredictedBlueScore
-
-    def getAvgNumCompletedTIMDsForTeamsOnAlliance(self, alliance):
-        return sum(map(lambda t: len(self.su.getCompletedTIMDsForTeam(t)), alliance)) #TODO: WATCHOUT!!!
-
-    def getAvgNumCompletedTIMDsForAlliance(self, alliance):
-        return self.getAvgNumCompletedTIMDsForTeamsOnAlliance(alliance)
-
-    def sampleSizeForMatchForAlliance(self, alliance):
-        return self.getAvgNumCompletedTIMDsForAlliance(alliance)
-
-    def allRotorsAbility(self, team):
-    	driving = ((team.calculatedData.RScoreDrivingAbility or 0) + 2) * 17
-        liftoffAbility = 35 * team.calculatedData.liftoffPercentage
-        autoBonus = (team.calculatedData.avgGearsPlacedAuto) * 20
-        teleBonus = (team.calculatedData.avgGearsPlacedTele + team.calculatedData.avgGearsPlacedAuto) * 40
-        functionalPercentage = (1 - team.calculatedData.disfunctionalPercentage)
-        return functionalPercentage * (driving + liftoffAbility + autoBonus + teleBonus)
-
-    def winChanceForMatchForAllianceIsRed(self, match, allianceIsRed):
-        alliance = self.su.getAllianceForMatch(match, allianceIsRed)
-        predictedScore  = self.predictedScoreForMatchForAlliance(match, allianceIsRed)
-        opposingPredictedScore = self.predictedScoreForMatchForAlliance(match, not allianceIsRed)
-        sdPredictedScore = self.sdPredictedScoreForMatchForAlliance(match, allianceIsRed)
-        sdOpposingPredictedScore = self.sdPredictedScoreForMatchForAlliance(match, not allianceIsRed)
-        sampleSize = self.sampleSizeForMatchForAlliance(alliance)
-        opposingSampleSize = self.sampleSizeForMatchForAlliance(alliance)
-        tscoreRPs = self.welchsTest(predictedScore,
-                                       opposingPredictedScore,
-                                       sdPredictedScore,
-                                       sdOpposingPredictedScore,
-                                       sampleSize,
-                                       opposingSampleSize)
-        df = self.getDF(sdPredictedScore, sdOpposingPredictedScore, sampleSize, opposingSampleSize)
-        winChance = stats.t.cdf(tscoreRPs, df)
-        return winChance if not math.isnan(winChance) else 0.0
-
-    def getWinChanceForMatchForAllianceIsRed(self, match, allianceIsRed):
-        winChance = match.calculatedData.redWinChance if allianceIsRed else match.calculatedData.blueWinChance
-        return winChance if not math.isnan((winChance or 0.0)) or not winChance else None
-
-    def get40KilopascalChanceForAlliance(self, alliance):
-        alliance = map(self.su.replaceWithAverageIfNecessary, alliance)
-        return self.normalCDF(40, self.getTotalAverageShotPointsForAlliance(alliance), self.getStandardDevShotPointsForAlliance(alliance))
-
-    def get40KilopascalChanceForAllianceWithNumbers(self, allianceNumbers):
-        self.get40KilopascalChanceForAlliance(self.su.teamsForTeamNumbersOnAlliance(allianceNumbers))
-
-    def totalZProbTeam(self, team, number):
-        return self.cachedComp.zGearProbabilities[team.number].get(number) or 0.0
-
-    def getAllRotorsTurningChanceForAlliance(self, alliance):
-        alliance = map(self.su.replaceWithAverageIfNecessary, alliance)
-        three = (len(alliance) == 3)
-        return sum(map(lambda w: sum(map(lambda z: (self.totalZProbTeam(alliance[2], z) if three else 1) * sum(map(lambda y: self.totalZProbTeam(alliance[0], w - y - z) * self.totalZProbTeam(alliance[1], y), range(13))), range(13 if three else 1))), range(12, len(alliance) * 12 + 1)))
-
-    def getAllRotorsTurningChanceForTwoRobotAlliance(self, alliance):
-        alliance = map(self.su.replaceWithAverageIfNecessary, alliance)
-        return sum(map(lambda w: sum(map(lambda y: self.totalZProbTeam(alliance[0], w - y) * self.totalZProbTeam(alliance[1], y), range(13))), range(12, 25)))
-
-    def probabilityForGearsPlacedForNumberForTeam(self, team, number, gearFunc):
-        gearTimds = map(gearFunc, self.su.getCompletedTIMDsForTeam(team))
-        return (float(gearTimds.count(number)) / float(len(gearTimds))) or 0
-
-    def getAllRotorsTurningChanceForAllianceWithNumbers(self, allianceNumbers):
-        return self.getAllRotorsTurningChanceForAlliance(self.su.teamsForTeamNumbersOnAlliance(allianceNumbers))
-
-    def getAverageRotorPointsPerGear(self):
-        matches = self.su.getCompletedMatchesInCompetition()
-        rotorPtsFunc = lambda m, a: m['score_breakdown'][a]['autoRotorPoints'] + m['score_breakdown'][a]['teleopRotorPoints'] 
-        rotors4Func = lambda m, a: sum(map(lambda n: m['score_breakdown'][a]['rotor' + str(n) + 'Engaged'], range(1, 5))) == 4
-        rotorWBonusFunc = lambda m: sum(map(lambda a: rotorPtsFunc(m, a) + (100 if rotors4Func(m, a) else 0), ['red', 'blue']))
-        rpts = sum(map(rotorWBonusFunc, self.cachedComp.TBAMatches))
-        gFunc = lambda t: (t.calculatedData.numGearsPlacedAuto or 0) + (t.calculatedData.numGearsPlacedTele or 0)
-        gpts = sum(map(gFunc, self.su.getCompletedTIMDsInCompetition()))
-        return rpts / float(gpts)
-
-    #Seeding
     def cumulativeParkAndClimbPointsForTeam(self, team):
         parkPoints = (team.calculatedData.totalNumParks or 0) * 5
         climbPoints = round(team.calculatedData.climbPercentage * float(team.numMatchesPlayed)) * 30
@@ -626,7 +567,6 @@ class Calculator(object):
             threads = [] #Creates an empty list for timds accessible in multiple processes (manager.list)
             manager = multiprocessing.Manager()
             calculatedTIMDs = manager.list()
-            print(calculatedTIMDs)
             for timd in self.comp.TIMDs:
                 #Does TIMD calculations to each TIMD in the competition, and puts the process into a list
                 #the calculation results get put into
@@ -640,9 +580,7 @@ class Calculator(object):
             self.cacheFirstTeamData()
             self.doFirstTeamCalculations()
             self.cacheSecondTeamData()
-            print('Saru')
             self.doMatchesCalculations()
-            print('Koko')
             self.doSecondTeamCalculations()
             print('> Calculations finished, adding data to firebase')
             PBC.addCalculatedTIMDatasToFirebase(self.su.getCompletedTIMDsInCompetition())

@@ -7,6 +7,22 @@ import scipy.stats as stats
 import CSVExporter
 import pprint
 
+import pyrebase
+
+url = 'servervartest-2018'
+
+config = {
+	"apiKey": "AIzaSyBXfDygtDWxzyRaLFO75XeGc2xhfvLLwkU ",
+    "authDomain": url + ".firebaseapp.com",
+    "databaseURL": "https://" + url + ".firebaseio.com",
+    "projectId": url,
+    "storageBucket": url + ".appspot.com",
+    "messagingSenderId": "333426669167"
+
+}
+firebase = pyrebase.initialize_app(config)
+db = firebase.database()
+
 #Scout Performance Analysis
 class ScoutPrecision(object):
 	'''Scores and ranks scouts and assigns them to robots'''
@@ -454,9 +470,8 @@ class ScoutPrecision(object):
 		scoutsWithNames = filter(lambda v: v.get('currentUser') != (None or ''), scoutRotatorDict.values())
 		namesOfScouts = map(lambda v: v.get('currentUser'), scoutsWithNames)
 		scoutSpots = len(scoutRotatorDict.keys())
-		#Assigns available scouts to robots, and shows exactly which availabe scouts will be scouting
+		#Assigns available scouts to robots, and shows exactly which available scouts will be scouting
 		teams = self.organizeScouts(available, currentTeams, scoutSpots)
-		available = teams.keys()
 		#Moves the current user to the previous user spot, assigns a new user if necessary, and assigns a robot to each scout
 		for scout in scoutRotatorDict.keys():
 			#The current user is now the previous user, as the match has changed
@@ -473,14 +488,14 @@ class ScoutPrecision(object):
 
 	#Finds a spot and a robot for an inputted available scout
 	def assignScoutToRobot(self, availableScout, teams, scoutRotatorDict, available, names):
-		namesToNumbers = [' ','Jon','Jim','Bob','Bill','Joe','Bran','Ken','Mat','Dog','End','Mrs','Hi','Death','The','Adhoc','Pro','001','Ergo']
 		#If the available scout already has a spot on firebase, all that needs to be updated is the robot they scout for
 		if availableScout in names:
 			scoutNum = self.getScoutNumFromName(availableScout, scoutRotatorDict)
 			scoutRotatorDict[scoutNum].update({'team': teams[availableScout], 'currentUser': availableScout, 'scoutStatus': 'requested'})
 		#If they don't, it needs to find an empty scout spot in firebase and put the available scout there (if there is an empty spot, which there always should be)
 		else:
-			newSpace = 'scout' + str(namesToNumbers.index(availableScout))			scoutRotatorDict[newSpace].update({'team': teams[availableScout], 'currentUser': availableScout, 'scoutStatus': 'requested'})
+			newSpace = availableScout
+			scoutRotatorDict[newSpace].update({'team': teams[availableScout], 'currentUser': availableScout, 'scoutStatus': 'requested'})
 		return scoutRotatorDict
 
 	#Records z-scores of each scouts spr, for later checking and comparison

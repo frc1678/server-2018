@@ -266,7 +266,7 @@ class DataChecker(multiprocessing.Process):
 
 	#Retrieves and consolidates tempTIMDs from firebase and combines their data, putting the result back onto firebase as TIMDs
 	def run(self):
-		spr.sprs = {'j' : 1.5, 'k': 0.5}
+		spr.sprs = {'' : 1.5, 'k': 0.5}
 		while(True):
 			tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
 			#Keeps on iterating over the tempTIMDs until none exists on firebase
@@ -282,7 +282,6 @@ class DataChecker(multiprocessing.Process):
 					firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key))
 					index += 1
 				except Exception as e:
-					print(e)
 					continue
 			time.sleep(10)
 

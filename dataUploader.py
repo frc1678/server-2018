@@ -321,9 +321,9 @@ class CalculatedMatchData(object):
 
 config = {
 	'apiKey': 'mykey',
-	'authDomain': 'testing-so-extreme-it-hurts.firebaseapp.com',
-	'storageBucket': 'testing-so-extreme-it-hurts.appspot.com',
-	'databaseURL': 'testing-so-extreme-it-hurts.firebaseio.com/'
+	'authDomain': 'into-the-firebase-and-flames.firebaseapp.com',
+	'storageBucket': 'into-the-firebase-and-flames.appspot.com',
+	'databaseURL': 'into-the-firebase-and-flames.firebaseio.com/'
 	# 'authDomain': '1678-scouting-2016.firebaseapp.com',
 	# 'storageBucket': '1678-scouting-2016.appspot.com',
 	# 'databaseURL': 'https://1678-scouting-2016.firebaseio.com/'
@@ -354,6 +354,7 @@ for TIMD in TIMDs:
 		randScout = random.choice(testScouts)
 		fb.child('TempTeamInMatchDatas').child((str(name) + '-' + str(testScoutNums[randScout]))).set(newTempTIMDs.__dict__)
 	print('Created and uploaded a tempTIMD- ' + str(name) + ' | ' + str(mnum))
+	break
 	mnum += 1
 time.sleep(1)
 print('Done.')
