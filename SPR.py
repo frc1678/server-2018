@@ -6,22 +6,9 @@ import numpy as np
 import scipy.stats as stats
 import CSVExporter
 import pprint
+import firebaseCommunicator
 
-import pyrebase
-
-url = 'servervartest-2018'
-
-config = {
-	"apiKey": "AIzaSyBXfDygtDWxzyRaLFO75XeGc2xhfvLLwkU ",
-    "authDomain": url + ".firebaseapp.com",
-    "databaseURL": "https://" + url + ".firebaseio.com",
-    "projectId": url,
-    "storageBucket": url + ".appspot.com",
-    "messagingSenderId": "333426669167"
-
-}
-firebase = pyrebase.initialize_app(config)
-db = firebase.database()
+pbc = firebaseCommunicator.PyrebaseCommunicator()
 
 #Scout Performance Analysis
 class ScoutPrecision(object):
@@ -71,6 +58,20 @@ class ScoutPrecision(object):
 				'status': 2.0,
 			}],
 			'opponentSwitchAttemptTele': [2.5, {
+				'didSucceed': 2.0,
+				'layer': 2.0,
+				'startTime': 0.0,
+				'endTime': 0.0,
+				'status': 2.0,
+			}],
+			'scaleAttemptAuto': [2.5, {
+				'didSucceed': 2.0,
+				'layer': 2.0,
+				'startTime': 0.0,
+				'endTime': 0.0,
+				'status': 2.0,
+			}],
+			'scaleAttemptTele': [2.5, {
 				'didSucceed': 2.0,
 				'layer': 2.0,
 				'startTime': 0.0,
@@ -139,16 +140,18 @@ class ScoutPrecision(object):
 		scouts = filter(lambda v: v, map(lambda k: k.get('scoutName'), tempTIMDs))
 		#Finds values (at an inputted key) in tempTIMDs
 		values = filter(lambda v: v != None, map(lambda t: t[key] if t.get('scoutName') else None, tempTIMDs))
+		print(key)
+		print(values)
 		#Finds the most common value in the list of values, or the average if none of them is the majority
-		valueFrequencies = map(values.count, values)
 		if values:
-			commonValue = values[valueFrequencies.index(max(valueFrequencies))]
+			commonValue = utils.mode(values)
+			print(commonValue)
 			#If less than half of the values agree, SPR should not be affected
-			if values.count(commonValue) <= len(values) / 2:
-				commonValue = None
-			if commonValue:
+			if values.count(commonValue) >= (len(values) / 2) and commonValue != None:
 				#Makes a list of the differences from the common value multiplied by weight, for relative importance of data points
-				differenceFromCommonValue = map(lambda v: weight, values)
+				differenceFromCommonValue = [weight if x != commonValue else 0 for x in values]
+				print(differenceFromCommonValue)
+				print('Identificationing Mechanism')
 				#Adds the difference from this tempTIMD for this key to each scout's previous differences (spr score)
 				for c in range(len(differenceFromCommonValue)):
 					#Gets inaccuracy by category
@@ -197,17 +200,18 @@ class ScoutPrecision(object):
 				valueFrequencies = map(values.count, values)
 				commonValue = values[valueFrequencies.index(max(valueFrequencies))]
 				if values.count(commonValue) <= len(values) / 2:
-					commonValue = np.mean(values)
-				differenceFromCommonValue = map(lambda v: abs(v - commonValue) * weight, values)
-				for c in range(len(differenceFromCommonValue)):
-					#Gets inaccuracy by category
-					self.SPRBreakdown.update({key: (self.SPRBreakdown.get(key) or []) + [(differenceFromCommonValue[c] / weight)]})
-					#Gets disagreements by category and scout
-					if differenceFromCommonValue[c] != 0:
-						self.disagreementBreakdown[scouts[c]].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0) + 1})
-					else:
-						self.disagreementBreakdown[scouts[c]].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0)})
-				self.sprs.update({scouts[c] : (self.sprs.get(scouts[c]) or 0) + differenceFromCommonValue[c] for c in range(len(differenceFromCommonValue))})
+					commonValue = utils.mode(values)
+				if commonValue:
+					differenceFromCommonValue = map(lambda v: abs(v - commonValue) * weight, values)	
+					for c in range(len(differenceFromCommonValue)):
+						#Gets inaccuracy by category
+						self.SPRBreakdown.update({key: (self.SPRBreakdown.get(key) or []) + [(differenceFromCommonValue[c] / weight)]})
+						#Gets disagreements by category and scout
+						if differenceFromCommonValue[c] != 0:
+							self.disagreementBreakdown[scouts[c]].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0) + 1})
+						else:
+							self.disagreementBreakdown[scouts[c]].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0)})
+					self.sprs.update({scouts[c] : (self.sprs.get(scouts[c]) or 0) + differenceFromCommonValue[c] for c in range(len(differenceFromCommonValue))})
 
 	def findOddScoutForListOfDicts(self, tempTIMDs, key1):
 		#Similar to findOddScoutForDict, but for lists of several dicts instead of individual dicts
@@ -234,30 +238,47 @@ class ScoutPrecision(object):
 					self.sprs.update({allScouts[aScoutIndex]: (self.sprs.get(allScouts[aScoutIndex]) or 0) + weight})
 			# Need at least 2 scouts to compare, or SPR is not affected
 			if modeAmount > 1:
+				# check here with if statement before runing code below
 				for num in range(modeListLength):
 					#Comparing dicts that should be the same (e.g. each shot time dict for the same shot) within the tempTIMDs
 					#This means the nth shot by a given robot in a given match, as recorded by multiple scouts
 					#The comparison itself is the same as the other findOddScout functions
 					dicts = [lis[num] for lis in lists]
-					for key2 in dicts[0].keys():
-						#Strings can be averaged (we're just looking at mean, not subtracting them)
-						#Without averaging, one person could be declared correct for no reason
-						values = []
-						for aDict in dicts:
-							values += [aDict[key2]]
-						#Same thing as
-						# values = list(filter(lambda aDict: [aDict[key2]], dicts))
-						weight = self.gradingListsOfDicts[key1][1][key2]
-						if weight != 0.0:
-							valueFrequencies = map(values.count, values)
-							commonValue = values[valueFrequencies.index(max(valueFrequencies))]
-							if values.count(commonValue) <= len(values) / 2:
-								commonValue = np.mean(values)
-							differenceFromCommonValue = map(lambda v: weight if v != commonValue else 0, values)
-							#Gets inaccuracy by category
-							for c in range(len(differenceFromCommonValue)):
-								self.SPRBreakdown.update({key2: (self.SPRBreakdown.get(key2) or []) + [(differenceFromCommonValue[c])]})
-							self.sprs.update({scouts[c] : (self.sprs.get(scouts[c]) or 0) + differenceFromCommonValue[c] for c in range(len(differenceFromCommonValue))})
+					values = []
+					for aDict in dicts:
+						values += [aDict['didSucceed']]
+					modeSuccess = utils.mode(values)
+					if modeSuccess:
+						popList = []
+						weight = self.gradingListsOfDicts[key1][1]['didSucceed']
+						for aDictIndex in range(len(dicts)):
+							if dicts[aDictIndex]['didSucceed'] != modeSuccess:
+								popList.append(aDictIndex)
+						for item in popList[::-1]:
+							#self.SPRBreakdown.update({key2: (self.SPRBreakdown.get(key2) or []) + [(differenceFromCommonValue[c])]})
+							self.sprs.update({scouts[item] : (self.sprs.get(scouts[item]) or 0) + weight})
+							dicts.pop(item)
+							scouts.pop(item)
+						for key2 in dicts[0].keys():
+							#Strings can be averaged (we're just looking at mode, not subtracting them)
+							#Without averaging, one person could be declared correct for no reason
+							values = []
+							for aDict in dicts:
+								values += [aDict[key2]]
+							#Same thing as
+							# values = list(filter(lambda aDict: [aDict[key2]], dicts))
+							weight = self.gradingListsOfDicts[key1][1][key2]
+							if weight != 0.0:
+								valueFrequencies = map(values.count, values)
+								commonValue = values[valueFrequencies.index(max(valueFrequencies))]
+								if values.count(commonValue) <= len(values) / 2:
+									commonValue = utils.mode(values)
+								if commonValue:
+									differenceFromCommonValue = map(lambda v: weight if v != commonValue else 0, values)
+									#Gets inaccuracy by category
+									for c in range(len(differenceFromCommonValue)):
+										self.SPRBreakdown.update({key2: (self.SPRBreakdown.get(key2) or []) + [(differenceFromCommonValue[c])]})
+									self.sprs.update({scouts[c] : (self.sprs.get(scouts[c]) or 0) + differenceFromCommonValue[c] for c in range(len(differenceFromCommonValue))})
 
 	def findOddScoutForListOfDictsDicts(self, tempTIMDs, key1):
 		# Similar to findOddScoutForListOfDicts, but for a (dict in dict) in a list
@@ -265,12 +286,13 @@ class ScoutPrecision(object):
 		weight = self.gradingListsOfDictsDicts[key1][0]
 		allScouts = filter(lambda v: v, map(lambda k: k.get('scoutName'), tempTIMDs))
 		# Unsorted meaning they can have different lengths
-		unsortedLists = filter(lambda k: k, map(lambda t: t.get(key1) if t.get('scoutName') else None, tempTIMDs))
+		unsortedLists = [tempTIMDs[tempTIMD].get(key1, []) for tempTIMD in range(len(tempTIMDs)) if tempTIMDs[tempTIMD].get('scoutName')]
 		#Finds the mode for length of dicts and ignores if not that length
 		#i.e. if there is disagreement over how many shots a robot took
 		if unsortedLists:
-			modeListLength = max(set(map(len,unsortedLists)), key=map(len,unsortedLists).count) # finds mode, not max
-			modeAmount = map(len,unsortedLists).count(modeListLength)
+			lenList = [len(lis) for lis in unsortedLists]
+			modeListLength = utils.mode(lenList)
+			modeAmount = lenList.count(modeListLength)
 			#If someone missed an attempt or had an extra attempt, there is no way to compare their data
 			#This filters out anything with a different length of dicts
 			# 2018 - each dict is an attempt
@@ -289,7 +311,6 @@ class ScoutPrecision(object):
 					#This means the nth shot by a given robot in a given match, as recorded by multiple scouts
 					#The comparison itself is the same as the other findOddScout functions
 					dicts = [lis[num] for lis in lists]
-
 					keys = []
 					for x in dicts:
 						keys.append(x.keys()[num])
@@ -317,15 +338,13 @@ class ScoutPrecision(object):
 								
 								weight = self.gradingListsOfDictsDicts[key1][2][key2][key3]
 								if weight != 0.0:
-									valueFrequencies = map(values.count, values)
-									commonValue = values[valueFrequencies.index(max(valueFrequencies))]
-									if values.count(commonValue) <= len(values) / 2:
-										commonValue = np.mean(values)
-									differenceFromCommonValue = map(lambda v: weight if v != commonValue else 0, values)
-									#Gets inaccuracy by category
-									for c in range(len(differenceFromCommonValue)):
-										self.SPRBreakdown.update({key2: (self.SPRBreakdown.get(key2) or []) + [(differenceFromCommonValue[c])]})
-									self.sprs.update({scouts2[c] : (self.sprs.get(scouts2[c]) or 0) + differenceFromCommonValue[c] for c in range(len(differenceFromCommonValue))})
+									commonValue = utils.mode(values)
+									if commonValue:	
+										differenceFromCommonValue = map(lambda v: weight if v != commonValue else 0, values)
+										#Gets inaccuracy by category
+										for c in range(len(differenceFromCommonValue)):
+											self.SPRBreakdown.update({key2: (self.SPRBreakdown.get(key2) or []) + [(differenceFromCommonValue[c])]})
+										self.sprs.update({scouts2[c] : (self.sprs.get(scouts2[c]) or 0) + differenceFromCommonValue[c] for c in range(len(differenceFromCommonValue))})
 
 
 	def calculateScoutPrecisionScores(self, temp, available):
@@ -356,7 +375,7 @@ class ScoutPrecision(object):
 			'''Divides values for scouts by number of TIMDs the scout has participated in
 			If a scout is in more matches, they will likely have more disagreements, but the same number per match if they are equally accurate
 			If someone has no tempTIMDs (but still an SPR key somehow), their SPR score is set to -1 (changed in the next section)'''
-			self.sprs = {k:((v / float(self.getTotalTIMDsForScoutName(k, temp))) or -1) for (k, v) in self.sprs.items()}
+			self.sprs = {k:((v / float(self.getTotalTIMDsForScoutName(k, temp))) if self.getTotalTIMDsForScoutName(k, temp) > 0 else -1) for (k, v) in self.sprs.items()}
 			#Makes an average number of disagreements per scout per category
 			avgScout = {}
 			for scout in self.disagreementBreakdown.keys():
@@ -458,6 +477,9 @@ class ScoutPrecision(object):
 	def getScoutNumFromName(self, name, scoutsInRotation):
 		return filter(lambda k: scoutsInRotation[k].get('mostRecentUser') == name, scoutsInRotation.keys())[0]
 
+	def getScoutNameFromNum(self, name, scoutsInRotation):
+		return scoutsInRotation[str(name)]['currentUser']
+
 	#Returns the first scout key that doesn't have a current user
 	def findEmptySpotsForScout(self, scoutRotatorDict, available):
 		emptyScouts = filter(lambda k: scoutRotatorDict[k].get('currentUser') == None, scoutRotatorDict.keys())
@@ -494,7 +516,7 @@ class ScoutPrecision(object):
 			scoutRotatorDict[scoutNum].update({'team': teams[availableScout], 'currentUser': availableScout, 'scoutStatus': 'requested'})
 		#If they don't, it needs to find an empty scout spot in firebase and put the available scout there (if there is an empty spot, which there always should be)
 		else:
-			newSpace = availableScout
+			newSpace = self.findEmptySpotsForScout(scoutRotatorDict, available)[0]
 			scoutRotatorDict[newSpace].update({'team': teams[availableScout], 'currentUser': availableScout, 'scoutStatus': 'requested'})
 		return scoutRotatorDict
 
