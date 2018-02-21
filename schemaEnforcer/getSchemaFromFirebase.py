@@ -24,3 +24,5 @@ data = db.child("").get().val()
 
 with open('./importedData.json', 'w') as f:
 	json.dump(data, f, indent=4, separators=(',', ':'))
+
+print("Done.")

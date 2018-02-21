@@ -1,5 +1,5 @@
 # Created by Carl Csaposs
-# Last Updated: 2/11/18
+# Last Updated: 2/15/18
 
 import pyrebase
 import time
@@ -12,7 +12,7 @@ epochTime = time.time()
 startTime = str(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epochTime)))
 
 print("")
-print("SchemaEnforcer v0.2 by Carl Csaposs")
+print("SchemaEnforcer v0.3 by Carl Csaposs")
 print("Yells at people who mess up the schema so you don't have to!")
 print("")
 
@@ -121,13 +121,13 @@ else: # Clear data
 		f.write('')
 
 if testMode:
-	addon = 'Test'
+	addon = ['test/', 'Test']
 elif partialCheck:
-	addon = 'Partial'
+	addon = ['partial/', 'Partial']
 else:
-	addon = ''
+	addon = ['','']
 
-with open('./backups/liveDatabase'+addon+'-'+startTime+'.json', 'w') as f:
+with open('./backups/'+addon[0]+'liveDatabase'+addon[1]+'-'+startTime+'.json', 'w') as f:
 	json.dump(cF, f, indent=4, separators=(',', ':'))
 
 storedSlack = {'key':[], 'type':[], 'list':[]}
@@ -136,6 +136,9 @@ urls = {'good':'https://i.imgur.com/OKFB8sH.png', 'warning':'https://i.imgur.com
 
 
 match0Checked = False
+slackTagCalvin = False
+calvinUserID = 'U2VBKSMHD'
+
 
 def backupInput():
 	x = raw_input("Should backup to restore file? (y/n) ")
@@ -222,6 +225,9 @@ def formatKeyWarning(key, pathList, value):
 	storeDeletionKey(str(key), path, 'key', value)
 	print("[!] (K) '"+str(key)+"' (P:"+str(path)+") not in stored database!")
 	storeSlack("[!] (K) '"+str(key)+"' (P:"+str(path)+") should not exist!", 'key')
+	if pathList[0] == 'TempTeamInMatchDatas':
+		global slackTagCalvin
+		slackTagCalvin = True
 
 def formatTypeWarning(key, typeUsed, typeCorrect, pathList, value):
 	if not(typeUsed == int and typeCorrect == float):
@@ -231,6 +237,9 @@ def formatTypeWarning(key, typeUsed, typeCorrect, pathList, value):
 		storeDeletionType(str(key), path, 'type', value, str(typeCorrect)[7:-2])
 		print("[!] (T) '"+str(key)+"' (P:"+str(path)+") incorrect type: " + str(typeUsed)[7:-2] +", should be type: " +str(typeCorrect)[7:-2])
 		storeSlack("[!] (T) '"+str(key)+"' (P:"+str(path)+") incorrect type: " + str(typeUsed)[7:-2] +", should be type: " +str(typeCorrect)[7:-2], 'type')
+		if pathList[0] == 'TempTeamInMatchDatas':
+			global slackTagCalvin
+			slackTagCalvin = True
 
 def formatListTypeWarning(key, numProblems, typeCorrect, pathList):
 	path = ""
@@ -239,6 +248,10 @@ def formatListTypeWarning(key, numProblems, typeCorrect, pathList):
 	storeDeletionListType(str(key), path, 'list', key, str(typeCorrect)[7:-2])
 	print("[!] (LT) '"+str(key)+"' (P:"+str(path)+") "+str(numProblems)+" incorrect type(s) in list, all should be: "+str(typeCorrect)[7:-2])
 	storeSlack("[!] (LT) '"+str(key)+"' (P:"+str(path)+") "+str(numProblems)+" incorrect type(s) in list, all should be: "+str(typeCorrect)[7:-2], 'list')
+	if len(pathList) > 0:
+		if pathList[0] == 'TempTeamInMatchDatas':
+			global slackTagCalvin
+			slackTagCalvin = True
 
 def getColorForKey(var):
 	if var <= 5:
@@ -254,7 +267,7 @@ try:
 	for x in cF:
 		if x not in sD:
 			formatKeyWarning(x, [], cF[x])
-		elif x in ['AppTokens', 'scouts']:
+		elif x in ['AppTokens', 'scouts', 'availability', 'slackProfiles']:
 			continue # Who cares about app tokens?
 		elif x in ["TempTeamInMatchDatas", "TeamInMatchDatas", "Teams"]: # Doesn't check first child name
 			if type(cF[x]) == dict and type(sD[x]) == dict:
@@ -265,7 +278,7 @@ try:
 						ry = y
 					if type(cF[x][y]) == dict and type(sD[x][ry]) == dict:
 						for z in cF[x][y]:
-							if z == 'imageKeys' or z == 'pitAllImageURLs':
+							if z in ['pitImageKeys', 'pitAllImageURLs', 'pitRampTime', 'pitRampTimeOutcome', 'pitDriveTime', 'pitDriveTimeOutcome']:
 								doNothing = None
 							elif z not in sD[x][ry]:
 								formatKeyWarning(z, [x,y], cF[x][y][z])
@@ -328,13 +341,12 @@ try:
 								elif type(cF[x][y][z][0]) == list and type(sD[x][ry][z][0]) == list:
 									print('Error 52B: Script needs more continuation')
 								else:
-									if z not in ['pitDriveTimes', 'pitRampTimes']: # these have multiple correct types in list, can't check, so ignore
-										problemsInList = 0
-										for b in cF[x][y][z]:
-											if type(b) != type(sD[x][ry][z][0]):
-												problemsInList += 1
-										if problemsInList > 0:
-											formatListTypeWarning(cF[x][y][z], problemsInList, type(sD[x][ry][z][0]), [x, y, z])
+									problemsInList = 0
+									for b in cF[x][y][z]:
+										if type(b) != type(sD[x][ry][z][0]):
+											problemsInList += 1
+									if problemsInList > 0:
+										formatListTypeWarning(cF[x][y][z], problemsInList, type(sD[x][ry][z][0]), [x, y, z])
 							else:
 								if type(cF[x][y][z]) != type(sD[x][ry][z]):
 									formatTypeWarning(z, type(cF[x][y][z]), type(sD[x][ry][z]), [x,y], cF[x][y][z])
@@ -479,7 +491,7 @@ try:
 except Exception as e:
 	#sendSlack("ERROR: "+ str(e), 'danger')
 	print("ERROR: " + str(e))
-	traceback.print_exc()
+	traceback.print_exc()	
 
 numKey = len(storedSlack['key'])
 numType = len(storedSlack['type'])
@@ -493,7 +505,6 @@ for x in storedSlack:
 attachmentsText = {}
 attachments = []
 
-
 if areErrors:
 	print("")
 	keyString = "(K): " + str(numKey) if numKey > 0 else ""
@@ -506,6 +517,8 @@ if areErrors:
 	if partialCheck:
 		pretext = "PARTIAL CHECK: "+pretext
 	print('[I] ' + pretext)
+	if slackTagCalvin:
+		pretext = pretext + ' <@' + calvinUserID + '>'
 	shouldContinue = shouldSlack()
 	if shouldContinue:
 		if numKey > 25 or numType > 25 or numList > 25:
