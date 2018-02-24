@@ -1,5 +1,5 @@
 #CSV Exporter, by Bryton 2/10/16
-#Last Updated: 1/4/18
+#Last Updated: 2/19/18
 import utils
 from collections import OrderedDict
 from TBACommunicator import TBACommunicator
@@ -10,10 +10,10 @@ import Math
 #Puts scout z-scores in csv file
 def CSVExportScoutZScores(zscores):
 	with open('./scoutRankExport.csv', 'w') as f:
-		writer = csv.DictWriter(f, fieldnames = ['name', 'spr', 'Z-Score'])
+		writer = csv.DictWriter(f, fieldnames = ['name', 'spr', 'Z-Score', 'matches'])
 		writer.writeheader()
 		for k, v in zscores.items():
-			writer.writerow({'name' : k, 'spr' : zscores[k][1], 'Z-Score' : zscores[k][0]})
+			writer.writerow({'name' : k, 'spr' : zscores[k][1], 'Z-Score' : zscores[k][0], 'matches' : zscores[k][2]})
 
 #Puts some scouted and calculated data in csv file
 def CSVExportTeam(comp, name, keys = []):

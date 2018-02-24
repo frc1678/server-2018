@@ -43,7 +43,7 @@ def firstCalculationDict(team, calc):
         avgAllianceSwitchTimeAuto = lambda tm: tm.calculatedData.avgAllianceSwitchTimeAuto,
         avgAllianceSwitchTimeTele = lambda tm: tm.calculatedData.avgAllianceSwitchTimeTele,
         avgOpponentSwitchTimeTele = lambda tm: tm.calculatedData.avgOpponentSwitchTimeTele,
-        avgClimbTime = lambda tm: tm.calculatedData.climbTime,
+        #avgClimbTime = lambda tm: tm.calculatedData.climbTime,
         avgAgility = lambda tm: tm.rankAgility,    
         avgDefense = lambda tm: tm.rankDefense, 
         avgSpeed = lambda tm: tm.rankSpeed,
@@ -51,17 +51,21 @@ def firstCalculationDict(team, calc):
         actualNumRPs = lambda tm: tm.calculatedData.numRPs,
         autoRunPercentage = lambda tm: tm.didMakeAutoRun,
         climbPercentage = lambda tm: tm.calculatedData.didClimb,
+        didThreeExchangeInputPercentage = lambda tm: tm.calculatedData.didThreeExchangeInput,
+        avgNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
+        avgTimeToOwnAllianceSwitchAuto = lambda tm: tm.calculatedData.timeToOwnAllianceSwitchAuto,
+        avgTimeToOwnScaleAuto = lambda tm: tm.calculatedData.timeToOwnScaleAuto,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getRecentAverageForDataFunctionForTeam(team, f),
-        lfmAvgNumBadDecisions = lambda tm: tm.numBadDecisions, 
-        lfmAvgNumCubesFumbledAuto = lambda tm: tm.numCubesFumbledAuto,
-        lfmAvgNumCubesFumbledTele = lambda tm: tm.numCubesFumbledTele,
-        lfmAvgNumExchangeInputTele = lambda tm: tm.numExchangeInput,
-        lfmAvgNumGoodDecisions = lambda tm: tm.numGoodDecisions,
-        lfmAvgNumGroundIntakeTele = lambda tm: tm.numGroundIntakeTele,
         lfmAvgNumAlliancePlatformIntakeAuto = lambda tm: tm.calculatedData.numAlliancePlatformIntakeAuto,
         lfmAvgNumAlliancePlatformIntakeTele = lambda tm: tm.calculatedData.numAlliancePlatformIntakeTele,
         lfmAvgNumOpponentPlatformIntakeTele = lambda tm: tm.calculatedData.numOpponentPlatformIntakeTele,
+        lfmAvgNumCubesFumbledAuto = lambda tm: tm.numCubesFumbledAuto,
+        lfmAvgNumCubesFumbledTele = lambda tm: tm.numCubesFumbledTele,
+        lfmAvgNumBadDecisions = lambda tm: tm.numBadDecisions, 
+        lfmAvgNumExchangeInputTele = lambda tm: tm.numExchangeInput,
+        lfmAvgNumGoodDecisions = lambda tm: tm.numGoodDecisions,
+        lfmAvgNumGroundIntakeTele = lambda tm: tm.numGroundIntakeTele,
         lfmAvgNumGroundPortalIntakeTele = lambda tm: tm.numGroundPortalIntakeTele,
         lfmAvgNumHumanPortalIntakeTele = lambda tm: tm.numHumanPortalIntakeTele,
         lfmAvgNumGroundPyramidIntakeAuto = lambda tm: tm.numGroundPyramidIntakeAuto,
@@ -86,14 +90,27 @@ def firstCalculationDict(team, calc):
         lfmAvgAllianceSwitchTimeAuto = lambda tm: tm.calculatedData.avgAllianceSwitchTimeAuto,
         lfmAvgAllianceSwitchTimeTele = lambda tm: tm.calculatedData.avgAllianceSwitchTimeTele,
         lfmAvgOpponentSwitchTimeTele = lambda tm: tm.calculatedData.avgOpponentSwitchTimeTele,
+        lfmAvgNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getSumForDataFunctionForTeam(team, f),
         totalNumGoodDecisions = lambda tm: tm.numGoodDecisions,
         totalNumBadDecisions = lambda tm: tm.numBadDecisions,
         totalNumParks = lambda tm: tm.didPark,
         numSuccessfulClimbs = lambda tm: tm.calculatedData.didClimb,
+        totalNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
         )
     cd.predictedPark = calc.predictedParkForTeam(team)
+    cd.soloClimbPercentage = calc.getPercentageForClimbType(team, 'soloClimb')
+    cd.assistedClimbPercentage = calc.getPercentageForClimbType(team, 'assistedClimb')
+    cd.activeLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'passive')
+    cd.activeNoClimbLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, False, 'passive')
+    cd.activeAssistClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'assisted')
+    cd.parkPercentage = calc.parkPercentageForTeam(team)
+    #REMEMBER - Add success percentages and fail percentages to here and calctimds!
+    cd.canScoreBothSwitchSidesAuto = calc.getCanScoreBothSwitchSidesAuto(team)
+    cd.canGroundIntake = calc.getCanGroundIntake(team)
+    cd.totalSuperNotes = calc.getTotalSuperNotes(team)
+    cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
 
 def Rscorecalcs(team, calc):
     cd = team.calculatedData
@@ -103,10 +120,20 @@ def Rscorecalcs(team, calc):
     cd.RScoreDrivingAbility = calc.cachedComp.drivingAbilityZScores[team.number]
 
 def secondCalculationDict(team, calc):
-    '''
+    print('RIct')
     cd = team.calculatedData
-    cd.predictedNumRPs = calc.predictedNumberOfRPs(team)
-    cd.firstPickRotorBonusChance = calc.firstPickAllRotorsChance(team)
+    cd.teleopScaleAbility = calc.getTeleopScaleAbilityForTeam(team)
+    print('l')
+    cd.teleopExchangeAbility = calc.getTeleopExchangeAbilityForTeam(team)
+    print('g')
+    cd.teleopAllianceSwitchAbility = calc.getTeleopAllianceSwitchAbilityForTeam(team)
+    print('m')
+    cd.teleopOpponentSwitchAbility = calc.getTeleopOpponentSwitchAbilityForTeam(team)
+    print('Hi')
+    cd.predictedTotalNumRPs = calc.predictedTotalNumRPsForTeam(team)
+    print('ROoeodn')
+    cd.predictedNumRPs = calc.predictedNumRPsForTeam(team)
+    print('Dict')
     try:
         cd.actualNumRPs = calc.getTeamRPsFromTBA(team)
         cd.actualSeed = calc.getTeamSeed(team)
@@ -114,12 +141,16 @@ def secondCalculationDict(team, calc):
         if team in calc.cachedComp.actualSeedings:
             cd.actualSeed = calc.cachedComp.actualSeedings.index(team) + 1
             cd.actualNumRPs = calc.actualNumberOfRPs(team)
+    print('DICT')
     if team in calc.cachedComp.teamsWithMatchesCompleted:
         cd.RScoreDrivingAbility = calc.cachedComp.drivingAbilityZScores[team.number]
         cd.predictedSeed = calc.cachedComp.predictedSeedings.index(team) + 1
-    cd.firstPickAbility = calc.firstPickAbility(team)
-    cd.allRotorsAbility = calc.allRotorsAbility(team)
-    '''
+    print('Past')
+    try:
+        cd.firstPickAbility = calc.getFirstPickAbilityForTeam(team)
+        cd.secondPickAbility = calc.getSecondPickAbilityForTeam(team)
+    except:
+        pass
 
 def TIMDCalcDict(timd, calc):
     if (not calc.su.TIMCalculatedDataHasValues(timd.calculatedData)):
@@ -130,7 +161,7 @@ def TIMDCalcDict(timd, calc):
     c.numAllianceSwitchSuccessAuto = calc.getTotalAttemptsForValueListDicts(True, timd.allianceSwitchAttemptAuto)
     c.numAllianceSwitchSuccessTele = calc.getTotalAttemptsForValueListDicts(True, timd.allianceSwitchAttemptTele)
     c.numAllianceSwitchFailedAuto = calc.getTotalAttemptsForValueListDicts(False, timd.allianceSwitchAttemptAuto)
-    c.numAllianceSwitchFailedTele = calc.getTotalAttemptsForValueListDicts(False, timd.allianceSwitchAttemptTele)
+    c.numAllianceSwitchFailedTele = calc.getTotalAttemptsForValueListDicts(False, timd.allianceSwitchAttemptTele) 
     c.numOpponentSwitchSuccessTele = calc.getTotalAttemptsForValueListDicts(True, timd.opponentSwitchAttemptTele)
     c.numOpponentSwitchFailedTele = calc.getTotalAttemptsForValueListDicts(False, timd.opponentSwitchAttemptTele)
     c.numScaleSuccessAuto = calc.getTotalAttemptsForValueListDicts(True, timd.scaleAttemptAuto)
@@ -154,8 +185,14 @@ def TIMDCalcDict(timd, calc):
     c.didConflictWithAuto = calc.checkAutoForConflict()
     c.didThreeExchangeInput = calc.getDidThreeExchangeInput(timd)
     c.isDysfunctional = utils.convertFirebaseBoolean(timd.didGetDisabled + utils.convertFirebaseBoolean(timd.didGetIncapacitated))
-    #c.numRPs = calc.RPsGainedFromMatchForAlliance(team.number in match.redAllianceTeamNumbers, match)
-    
+    print('No')
+    c.numRobotsLifted = calc.getNumRobotsLifted(timd)
+    print('plz')
+    c.timeToOwnAllianceSwitchAuto = calc.getTimeToOwnAllianceSwitchAuto(timd)
+    c.timeToOwnScaleAuto = calc.getTimeToOwnScaleAuto(timd)
+    print(c.timeToOwnAllianceSwitchAuto)
+    print('Please Please I have family')
+
 def averageTeamDict(calc):
     a = calc.averageTeam
     mapFuncForCalcAvgsForTeam(calc.averageTeam, lambda f: calc.getAverageOfDataFunctionAcrossCompetition(f),
@@ -195,14 +232,27 @@ def averageTeamDict(calc):
         )
 
 def matchDict(match, calc):
-    hello = True
-    #print('Death')
-    #if calc.su.matchIsCompleted(match):
-    #match.calculatedData.actualBlueRPs = calc.RPsGainedFromMatchForAlliance(True, match)
-    #match.calculatedData.actualRedRPs = calc.RPsGainedFromMatchForAlliance(False, match)
-    #print('Kill')
-    #match.calculatedData.predictedBlueAutoQuest = calc.predictedAutoQuestRP(match, True)
-    #match.calculatedData.predictedRedAutoQuest = calc.predictedAutoQuestRP(match, False)
-    #print('Haru')
-    #match.calculatedData.predictedBlueRPs = calc.predictedRPsForAlliance(match, False)
-    #match.calculatedData.predictedRedRPs = calc.predictedRPsForAlliance(match, False)
+    print('Death')
+    if calc.su.matchIsCompleted(match):
+        match.calculatedData.actualBlueRPs = calc.RPsGainedFromMatchForAlliance(False, match)
+        match.calculatedData.actualRedRPs = calc.RPsGainedFromMatchForAlliance(True, match)
+    print('Kill')
+    match.calculatedData.bluePredictedPark = calc.predictedParkForAlliance(match, False)
+    match.calculatedData.redPredictedPark = calc.predictedParkForAlliance(match, True)
+    print('Next')
+    match.calculatedData.bluePredictedFaceTheBoss = calc.predictedFaceTheBoss(match, False)
+    match.calculatedData.redPredictedFaceTheBoss = calc.predictedFaceTheBoss(match, True)
+    print('KAkakaka')
+    match.calculatedData.predictedBlueAutoQuest = calc.predictedAutoQuestRP(match, False)
+    match.calculatedData.predictedRedAutoQuest = calc.predictedAutoQuestRP(match, True)
+    print('MOARAKING')
+    match.calculatedData.blueLevitateProbability = calc.levitateProbabilityForAlliance(match, False)
+    print('AKI AKI CORUUS')
+    match.calculatedData.redLevitateProbability = calc.levitateProbabilityForAlliance(match, True)
+    print('Haru')
+    print('SCORE', calc.predictedScoreForAllianceAuto(match, False))
+    match.calculatedData.predictedBlueScore = calc.predictedScoreForAllianceAuto(match, False)
+    match.calculatedData.predictedRedScore = calc.predictedScoreForAllianceAuto(match, True)
+    print('Keeeikm')
+    match.calculatedData.predictedBlueRPs = calc.predictedRPsForAlliance(match, False)
+    match.calculatedData.predictedRedRPs = calc.predictedRPsForAlliance(match, True)

@@ -103,8 +103,8 @@ class TeamInMatchData(object):
 		self.didPark = bool(random.randint(0, 1))
 		self.numGoodDecisions = random.randint(0, 24)
 		self.numBadDecisions = random.randint(0, 24)
-		self.alliancePlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
-		self.alliancePlatformIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.alliancePlatformIntakeAuto = [bool(random.randint(0, 1)) for num in range(0, 6)]
+		self.alliancePlatformIntakeTele = [bool(random.randint(0, 1)) for num in range(0, 6)]
 		self.numCubesFumbledAuto = random.randint(0, 3)
 		self.numCubesFumbledTele = random.randint(0, 16)
 		self.numExchangeInput = random.randint(0, 9)
@@ -192,7 +192,7 @@ class TempTeamInMatchDatas(object):
 				'didClimb' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(105, 120)),
 				'endTime' : float(random.randint(120, 135)),
-				'partnerLiftType' : random.choice(['assisted', 'lifted']),
+				'partnerLiftType' : random.choice(['assisted', 'passive']),
 				'didFailToLift' : bool(random.randint(0, 1)),
 				'numRobotsLifted' : random.randint(1, 3)
 			},
@@ -206,8 +206,9 @@ class TempTeamInMatchDatas(object):
 		self.didGetIncapacitated = bool(random.randint(0, 1))
 		self.didMakeAutoRun = bool(random.randint(0, 1))
 		self.didPark = bool(random.randint(0, 1))
-		self.alliancePlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
-		self.alliancePlatformIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.didCrossAutoZone = bool(random.randint(0, 1))
+		self.alliancePlatformIntakeAuto = [bool(random.randint(0, 1)) for num in range(0, 6)]
+		self.alliancePlatformIntakeTele = [bool(random.randint(0, 1)) for num in range(0, 6)]
 		self.numCubesFumbledAuto = random.randint(0, 3)
 		self.numCubesFumbledTele = random.randint(0, 16)
 		self.numExchangeInput = random.randint(0, 9)
@@ -218,8 +219,7 @@ class TempTeamInMatchDatas(object):
 		self.numGroundPyramidIntakeTele = random.randint(0, 10)
 		self.numElevatedPyramidIntakeAuto = random.randint(0, 4)
 		self.numElevatedPyramidIntakeTele = random.randint(0, 5)
-		self.opponentPlatformIntakeAuto = [bool(random.randint(0, 1) for num in range(0, 6))]
-		self.opponentPlatformIntakeTele = [bool(random.randint(0, 1) for num in range(0, 6))]
+		self.opponentPlatformIntakeTele = [bool(random.randint(0, 1)) for num in range(0, 6)]
 		self.numReturnIntake = random.randint(0, 5)
 		self.numSpilledCubesAuto = random.randint(0, 2)
 		self.numSpilledCubesTele = random.randint(0, 8)
@@ -229,7 +229,7 @@ class TempTeamInMatchDatas(object):
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(0, 50)),
 				'endTime' : float(random.randint(50, 100)),
-				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
+				'status' : random.choice(['owned', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
 			} for num in range(1, random.randint(1, 10))
 		]
@@ -238,7 +238,7 @@ class TempTeamInMatchDatas(object):
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(0, 50)),
 				'endTime' : float(random.randint(50, 100)),
-				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
+				'status' : random.choice(['owned', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
 			} for num in range(1, random.randint(1, 10))
 		]
@@ -247,7 +247,7 @@ class TempTeamInMatchDatas(object):
 				'didSucceed' : bool(random.randint(0, 1)),
 				'startTime' : float(random.randint(0, 50)),
 				'endTime' : float(random.randint(50, 100)),
-				'status' : random.choice(['ownedRed', 'balanced', 'ownedBlue']),
+				'status' : random.choice(['owned', 'balanced', 'ownedBlue']),
 				'layer' : random.randint(0, 4)
 			} for num in range(1, random.randint(1, 10))
 		]
@@ -319,11 +319,12 @@ class CalculatedMatchData(object):
 		self.redWinChance = float(random.randint(0, 100))
 		self.blueWinChance = 100 - self.redWinChance
 
+url = 'scouting-2018-temp'
 config = {
 	'apiKey': 'mykey',
-	'authDomain': 'into-the-firebase-and-flames.firebaseapp.com',
-	'storageBucket': 'into-the-firebase-and-flames.appspot.com',
-	'databaseURL': 'into-the-firebase-and-flames.firebaseio.com/'
+	'authDomain': url + '.firebaseapp.com',
+	'storageBucket': url + '.appspot.com',
+	'databaseURL': url + '.firebaseio.com/'
 	# 'authDomain': '1678-scouting-2016.firebaseapp.com',
 	# 'storageBucket': '1678-scouting-2016.appspot.com',
 	# 'databaseURL': 'https://1678-scouting-2016.firebaseio.com/'
@@ -354,7 +355,6 @@ for TIMD in TIMDs:
 		randScout = random.choice(testScouts)
 		fb.child('TempTeamInMatchDatas').child((str(name) + '-' + str(testScoutNums[randScout]))).set(newTempTIMDs.__dict__)
 	print('Created and uploaded a tempTIMD- ' + str(name) + ' | ' + str(mnum))
-	break
 	mnum += 1
 time.sleep(1)
 print('Done.')

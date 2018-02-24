@@ -33,6 +33,8 @@ class CalculatedTeamData(object):
 		self.disabledPercentage = None #Float
 		self.incapacitatedPercentage = None #Float
 		self.dysfunctionalPercentage = None #Float
+		self.numMatchesPlayed = None #Int
+		self.avgNumRobotsLifted = None #Float
 		self.avgNumAlliancePlatformIntakeAuto = None #Float
 		self.avgNumAlliancePlatformIntakeTele = None #Float
 		self.avgNumOpponentPlatformIntakeTele = None #Float
@@ -58,6 +60,7 @@ class CalculatedTeamData(object):
 		self.avgOpponentSwitchCubesTele = None #Float
 		self.avgScaleTimeAuto = None #Float
 		self.avgScaleTimeTele = None #Float
+		self.avgTimeToOwnAllianceSwitchAuto = None #Float
 		self.avgAllianceSwitchTimeAuto = None #Float
 		self.avgAllianceSwitchTimeTele = None #Float
 		self.avgOpponentSwitchTimeTele = None #Float
@@ -66,6 +69,7 @@ class CalculatedTeamData(object):
 		self.avgSpeed = None #Float
 		self.avgDefense = None #Float
 		self.avgDrivingAbility = None #Float
+		self.lfmAvgNumRobotsLifted = None #Float
 		self.lfmAvgNumAlliancePlatformIntakeAuto = None #Float
 		self.lfmAvgNumAlliancePlatformIntakeTele = None #Float
 		self.lfmAvgNumOpponentPlatformIntakeTele = None #Float
@@ -105,6 +109,8 @@ class CalculatedTeamData(object):
 		self.totalNumRobotLiftAttempts = None #Int
 		self.totalNumRobotsGroundLifted = None #Int
 		self.totalNumRobotGroundLiftAttempts = None #Int
+		self.totalNumHighLayerCubes = None #Int
+		self.totalSuperNotes = None #List of String
 		self.numSuccessfulClimbs = None #Int
 		self.predictedClimb = None #Float CHANGED
 		self.climbPercentage = None #Float
@@ -134,8 +140,8 @@ class CalculatedTeamData(object):
 		self.scaleFailPercentageAuto = None #Float
 		self.scaleFailPercentageTele = None #Float
 		self.canScoreBothSwitchSidesAuto = None #Bool
+		self.canPlaceHighLayerCube = None #Bool
 		self.didThreeExchangeInputPercentage = None #Float
-		self.totalSuperNotes = None #List of String
 		self.canGroundIntake = None #Bool
 		self.teleopExchangeAbility = None #Float
 		self.teleopScaleAbility = None #Float
@@ -157,7 +163,6 @@ class Team(object):
 		self.name = None #String
 		self.number = None #Int
 		self.calculatedData = CalculatedTeamData()
-		self.numMatchesPlayed = None #Int
 		self.pitSelectedImage = None #String
 		self.pitAllImageURLs = {} #String
 		self.pitAvailableWeight = None #Int
@@ -168,8 +173,10 @@ class Team(object):
 		self.pitProgrammingLanguage = None #String
 		self.pitClimberType = None #String
 		self.pitMaxHeight = None #Float
-		self.pitDriveTimes = [] #List of bool and float
-		self.pitRampTimes = [] #List of bool and float
+		self.pitDriveTime = [] #Don't worry about it
+		self.pitRampTime = [] #Don't worry about it
+		self.pitDriveTimeOutcome = [] #Don't worry about it
+		self.pitRampTimeOutcome = [] #Don't worry about it
 		self.__dict__.update(args)
 
 class CalculatedMatchData(object):
@@ -282,6 +289,9 @@ class CalculatedTeamInMatchData(object):
 		self.drivingAbility = None #Float probably
 		self.didConflictWithAuto = None #Bool
 		self.didThreeExchangeInput = None #Bool
+		self.numRobotsLifted = None #Int
+		self.timeToOwnAllianceSwitchAuto = None #Float
+		self.timeToOwnScaleAuto = None #Float
 		self.__dict__.update(args)
 
 class TeamInMatchData(object):

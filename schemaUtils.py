@@ -27,7 +27,7 @@ class SchemaUtils(object):
     def teamsWithCalculatedData(self):
         return filter(lambda t: self.teamCalculatedDataHasValues(t.calculatedData), self.comp.teams)
 
-    def getCompletedMatchesForTeam(self,team):
+    def getCompletedMatchesForTeam(self, team):
         return filter(self.matchIsCompleted, self.getMatchesForTeam(team))
 
     def findTeamsWithMatchesCompleted(self):

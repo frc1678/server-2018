@@ -93,11 +93,7 @@ class DataChecker(multiprocessing.Process):
 				returnList += [{}]
 				dicts = [scout[num] for scout in lis]
 				consolidationDict = {}
-				for key in dicts[0][dicts[0].keys()[0]].keys():
-					consolidationDict[key] = []
-					for aDict in dicts:
-						consolidationDict[key] += [aDict[(aDict.keys()[0])][key]]
-				#Finds the correct climbType for the climb		
+				
 				climbTypes = [dic.keys()[0] for dic in dicts]
 				if len(climbTypes) == 1:
 					climbType = climbTypes[0]
@@ -113,10 +109,31 @@ class DataChecker(multiprocessing.Process):
 						climbType = commonClimb
 					else:
 						climbType = climbTypes[sprKing]
+
+				offset = 0
+				scoutNum = 0
+				offsetList = []
+				for scout in dicts:
+					try:
+						scout[climbType]
+					except:
+						del dicts[dicts.index(scout)]	
+						offset += 1
+						offsetList + [scoutNum]
+					scoutNum += 1
+
+				sprKing = sprKing - len([n for n in offsetList if n <= sprKing])
+
+				for key in dicts[0][dicts[0].keys()[0]].keys():
+					consolidationDict[key] = []
+					for aDict in dicts:
+						consolidationDict[key] += [aDict[(aDict.keys()[0])][key]]	
+
 				returnList[num][climbType] = {}
 				for key in consolidationDict.keys():
 					if key != 'partnerLiftType':
 						returnList[num][climbType].update({key: self.commonValue(consolidationDict[key], sprKing)})
+				
 				#Strange happenings in the down-low - Don't ask if you can't handle the truth
 				try:
 					if len(consolidationDict['partnerLiftType']) == 1:
@@ -128,7 +145,6 @@ class DataChecker(multiprocessing.Process):
 							returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType'][random.randint(0, 1)]})
 							#change to whoever has better SPR
 					else:
-						#Do nOt sPEaK iF YoU ChOOse NoT tO FoLLOw - Sc.Ar.l
 						liftTypeFrequencies = map(consolidationDict['partnerLiftType'].count, consolidationDict['partnerLiftType'])
 						commonLiftType = consolidationDict['partnerLiftType'][liftTypeFrequencies.index(max(liftTypeFrequencies))]
 						if max(liftTypeFrequencies) > 1:
@@ -153,45 +169,19 @@ class DataChecker(multiprocessing.Process):
 				dicts = [scout[num] for scout in lis]
 				consolidationDict = {}
 				#Combines dicts that should be the same into a consolidation dict-penisandpussy
-				for key in dicts[0].keys():
+				for key in ['didSucceed', 'startTime', 'endTime', 'status', 'layer']:
 					consolidationDict[key] = []
 					for aDict in dicts:
-						consolidationDict[key] += [aDict[key]]
+						try:
+							consolidationDict[key] += [aDict[key]]
+						except:
+							if key == 'status':
+								consolidationDict[key] += ['owned']
+							elif key == 'layer':
+								consolidationDict[key] += [1]
 					if 'Time' in key:
 						returnList[num].update({key: self.commonValue(consolidationDict[key], sprKing)})
-				#If there is only one scout, their statement about status is accepted as right
-				if len(consolidationDict['status']) == 1:
-					returnList[num].update({'status': consolidationDict['status'][0]})
-				elif len(consolidationDict['status']) % 2 == 0:
-					if consolidationDict['status'][0].lower() == consolidationDict['status'][1]:
-						returnList[num].update({'status': consolidationDict['status'][0]})
-					else:
-						returnList[num].update({'status': consolidationDict['status'][sprKing]})
-						#change to whoever has better SPR
-				#If there are 3 scouts (or more, but that shouldn't happen), the status value is the most common status value
-				else:
-					statusFrequencies = map(consolidationDict['status'].count, consolidationDict['status'])
-					commonStatus = consolidationDict['status'][statusFrequencies.index(max(statusFrequencies))]
-					if max(statusFrequencies) > 1:
-						returnList[num].update({'status': commonStatus})
-					else:
-						returnList[num].update({'status': consolidationDict['status'][sprKing]})
-				#Same thing with layer
-				if len(consolidationDict['layer']) == 1:
-					returnList[num].update({'layer': consolidationDict['layer'][0]})
-				elif len(consolidationDict['layer']) % 2 == 0:
-					if consolidationDict['layer'][0] == consolidationDict['layer'][1]:
-						returnList[num].update({'layer': consolidationDict['layer'][0]})
-					else:
-						returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
-						#change to whoever has better SPR
-				else:
-					layerFrequencies = map(consolidationDict['layer'].count, consolidationDict['layer'])
-					commonLayer = consolidationDict['layer'][layerFrequencies.index(max(layerFrequencies))]
-					if max(layerFrequencies) > 1:
-						returnList[num].update({'layer': commonLayer})
-					else:
-						returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
+
 				#Same thing with didSucceed
 				if len(consolidationDict['didSucceed']) == 1:
 					returnList[num].update({'didSucceed': consolidationDict['didSucceed'][0]})
@@ -205,6 +195,54 @@ class DataChecker(multiprocessing.Process):
 						returnList[num].update({'didSucceed': commonSuccess})
 					else:
 						returnList[num].update({'didSucceed': consolidationDict['didSucceed'][sprKing]})
+
+				offset = 0
+				offsetList = []
+				if False in consolidationDict['didSucceed'] and returnList[num]['didSucceed'] == True:
+					for number in range(len(consolidationDict['didSucceed'])):
+						if consolidationDict['didSucceed'][(number - offset)] == False:
+							for item in consolidationDict:
+								del consolidationDict[item][(number - offset)]
+							offset += 1
+							offsetList + [number]
+
+				sprKing = sprKing - len([n for n in offsetList if n <= sprKing])
+
+				if returnList[num]['didSucceed'] == True:
+					#If there is only one scout, their statement about status is accepted as right
+					if len(consolidationDict['status']) == 1:
+						returnList[num].update({'status': consolidationDict['status'][0]})
+					elif len(consolidationDict['status']) % 2 == 0:
+						if consolidationDict['status'][0].lower() == consolidationDict['status'][1]:
+							returnList[num].update({'status': consolidationDict['status'][0]})
+						else:
+							returnList[num].update({'status': consolidationDict['status'][sprKing]})
+							#change to whoever has better SPR
+					#If there are 3 scouts (or more, but that shouldn't happen), the status value is the most common status value
+					else:
+						statusFrequencies = map(consolidationDict['status'].count, consolidationDict['status'])
+						commonStatus = consolidationDict['status'][statusFrequencies.index(max(statusFrequencies))]
+						if max(statusFrequencies) > 1:
+							returnList[num].update({'status': commonStatus})
+						else:
+							returnList[num].update({'status': consolidationDict['status'][sprKing]})
+
+					#Same thing with layer
+					if len(consolidationDict['layer']) == 1:
+						returnList[num].update({'layer': consolidationDict['layer'][0]})
+					elif len(consolidationDict['layer']) % 2 == 0:
+						if consolidationDict['layer'][0] == consolidationDict['layer'][1]:
+							returnList[num].update({'layer': consolidationDict['layer'][0]})
+						else:
+							returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
+							#change to whoever has better SPR
+					else:
+						layerFrequencies = map(consolidationDict['layer'].count, consolidationDict['layer'])
+						commonLayer = consolidationDict['layer'][layerFrequencies.index(max(layerFrequencies))]
+						if max(layerFrequencies) > 1:
+							returnList[num].update({'layer': commonLayer})
+						else:
+							returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
 			return returnList
 
 	#Combines data from whole TIMDs
@@ -266,7 +304,6 @@ class DataChecker(multiprocessing.Process):
 
 	#Retrieves and consolidates tempTIMDs from firebase and combines their data, putting the result back onto firebase as TIMDs
 	def run(self):
-		spr.sprs = {'' : 1.5, 'k': 0.5}
 		while(True):
 			tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
 			#Keeps on iterating over the tempTIMDs until none exists on firebase

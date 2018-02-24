@@ -8,12 +8,13 @@ import traceback
 import CrashReporter
 import numpy as np
 import pprint
+import json
 
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 fb = PBC.firebase
 
-numScouts = 18
-scouts = ['scout'+str(num) for num in range(1,numScouts+1)]
+numScouts = 6
+scouts = 'Carl Calvin Teo Carter Jason Json'.split()
 
 SPR = SPR.ScoutPrecision()
 
@@ -39,7 +40,7 @@ def doSPRsAndAssignments(data):
 		time.sleep(2)
 	try:
 		fb.child('availabilityUpdated').set(0)
-		if data.get('data') == None: return
+		#if data.get('data') == None: return
 		#Gets scouting data from firebase
 		newMatchNumber = str(fb.child('currentMatchNum').get().val())
 		print('Setting scouts for match', str(newMatchNumber))
@@ -52,6 +53,8 @@ def doSPRsAndAssignments(data):
 		#Grades scouts and assigns them to robots
 		SPR.calculateScoutPrecisionScores(fb.child('TempTeamInMatchDatas').get().val(), available)
 		SPR.sprZScores(PBC)
+		with open('./KRaKaToA.json', 'w') as file:
+			json.dump(SPR.disagreementBreakdown, file)
 		newAssignments = SPR.assignScoutsToRobots(available, redTeams + blueTeams, scoutDict)
 		#And it is put on firebase
 		fb.child('scouts').update(newAssignments)
@@ -63,7 +66,7 @@ def doSPRsAndAssignments(data):
 #Use this to reset scouts and availability before assigning tablets
 #e.g. at the beginning of the day at a competition
 def tabletHandoutStream():
-	resetScouts()
+	#resetScouts()
 	resetAvailability()
 	fb.child('currentMatchNum').stream(doSPRsAndAssignments)
 

@@ -16,7 +16,7 @@ import pprint
 import APNServer
 
 
-APNServer.startNotiStream()
+#APNServer.startNotiStream()
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 comp = DataModel.Competition(PBC)
 comp.updateTeamsAndMatchesFromFirebase()
@@ -39,7 +39,7 @@ fb.child('availabilityUpdated').set(0)
 scoutRotator.tabletHandoutStream()
 
 #Use this for running the server again (e.g. after a crash) to avoid reassigning scouts or tablets
-# scoutRotator.alreadyAssignedStream()
+#scoutRotator.alreadyAssignedStream()
 
 #Use this if you are restarting the server and need to reassign scouts but scouts already have tablets
 #Also useful for unexpected changes in availability

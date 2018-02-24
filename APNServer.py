@@ -1,3 +1,4 @@
+'''
 #Last Updated: 8/26/17
 from apns import APNs, Frame, Payload
 import pyrebase as pyb
@@ -41,3 +42,4 @@ def startNotiStream():
         fb.child('currentMatchNum').stream(sendNotiForUsers)
 
 startNotiStream()
+'''

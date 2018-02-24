@@ -1,5 +1,5 @@
 #Last Updated: 1/13/18
-import CSVExporter
+from CSVExporter import *
 import DataModel
 import firebaseCommunicator
 import traceback
@@ -15,17 +15,18 @@ while(True):
 		try:
 			if cmd[1] == 'timd':
 				if cmd[2] == 'all':
-					CSVExporter.CSVExportTIMDALL(comp)
+					CSVExportTIMDALL(comp)
 					comp.PBC.sendExport('EXPORT-TIMDALL.csv')
 				elif cmd[2] == 'other':
 					print('')
 			elif cmd[1] == 'team':
 				if cmd[2] == 'all':
-					CSVExporter.CSVExportTeamALL(comp)
+					CSVExportTeamALL(comp)
 					comp.PBC.sendExport('EXPORT-TEAMALL.csv')
 				elif cmd[2] == 'other':
 					print('')
-		except Exception as e:			print(traceback.format_exc())
+		except Exception as e:			
+			print(traceback.format_exc())
 	elif cmd[0] == 'sns':
 		#idea for faster method- under TempTIMDs, have data organized by match, and under that, the data, so we don't have to iterate through every TIMD
 		scoutSentData = []
@@ -49,7 +50,8 @@ while(True):
 				scoutNotSentData.append(scout)
 		scoutNotSent = ''
 		if scoutNotSentData != scoutNotSent:
-			print('Scouts that have not inputted data in match:' + str(curMatch) + '-' + scoutNotSentData)
+			for scout in scoutNotSentData:
+				print('Scouts that have not inputted data in match:' + str(curMatch) + '-' + scout)
 		else:
 			print('All scouts have sent data.')
 	elif cmd[0] == 'test':
