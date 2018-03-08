@@ -45,7 +45,7 @@ scoutRotator.tabletHandoutStream()
 #Also useful for unexpected changes in availability
 #Note: Only use if availability child on Firebase has each scout with a value of 1 or 0
 
-# scoutRotator.simpleStream()
+scoutRotator.simpleStream()
 
 def checkForMissingData():
 	with open('missing_data.txt', 'w') as missingDataFile:

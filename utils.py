@@ -24,7 +24,10 @@ def mode(lis):
 
 def avg(lis):
 	l = [False if x == None else x for x in lis]
-	return sum(l) / len(l)
+	return float(sum(l)) / len(l)
+
+def removeNoneFrom(lis):
+	return [x for x in lis if x != None]
 
 def replaceFromNone(lis, replace):
 	return [replace if x == None else x for x in lis]

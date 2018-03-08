@@ -61,6 +61,7 @@ class CalculatedTeamData(object):
 		self.avgScaleTimeAuto = None #Float
 		self.avgScaleTimeTele = None #Float
 		self.avgTimeToOwnAllianceSwitchAuto = None #Float
+		self.avgTimeToOwnScaleAuto = None #Float
 		self.avgAllianceSwitchTimeAuto = None #Float
 		self.avgAllianceSwitchTimeTele = None #Float
 		self.avgOpponentSwitchTimeTele = None #Float
@@ -109,7 +110,7 @@ class CalculatedTeamData(object):
 		self.totalNumRobotLiftAttempts = None #Int
 		self.totalNumRobotsGroundLifted = None #Int
 		self.totalNumRobotGroundLiftAttempts = None #Int
-		self.totalNumHighLayerCubes = None #Int
+		self.totalNumHighLayerScaleCubes = None #Int
 		self.totalSuperNotes = None #List of String
 		self.numSuccessfulClimbs = None #Int
 		self.predictedClimb = None #Float CHANGED
@@ -142,6 +143,7 @@ class CalculatedTeamData(object):
 		self.canScoreBothSwitchSidesAuto = None #Bool
 		self.canPlaceHighLayerCube = None #Bool
 		self.didThreeExchangeInputPercentage = None #Float
+		self.percentSuccessOppositeSwitchSideAuto = None #Float
 		self.canGroundIntake = None #Bool
 		self.teleopExchangeAbility = None #Float
 		self.teleopScaleAbility = None #Float
@@ -201,7 +203,10 @@ class CalculatedMatchData(object):
 		self.redTeleopExchangeAbility = None #Float
 		self.blueTeleopExchangeAbility = None #Float
 		self.redPredictedFaceTheBoss = None #Float
-		self.bluePredictedFaceTheBoss = None #Float
+		self.bluePredictedFaceTheBoss = None #Float\
+		self.pointsPerAllianceSwitchCube = None #Float
+		self.pointsPerOpponentSwitchCube = None #Float
+		self.pointsPerScaleCube = None #Float
 		self.__dict__.update(args)
 
 

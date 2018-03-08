@@ -117,12 +117,16 @@ class ScoutPrecision(object):
 		self.SPRBreakdown = {}
 		self.disagreementBreakdown = {}
 		self.scoutNumMatches = {}
+		self.unusedTablets = ['scout15', 'scout14', 'scout7', 'scout9', 'scout8', 'scout12', 'scout18']
 
 	#SPR
 	#Scout precision rank(ing): checks accuracy of scouts by comparing their past TIMDs to the consensus
 	#Outputs list of TIMDs that an inputted scout was involved in
 	def getTotalTIMDsForScoutName(self, scoutName, tempTIMDs):
-		return len(filter(lambda v: v.get('scoutName') == scoutName, tempTIMDs.values()))
+		if tempTIMDs:
+			return len(filter(lambda v: v.get('scoutName') == scoutName, tempTIMDs.values()))
+		else:
+			return 0
 
 	#Finds keys that start the same way and groups their values into lists under the keys
 	#Used to combine tempTIMDs for the same match by different scouts
@@ -143,7 +147,7 @@ class ScoutPrecision(object):
 	def findOddScoutForDataPoint(self, tempTIMDs, key):
 		weight = self.gradingKeys[key]
 		#Finds scout names in tempTIMDs
-		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), tempTIMDs))
+		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), list(tempTIMDs)))
 		#Finds values (at an inputted key) in tempTIMDs
 		values = filter(lambda v: v != None, map(lambda t: t[key] if t.get('scoutName') else None, tempTIMDs))
 		#Finds the most common value in the list of values, or the average if none of them is the majority
@@ -158,24 +162,23 @@ class ScoutPrecision(object):
 					self.SPRBreakdown.update({key: (self.SPRBreakdown.get(key) or []) + [(differenceFromMode[c])]})
 					#Updates disagreements by category and scout
 					if differenceFromMode[c] != 0:
-						self.disagreementBreakdown[scouts[c]].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0) + 1})
-						self.sprs.update({scouts[c] : (self.sprs.get(scouts[c]) or 0) + differenceFromMode[c]})
+						#self.disagreementBreakdown[str(scouts[c])].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0) + 1})
+						self.sprs.update({scouts[c] : (self.sprs.get(str(scouts[c])) or 0) + differenceFromMode[c]})
 
 	def findOddScoutForList(self, tempTIMDs, key):
 		weight = self.gradingLists[key]
 		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), tempTIMDs))
 		lists = filter(lambda v: v != None, map(lambda t: t[key] if t.get('scoutName') else None, tempTIMDs))
 		# Checks to make sure all the lists are the same length (2018 specific)
-		if lists.count(lists[0]) == len(lists):
+		if len(set([len(lis) for lis in lists])) == 1:
 			for index in range(len(lists[0])):
 				items = [lists[x][index] for x in range(len(lists))]
 				mode = utils.mode(items)
 				differenceFromMode = [weight if x != mode else 0 for x in items]
 				for c in range(len(differenceFromMode)):
-					if differenceFromMode != 0:
-						self.disagreementBreakdown[scouts[c]].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0) + 1})
+					if differenceFromMode[c] != 0:
+						self.disagreementBreakdown[scouts[c]].update({key: self.disagreementBreakdown[scouts[c]].get(key, 0) + 1})
 						self.sprs.update({scouts[c]: (self.sprs.get(scouts[c]) or 0) + differenceFromMode[c]})
-
 
 	def findOddScoutForDict(self, tempTIMDs, key):
 		# Not used 2018, needs changes to weight items in a dict differently if used
@@ -210,6 +213,7 @@ class ScoutPrecision(object):
 					aScouts.append(allScouts[aScoutIndex])
 				elif modeAmount > 1: # Updates SPR if incorecct list amount and at least 2 scouts agree
 					self.sprs.update({allScouts[aScoutIndex]: (self.sprs.get(allScouts[aScoutIndex]) or 0) + weight})
+					self.disagreementBreakdown[allScouts[aScoutIndex]].update({key1:{'amount': (self.disagreementBreakdown[allScouts[aScoutIndex]].get(key1, {}).get('amount', 0) + 1) }})
 			# Need at least 2 scouts to compare, or SPR is not affected
 			if modeAmount > 1:
 				# check here with if statement before runing code below
@@ -233,6 +237,7 @@ class ScoutPrecision(object):
 						for item in popList[::-1]:
 							#self.SPRBreakdown.update({key2: (self.SPRBreakdown.get(key2) or []) + [(differenceFromMode[c])]})
 							self.sprs.update({scouts[item] : (self.sprs.get(scouts[item]) or 0) + weight})
+							self.disagreementBreakdown[scouts[item]].update({key1:{'didSucceed': (self.disagreementBreakdown[scouts[item]].get(key1, {}).get('didSucceed', 0) + 1) }})
 							dicts.pop(item)
 							scouts.pop(item)
 						for key2 in dicts[0].keys():
@@ -248,6 +253,7 @@ class ScoutPrecision(object):
 									self.SPRBreakdown.update({key2: (self.SPRBreakdown.get(key2) or []) + [(differenceFromMode[c])]})
 									if weight != 0.0:
 										self.sprs.update({scouts[c] : (self.sprs.get(scouts[c]) or 0) + differenceFromMode[c]})
+										self.disagreementBreakdown[scouts[c]].update({key1:{key2: (self.disagreementBreakdown[scouts[c]].get(key1, {}).get(key2, 0) + 1) }})
 
 	def findOddScoutForListOfDictsDicts(self, tempTIMDs, key1):
 		# Similar to findOddScoutForListOfDicts, but for a (dict in dict) in a list
@@ -265,6 +271,7 @@ class ScoutPrecision(object):
 			#If someone missed an attempt or had an extra attempt, there is no way to compare their data
 			#This filters out anything with a different length of dicts
 			# 2018 - each dict is an attempt
+			# This is year specific code for 2018!
 			lists = []
 			scouts = []
 			for aScoutIndex in range(len(unsortedLists)):
@@ -273,16 +280,21 @@ class ScoutPrecision(object):
 					scouts.append(allScouts[aScoutIndex])
 				elif modeAmount > 1: # Updates SPR if incorecct list amount and at least 2 scouts agree
 					self.sprs.update({allScouts[aScoutIndex]: (self.sprs.get(allScouts[aScoutIndex]) or 0) + weight})
+					self.disagreementBreakdown[allScouts[aScoutIndex]].update({key1:{'amount': (self.disagreementBreakdown[allScouts[aScoutIndex]].get(key1, {}).get('amount', 0) + 1) }})
 			# Need at least 2 scouts to compare, or SPR is not affected
 			if modeAmount > 1:
 				for num in range(modeListLength):
 					#Comparing dicts that should be the same (e.g. each shot time dict for the same shot) within the tempTIMDs
 					#This means the nth shot by a given robot in a given match, as recorded by multiple scouts
 					#The comparison itself is the same as the other findOddScout functions
+					print('lists', lists)
+					print(modeListLength)
 					dicts = [lis[num] for lis in lists]
 					keys = []
+					print(dicts)
 					for x in dicts:
-						keys.append(x.keys()[num])
+						print(x.keys())
+						keys.append(x.keys()[0])
 					modeKey = max(set(keys), key=keys.count)
 					modeKeyAmount = keys.count(modeKey)
 
@@ -290,11 +302,12 @@ class ScoutPrecision(object):
 					scouts2 = []
 					weight = self.gradingListsOfDictsDicts[key1][1]
 					for index in range(len(dicts)):
-						if dicts[index].keys()[num] == modeKey:
+						if dicts[index].keys()[0] == modeKey:
 							dicts2.append(dicts[index])
 							scouts2.append(scouts[index])
 						else:
 							self.sprs.update({scouts[index]: (self.sprs.get(scouts[index]) or 0) + weight})
+							self.disagreementBreakdown[scouts[index]].update({key1:{'climbType': (self.disagreementBreakdown[scouts[index]].get(key1, {}).get('climbType', 0) + 1) }})
 					# Must have 2 scouts to compare, or SPR is not affected
 					if modeKeyAmount > 1: 
 						for key2 in dicts2[0].keys():
@@ -313,15 +326,20 @@ class ScoutPrecision(object):
 										#Gets inaccuracy by category
 										for c in range(len(differenceFromMode)):
 											self.SPRBreakdown.update({key2: (self.SPRBreakdown.get(key2) or []) + [(differenceFromMode[c])]})
-										self.sprs.update({scouts2[c] : (self.sprs.get(scouts2[c]) or 0) + differenceFromMode[c] for c in range(len(differenceFromMode))})
-
+											self.sprs.update({scouts2[c] : (self.sprs.get(scouts2[c]) or 0) + differenceFromMode[c]})
+											self.disagreementBreakdown[scouts2[c]].update({key1:{key2:{key3: (self.disagreementBreakdown[scouts2[c]].get(key1, {}).get(key2, {}).get(key3, 0) + 1) }}})
 
 	def calculateScoutPrecisionScores(self, temp, available):
 		if temp:
 			#Combines all tempTIMDs for the same match
 			g = self.consolidateTIMDs(temp)
 			#Makes a list of scouts with data
-			priorScouts = [ind['scoutName'] for timd in g.values() for ind in timd]
+			print('ATTENTION\n\n\n\n\n\n\n\n\n\n\n')
+			priorScouts = []
+			for scout in [ind for timd in g.values() for ind in timd]:
+				print(ind)
+				print(ind['scoutName'])
+				priorScouts.append(ind['scoutName'])
 			priorScouts = set(priorScouts) #updates priorScouts so that one scoutName cannot appear more than once
 			for scout in priorScouts:
 				self.disagreementBreakdown.update({scout: {}})
@@ -340,22 +358,53 @@ class ScoutPrecision(object):
 			If a scout is in more matches, they will likely have more disagreements, but the same number per match if they are equally accurate
 			If someone has no tempTIMDs (but still an SPR key somehow), their SPR score is set to -1 (changed in the next section)'''
 			self.sprs = {k:((v / float(self.getTotalTIMDsForScoutName(k, temp))) if self.getTotalTIMDsForScoutName(k, temp) > 0 else -1) for (k, v) in self.sprs.items()}
+			print(self.disagreementBreakdown)
 			#Makes an average number of disagreements per scout per category
 			avgScout = {}
 			for scout in self.disagreementBreakdown.keys():
 				for key in self.disagreementBreakdown[scout].keys():
-					print('a', type(self.disagreementBreakdown[scout][key]))
-					try:
-						self.disagreementBreakdown[scout].update({key: float(self.disagreementBreakdown[scout][key]) / float(self.getTotalTIMDsForScoutName(scout, temp))})
-					except:
-						pass
+					if type(self.disagreementBreakdown[scout][key]) == dict:
+						for item in self.disagreementBreakdown[scout][key]:
+							if type(self.disagreementBreakdown[scout][key][item]) == dict:
+								for item2 in self.disagreementBreakdown[scout][key][item]:
+									try:
+										self.disagreementBreakdown[scout].update({key: {item: {item2: float(self.disagreementBreakdown[scout][key][item][item2]/float(self.getTotalTIMDsForScoutName(scout, temp)))}}})
+									except:
+										pass
+							else:
+								try:
+									self.disagreementBreakdown[scout].update({key: {item: float(self.disagreementBreakdown[scout][key][item]/float(self.getTotalTIMDsForScoutName(scout, temp)))}})
+								except:
+									pass
+					else:
+						try:
+							self.disagreementBreakdown[scout].update({key: float(self.disagreementBreakdown[scout][key]) / float(self.getTotalTIMDsForScoutName(scout, temp))})
+						except:
+							pass
+
 			for scout in self.disagreementBreakdown.keys():
 				for key in self.disagreementBreakdown[scout].keys():
-					avgScout.update({key: (avgScout.get(key) or []) + [self.disagreementBreakdown[scout][key]]})
+					if type(self.disagreementBreakdown[scout][key]) == dict:
+						for item in self.disagreementBreakdown[scout][key]:
+							if type(self.disagreementBreakdown[scout][key][item]) == dict:
+								for item2 in self.disagreementBreakdown[scout][key][item]:
+									avgScout.update({key: {item: {item2: avgScout.get(key, {}).get(item, {}).get(item2, [] + [self.disagreementBreakdown[scout][key][item][item2]])}}})
+							else:
+								avgScout.update({key: {item: avgScout.get(key, {}).get(item, []) + [self.disagreementBreakdown[scout][key][item]]}})
+					else:
+						avgScout.update({key: avgScout.get(key, []) + [self.disagreementBreakdown[scout][key]]})
 			for key in avgScout.keys():
-				avgScout[key] = np.mean(avgScout[key])
+				if type(avgScout[key]) == dict:
+					for key2 in avgScout[key].keys():
+						if type(avgScout[key][key2]) == dict:
+							for key3 in avgScout[key][key2].keys():
+								avgScout[key][key2][key3] = np.mean(avgScout[key][key2][key3])
+						else:
+							avgScout[key][key2] = np.mean(avgScout[key][key2])
+				else:
+					avgScout[key] = np.mean(avgScout[key])
 			self.disagreementBreakdown.update({'avgScout': avgScout})
-			
+			print(self.disagreementBreakdown)
 			#Changes all sprs of -1 (someone who somehow has an spr key but no matches) to average or 1
 			for a in self.sprs.keys():
 				if self.sprs[a] == -1:
@@ -367,11 +416,11 @@ class ScoutPrecision(object):
 				if a not in self.sprs.keys():
 					avgScore = np.mean(self.sprs.values()) if self.sprs else 1
 					self.sprs[a] = avgScore
-			self.scoutNumMatches = {scout:self.getTotalTIMDsForScoutName(scout, temp) for scout in self.sprs}
 		#If there are no tempTIMDs, everyone is set to 1
 		else:
 			for a in available:
 				self.sprs[a] = 1
+		self.scoutNumMatches = {scout: self.getTotalTIMDsForScoutName(scout, temp) for scout in self.sprs.keys()}
 
 	#Scout Assignment
 
@@ -441,13 +490,17 @@ class ScoutPrecision(object):
 		return scout, freqs
 
 	def getScoutNumFromName(self, name, scoutsInRotation):
-		return filter(lambda k: scoutsInRotation[k].get('mostRecentUser') == name, scoutsInRotation.keys())[0]
+		try:
+			return filter(lambda k: scoutsInRotation[k].get('mostRecentUser') == name, scoutsInRotation.keys())[0]
+		except:
+			pass
 
 	def getScoutNameFromNum(self, name, scoutsInRotation):
 		return scoutsInRotation[str(name)]['currentUser']
 
 	#Returns the first scout key that doesn't have a current user
 	def findEmptySpotsForScout(self, scoutRotatorDict, available):
+		scoutRotatorDict = {dic:data for dic,data in scoutRotatorDict.items() if dic not in self.unusedTablets}
 		emptyScouts = filter(lambda k: scoutRotatorDict[k].get('currentUser') == None, scoutRotatorDict.keys())
 		emptyScouts += filter(lambda k: scoutRotatorDict[k].get('currentUser') == '', scoutRotatorDict.keys())
 		emptyScouts += filter(lambda k: scoutRotatorDict[k].get('currentUser') not in available, scoutRotatorDict.keys())
@@ -477,6 +530,7 @@ class ScoutPrecision(object):
 	#Finds a spot and a robot for an inputted available scout
 	def assignScoutToRobot(self, availableScout, teams, scoutRotatorDict, available, names):
 		#If the available scout already has a spot on firebase, all that needs to be updated is the robot they scout for
+		print(names)
 		if availableScout in names:
 			scoutNum = self.getScoutNumFromName(availableScout, scoutRotatorDict)
 			scoutRotatorDict[scoutNum].update({'team': teams[availableScout], 'currentUser': availableScout, 'scoutStatus': 'requested'})
@@ -489,8 +543,9 @@ class ScoutPrecision(object):
 	#Records z-scores of each scouts spr, for later checking and comparison
 	def sprZScores(self, PBC):
 		if np.std(self.sprs.values()) == 0:
+			print(self.sprs)
+			print(self.scoutNumMatches)
 			zscores = {k : (0.0, self.sprs[k], self.scoutNumMatches[k]) for k in self.sprs.keys()}
 		else:
 			zscores = {k : (zscore, self.sprs[k], self.scoutNumMatches[k]) for (k, zscore) in zip(self.sprs.keys(), stats.zscore(self.sprs.values()))}
 		CSVExporter.CSVExportScoutZScores(zscores)
-
