@@ -23,23 +23,32 @@ while(True):
 	if cmd[0] == 'exp':
 		try:
 			if cmd[1] == 'timd':
-				if cmd[2] == 'all':
+				if cmd[2] == '-all':
 					CSVExportTIMDALL(comp)
 					comp.PBC.sendExport('EXPORT-TIMDALL.csv')
-				elif cmd[2] == 'other':
+				elif cmd[2] == '-other':
 					print('')
 			elif cmd[1] == 'team':
-				if cmd[2] == 'all':
+				if cmd[2] == '-all':
 					CSVExportTeamALL(comp)
 					comp.PBC.sendExport('EXPORT-TEAMALL.csv')
-				elif cmd[2] == 'other':
+				elif cmd[2] == '-rs':
+					CSVExportTeamRScores(comp)
+					comp.PBC.sendExport('EXPORT-RSCORES.csv')
+				elif cmd[2] == '-other':
 					print('')
+			elif cmd[1] == 'match':
+				if cmd[2] == '-predictions':
+					CSVExportMatchPredictedErrors(comp)
+					comp.PBC.sendExport('EXPORT-PREDICTEDERRORS.csv')
+				elif cmd[2] == '-fouls':
+					CSVExportMatchFoulComparison(comp)
+					comp.PBC.sendExport('EXPORT-FOULCOMPARISON.csv')
 		except Exception as e:			
 			print(traceback.format_exc())
 	elif cmd[0] == 'calc':
 		if cmd[1] == 'full':
 			calc.doCalculations(PBC)
-			PBC.updateFire
 	elif cmd[0] == 'sns':
 		tempTIMDs = fb.child('TempTeamInMatchDatas').get().val()
 		curMatch = fb.child('currentMatchNum').get().val() 

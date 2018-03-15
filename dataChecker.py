@@ -10,6 +10,7 @@ from TBACommunicator import TBACommunicator
 import sys
 import SPR
 import random
+import csv
 
 #These are the keys that have lists of dicts
 #Lists may have different numbers of dicts, but the keys in the dicts should be the same
@@ -59,7 +60,7 @@ class DataChecker(multiprocessing.Process):
 
 	#Gets the most common bool of a list of inputted bools
 	def joinBools(self, bools, sprKing):
-		return False if bools.count(False) > len(bools) / 2 else bools[sprKing]
+		return utils.convertNoneToIdentity(utils.mode(bools), bools[sprKing])
 
 	#Returns the most common value in a list, or the average if no value is more than half the list
 	def joinList(self, values, sprKing):
@@ -270,10 +271,24 @@ class DataChecker(multiprocessing.Process):
 		return returnDict
 
 	#Gets the index of the scout with the lowest SPR
-	def getSPRKing(self, scoutNames):
+	def getSPRKing(self, preScoutNames):
+		scoutNames = []
+		sprDict = {}
+		with open('scoutRankExport.csv', 'r') as sre:
+			sprs = csv.DictReader(sre, delimiter = ' ', quotechar = '|')
+			for row in sre:
+				try:
+					sprDict[row.split(',')[0]] = row.split(',')[1]
+				except:
+					pass
+		for item in preScoutNames:
+			scoutNames.append(item.strip())
 		if scoutNames:
-			if spr.sprs:
-				return 0 if spr.sprs[scoutNames[0]] == min([spr.sprs[scoutName] for scoutName in scoutNames]) else 1 if spr.sprs[scoutNames[1]] == min([spr.sprs[scoutName] for scoutName in scoutNames]) else 2 if spr.sprs[scoutNames[0]] == min([spr.sprs[scoutName] for scoutName in scoutNames]) else random.randint(0,3) 
+			if sprDict:
+				try:
+					return 0 if sprDict[scoutNames[0]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else 1 if sprDict[scoutNames[1]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else 2 if sprDict[scoutNames[0]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else random.randint(0,3) 
+				except:
+					return 0
 			else:
 				return 0
 		else:
@@ -314,7 +329,7 @@ class DataChecker(multiprocessing.Process):
 			index = 0
 			while index < len(self.consolidationGroups.keys()):
 				key = self.consolidationGroups.keys()[index]
-				#Updates a TIMD on firebase
+				#Updates a TIMD on firebases
 				try:
 					firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key))
 					index += 1

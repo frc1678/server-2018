@@ -55,6 +55,8 @@ def firstCalculationDict(team, calc):
         avgNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
         avgTimeToOwnAllianceSwitchAuto = lambda tm: tm.calculatedData.timeToOwnAllianceSwitchAuto,
         avgTimeToOwnScaleAuto = lambda tm: tm.calculatedData.timeToOwnScaleAuto,
+        avgNumCubesPlacedAuto = lambda tm: tm.calculatedData.numCubesPlacedAuto,
+        avgNumCubesPlacedTele = lambda tm: tm.calculatedData.numCubesPlacedTele,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getRecentAverageForDataFunctionForTeam(team, f),
         lfmAvgNumAlliancePlatformIntakeAuto = lambda tm: tm.calculatedData.numAlliancePlatformIntakeAuto,
@@ -91,6 +93,8 @@ def firstCalculationDict(team, calc):
         lfmAvgAllianceSwitchTimeTele = lambda tm: tm.calculatedData.avgAllianceSwitchTimeTele,
         lfmAvgOpponentSwitchTimeTele = lambda tm: tm.calculatedData.avgOpponentSwitchTimeTele,
         lfmAvgNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
+        lfmAvgNumCubesPlacedAuto = lambda tm: tm.calculatedData.numCubesPlacedAuto,
+        lfmAvgNumCubesPlacedTele = lambda tm: tm.calculatedData.numCubesPlacedTele,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getSumForDataFunctionForTeam(team, f),
         totalNumGoodDecisions = lambda tm: tm.numGoodDecisions,
@@ -123,6 +127,7 @@ def firstCalculationDict(team, calc):
     cd.totalSuperNotes = calc.getTotalSuperNotes(team)
     cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
     cd.percentSuccessOppositeSwitchSideAuto = calc.getPercentSuccessOppositeSwitchSideAuto(team)
+    cd.maxScaleCubes = calc.getMaxScaleCubes(team)
 
 def Rscorecalcs(team, calc):
     cd = team.calculatedData
@@ -191,6 +196,8 @@ def TIMDCalcDict(timd, calc):
     c.numRobotsLifted = calc.getNumRobotsLifted(timd)
     c.timeToOwnAllianceSwitchAuto = calc.getTimeToOwnAllianceSwitchAuto(timd)
     c.timeToOwnScaleAuto = calc.getTimeToOwnScaleAuto(timd)
+    c.canScoreOppositeSwitchAuto = calc.getCanScoreOppositeSwitch(timd, team, match)
+    c.switchIsOpposite = calc.getSwitchIsOpposite(timd, team, match)
 
 def averageTeamDict(calc):
     a = calc.averageTeam
@@ -242,10 +249,7 @@ def matchDict(match, calc):
     match.calculatedData.predictedRedAutoQuest = calc.predictedAutoQuestRP(match, True)
     match.calculatedData.blueLevitateProbability = calc.levitateProbabilityForAlliance(match, False)
     match.calculatedData.redLevitateProbability = calc.levitateProbabilityForAlliance(match, True)
-    print('Probably')
     match.calculatedData.predictedBlueScore = calc.getPredictedScoreForAlliance(match, False)
     match.calculatedData.predictedRedScore = calc.getPredictedScoreForAlliance(match, True)
-    print('Here')
     match.calculatedData.predictedBlueRPs = calc.predictedRPsForAlliance(match, False)
     match.calculatedData.predictedRedRPs = calc.predictedRPsForAlliance(match, True)
-    print('Done')

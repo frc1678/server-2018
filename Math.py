@@ -44,8 +44,8 @@ class Calculator(object):
             self.cachedTeamDatas[t.number] = cache.CachedTeamData(**{'teamNumber': t.number})
 
     def getMissingDataString(self):
-        superKeys = ['rankSpeed', 'rankAgility', 'rankDefense', 'rankBallControl', 'rankGearControl']
-        excluded = ['liftoffTime', 'superNotes']
+        superKeys = ['rankSpeed', 'rankAgility', 'rankDefense']
+        excluded = ['climb', 'superNotes']
         playedTIMDs = self.su.getCompletedTIMDsInCompetition()
         incompleteScoutData = {str(t.teamNumber) + 'Q' + str(t.matchNumber) : [k for k, v in t.__dict__.items() if k != 'calculatedData' and k not in superKeys and k not in excluded and v == None] for t in playedTIMDs}
         incompleteData = {str(t.teamNumber) + 'Q' + str(t.matchNumber) : [k for k, v in t.__dict__.items() if k in superKeys and k not in excluded and v == None] for t in playedTIMDs}
@@ -53,8 +53,8 @@ class Calculator(object):
         missing = {k : v for k, v in incompleteData.items() if v}
         return missing if missing else None
 
-    #Calculated Team Data
-    #Hardcore Math
+    #CALCULATED TEAM DATA - Hardcore Math
+
     def getAverageForDataFunctionForTeam(self, team, dataFunction):
         validTIMDs = filter(lambda timd: dataFunction(timd) != None, self.su.getCompletedTIMDsForTeam(team))
         return np.mean(map(dataFunction, validTIMDs)) if validTIMDs else None #returns None if validTIMDs has no elements
@@ -113,10 +113,90 @@ class Calculator(object):
             denominator = 0.0
         return numerator / denominator if denominator != 0 else 0.0
 
+    #NON-SYSTEMATIC TEAM CALCS - When averages aren't good enough
+
+    def getMaxScaleCubes(self, team):
+        return max([(timd.calculatedData.numScaleSuccessTele + timd.calculatedData.numScaleSuccessAuto) for timd in self.su.getCompletedTIMDsForTeam(team)])
+
+    def getPercentageForClimbType(self, team, climbType):
+        return utils.avg([climb[1]['didSucceed'] if climb[0] == climbType else False for x in self.su.getCompletedTIMDsForTeam(team) for attempt in x.climb for climb in attempt.items()])
+
+    def getPercentageForActiveClimbType(self, team, didClimb, liftType):
+        return utils.avg([climb[1]['didSucceed'] if climb[0] == 'activeLift' and climb[1].get('didClimb', None) == didClimb and climb[1].get('partnerLiftType', None) == liftType else False for x in self.su.getCompletedTIMDsForTeam(team) for attempt in x.climb for climb in attempt.items()])
+
+    def parkPercentageForTeam(self, team):
+        return (team.calculatedData.totalNumParks / len(self.su.getCompletedTIMDsForTeam(team)))
+
+    def getCanGroundIntake(self, team):
+        return True if (team.calculatedData.avgNumGroundIntakeTele + team.calculatedData.avgNumAlliancePlatformIntakeAuto + team.calculatedData.avgNumAlliancePlatformIntakeTele + team.calculatedData.avgNumOpponentPlatformIntakeTele + team.calculatedData.avgNumGroundPyramidIntakeAuto + team.calculatedData.avgNumGroundPyramidIntakeTele + team.calculatedData.avgNumGroundPortalIntakeTele) > 0 else False
+
+    def getCanScoreBothSwitchSidesAuto(self, team):
+        return True in [timd.calculatedData.canScoreOppositeSwitchAuto for timd in self.su.getCompletedTIMDsForTeam(team)]
+
+    def getTotalSuperNotes(self, team):
+        return [x.superNotes for x in self.su.getCompletedTIMDsForTeam(team)]
+
+    def getAllianceSwitchSuccessPercentageAuto(self, team):
+        try:
+            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.allianceSwitchAttemptAuto for timd in self.su.getCompletedTIMDsForTeam(team)])]))
+        except:
+            return 0.0
+
+    def getAllianceSwitchSuccessPercentageTele(self, team):
+        try:
+            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.allianceSwitchAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)])]))
+        except:
+            return 0.0
+
+    def getOpponentSwitchSuccessPercentageTele(self, team):
+        try:
+            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.opponentSwitchAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)])]))
+        except:
+            return 0.0
+
+    def getScaleSuccessPercentageAuto(self, team):
+        try:
+            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.scaleAttemptAuto for timd in self.su.getCompletedTIMDsForTeam(team)])]))
+        except:
+            return 0.0
+
+    def getScaleSuccessPercentageTele(self, team):
+        try:
+            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.scaleAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)])]))
+        except:
+            return 0.0 
+
+    def getCanPlaceHighLayerCube(self, team):
+        return (len(filter(lambda x: x != 1, [attempt['layer'] for attempt in utils.extendList(([timd.scaleAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)] + [timd.scaleAttemptAuto for timd in self.su.getCompletedTIMDsForTeam(team)])) if attempt['didSucceed'] == True])) > 0)
+    
+    def getTotalNumHighLayerScaleCubes(self, team):
+        return len(filter(lambda x: x != 1, [attempt['layer'] for attempt in utils.extendList(([timd.scaleAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)] + [timd.scaleAttemptAuto for timd in self.su.getCompletedTIMDsForTeam(team)])) if attempt['didSucceed'] == True]))
+
+    def getPercentSuccessOppositeSwitchSideAuto(self, team):
+        try:
+            return utils.avg([timd.calculatedData.canScoreOppositeSwitchAuto for timd in self.su.getCompletedTIMDsForTeam(team) if timd.calculatedData.switchIsOpposite])
+        except:
+            return 0
+
     #TIMD CALCS - We're just getting started
 
     def checkAutoForConflict(self):
         return False
+
+    def getCanScoreOppositeSwitch(self, timd, team, match):
+        allianceIsRed = self.su.getTeamAllianceIsRedInMatch(team, match)
+        try:
+            switchIsOpposite = False if ('blue' == match.redSwitch[timd.startingPosition] if allianceIsRed else 'red' != match.blueSwitch[timd.startingPosition]) or timd.startingPosition == 'center' else True
+            return True if switchIsOpposite and True in [attempt['didSucceed'] for attempt in timd.allianceSwitchAttemptAuto] else False
+        except:
+            return False
+
+    def getSwitchIsOpposite(self, timd, team, match):
+        allianceIsRed = self.su.getTeamAllianceIsRedInMatch(team, match)
+        try:
+            return False if ('blue' == match.redSwitch[timd.startingPosition] if allianceIsRed else 'red' != match.blueSwitch[timd.startingPosition]) or timd.startingPosition == 'center' else True
+        except:
+            return False
 
     def getDidThreeExchangeInput(self, timd):
         return True if timd.numExchangeInput >= 3 else False
@@ -160,7 +240,6 @@ class Calculator(object):
     def getTimeToOwnAllianceSwitchAuto(self, timd):
         try:
             sort = sorted([attempt['endTime'] for attempt in timd.allianceSwitchAttemptAuto if attempt['didSucceed'] == True])[0]
-            print(sort)
             if sort > 15:
                 return 15
             else:
@@ -171,80 +250,12 @@ class Calculator(object):
     def getTimeToOwnScaleAuto(self, timd):
         try:
             sort = sorted([attempt['endTime'] for attempt in timd.scaleAttemptAuto if attempt['didSucceed'] == True])[0]
-            print(sort)
             if sort > 15:
                 return 15
             else:
                 return sort
         except:
             return 15
-
-    #VARIOUS TEAM CALCS - When averages aren't good enough
-
-    def getPercentageForClimbType(self, team, climbType):
-        return utils.avg([climb[1]['didSucceed'] if climb[0] == climbType else False for x in self.su.getCompletedTIMDsForTeam(team) for attempt in x.climb for climb in attempt.items()])
-
-    def getPercentageForActiveClimbType(self, team, didClimb, liftType):
-        return utils.avg([climb[1]['didSucceed'] if climb[0] == 'activeLift' and climb[1].get('didClimb', None) == didClimb and climb[1].get('partnerLiftType', None) == liftType else False for x in self.su.getCompletedTIMDsForTeam(team) for attempt in x.climb for climb in attempt.items()])
-
-    def parkPercentageForTeam(self, team):
-        return (team.calculatedData.totalNumParks / len(self.su.getCompletedTIMDsForTeam(team)))
-
-    def getCanGroundIntake(self, team):
-        return True if (team.calculatedData.avgNumGroundIntakeTele + team.calculatedData.avgNumAlliancePlatformIntakeAuto + team.calculatedData.avgNumAlliancePlatformIntakeTele + team.calculatedData.avgNumOpponentPlatformIntakeTele + team.calculatedData.avgNumGroundPyramidIntakeAuto + team.calculatedData.avgNumGroundPyramidIntakeTele + team.calculatedData.avgNumGroundPortalIntakeTele) > 0 else False
-
-    def getCanScoreBothSwitchSidesAuto(self, team):
-        return True in [(timd.calculatedData.numAllianceSwitchSuccessAuto > 0 and timd.didCrossAutoZone) for timd in self.su.getCompletedTIMDsForTeam(team)]
-
-    def getTotalSuperNotes(self, team):
-        return [x.superNotes for x in self.su.getCompletedTIMDsForTeam(team)]
-
-    def getAllianceSwitchSuccessPercentageAuto(self, team):
-        try:
-            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.allianceSwitchAttemptAuto for timd in self.su.getCompletedTIMDsForTeam(team)])]))
-        except:
-            return 0.0
-
-    def getAllianceSwitchSuccessPercentageTele(self, team):
-        try:
-            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.allianceSwitchAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)])]))
-        except:
-            return 0.0
-
-    def getOpponentSwitchSuccessPercentageTele(self, team):
-        try:
-            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.opponentSwitchAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)])]))
-        except:
-            return 0.0
-
-    def getScaleSuccessPercentageAuto(self, team):
-        try:
-            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.scaleAttemptAuto for timd in self.su.getCompletedTIMDsForTeam(team)])]))
-        except:
-            return 0.0
-
-    def getScaleSuccessPercentageTele(self, team):
-        try:
-            return utils.avg(utils.removeNoneFrom([attempt['didSucceed'] for attempt in utils.extendList([timd.scaleAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)])]))
-        except:
-            return 0.0 
-
-    def getCanPlaceHighLayerCube(self, team):
-        return (len(filter(lambda x: x != 1, [attempt['layer'] for attempt in utils.extendList(([timd.scaleAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)] + [timd.scaleAttemptAuto for timd in self.su.getCompletedTIMDsForTeam(team)])) if attempt['didSucceed'] == True])) > 0)
-    
-    def getTotalNumHighLayerScaleCubes(self, team):
-        return len(filter(lambda x: x != 1, [attempt['layer'] for attempt in utils.extendList(([timd.scaleAttemptTele for timd in self.su.getCompletedTIMDsForTeam(team)] + [timd.scaleAttemptAuto for timd in self.su.getCompletedTIMDsForTeam(team)])) if attempt['didSucceed'] == True]))
-
-    def getPercentSuccessOppositeSwitchSideAuto(self, team):
-        autoCrosses = []
-        for timd in self.su.getCompletedTIMDsForTeam(team):
-            if timd.didCrossAutoZone == True:
-                if filter(lambda x: x != False, [attempt['didSucceed'] for attempt in timd.allianceSwitchAttemptAuto]) > 0:
-                    autoCrosses.append(True)
-                else:
-                    autoCrosses.append(False)
-        return utils.avg(utils.convertIdentity(autoCrosses, [0], []))
-
 
     #OVERALL DATA
 
@@ -270,6 +281,26 @@ class Calculator(object):
             zscores = [0.0 for v in values] #Don't calculate z-score if the standard deviation is 0
         else:
             zscores = list(stats.zscore(values))
+        [utils.setDictionaryValue(d, self.cachedComp.teamsWithMatchesCompleted[i].number, zscores[i]) for i in range(len(self.cachedComp.teamsWithMatchesCompleted))]
+
+    def rValuesForTIMDMatrix(self, rankFunction, d):
+        #This function is not currently being used because of the invariation of resulting data
+        values = np.full([len(self.cachedComp.teamsWithMatchesCompleted), 10], None, dtype = 'float64')
+        for teamNum, team in enumerate(self.cachedComp.teamsWithMatchesCompleted):
+            for matchNum, match in enumerate(self.su.getCompletedTIMDsForTeam(team)):
+                values[teamNum][matchNum] = rankFunction(match)
+        #If the rank hasn't been set, set it to the mean
+        mean = np.nanmean(values)
+        for teamNum, team in enumerate(values):
+            for index, match in enumerate(team):
+                if str(match) == str(np.nan):
+                    values[teamNum][index] = mean
+        if not np.any(values):
+            return
+        if not np.std(values):
+            zscores = [[0.0 for x in values[0]] for v in values]
+        else:
+            zscores = utils.matrixZscores(values)
         [utils.setDictionaryValue(d, self.cachedComp.teamsWithMatchesCompleted[i].number, zscores[i]) for i in range(len(self.cachedComp.teamsWithMatchesCompleted))]
 
     #TBA INVOLVEMENT FOR SCORE BREAKDOWN 
@@ -440,8 +471,7 @@ class Calculator(object):
         exchangePoints = team.calculatedData.teleopExchangeAbility
         drivingAbility = team.calculatedData.avgDrivingAbility
         climb = (team.calculatedData.avgNumRobotsLifted * 30) * (team.calculatedData.activeLiftClimbPercentage + team.calculatedData.soloClimbPercentage + team.calculatedData.activeAssistClimbPercentage)
-        functionalPercentage = (1 - team.calculatedData.dysfunctionalPercentage)
-        return ((drivingAbility + exchangePoints + autoPoints) + ((switchPoints + scalePoints) * groundPickup)) * functionalPercentage
+        return ((drivingAbility + exchangePoints + autoPoints) + ((switchPoints + scalePoints) * groundPickup))
     
     def getSecondPickAbilityForTeam(self, team):
         autoPoints = ((15 - team.calculatedData.avgTimeToOwnAllianceSwitchAuto) * 2 + team.calculatedData.autoRunPercentage * 5)
@@ -449,8 +479,7 @@ class Calculator(object):
         exchangePoints = team.calculatedData.teleopExchangeAbility
         drivingAbility = team.calculatedData.avgDrivingAbility
         climb = (team.calculatedData.avgNumRobotsLifted * 30) * (team.calculatedData.activeLiftClimbPercentage + team.calculatedData.soloClimbPercentage + team.calculatedData.assistedClimbPercentage + team.calculatedData.activeAssistClimbPercentage)
-        functionalPercentage = (1 - team.calculatedData.dysfunctionalPercentage)
-        return (drivingAbility + exchangePoints + autoPoints + switchPoints) * functionalPercentage
+        return (drivingAbility + exchangePoints + autoPoints + switchPoints)
 
     #HEAVY PREDICTIONS AND ABILITIES - I'm in for a world of hurt
 
@@ -498,34 +527,8 @@ class Calculator(object):
     def getPredictedSeedingFunctions(self):  #Functions to rank teams by for predicted seedings, taken as a parameter in the 'teamsSortedByRetrievalFunctions' function
         return [lambda t: self.predictedNumRPsForTeam(t), lambda t: self.cumulativeParkAndClimbPointsForTeam(t)]
 
-    def predictedNumberOfRPs(self, team): #Get average predicted RPs based on predicted score RPs and other parameters
-        predictedRPsFunction = lambda m: self.predictedRPsForAllianceForMatch(self.su.getTeamAllianceIsRedInMatch(team, m), m)
-        predicted = [predictedRPsFunction(m) for m in self.su.getMatchesForTeam(team) if not self.su.matchIsCompleted(m) and predictedRPsFunction(m) != None]
-        return np.mean([np.mean(predicted), self.actualNumberOfRPs(team)]) if len(predicted) else self.actualNumberOfRPs(team)
-
     def actualNumberOfRPs(self, team):
         return self.getAverageForDataFunctionForTeam(team, lambda tm: tm.calculatedData.numRPs)
-
-    def scoreRPsGainedFromMatchWithScores(self, score, opposingScore):
-        return 1 if score == opposingScore else 2 * (score > opposingScore)
-
-    def RPsGainedFromMatchForAlliance(self, allianceIsRed, match):
-        winRPs = self.scoreRPsGainedFromMatchWithScores(match.redScore, match.blueScore) if allianceIsRed else self.scoreRPsGainedFromMatchWithScores(match.blueScore, match.redScore)
-        if allianceIsRed:
-            autoQuestRP = 1 if match.redDidAutoQuest else 0
-            faceTheBossRP = 1 if match.redDidFaceBoss else 0
-        else:
-            autoQuestRP = 1 if match.blueDidAutoQuest else 0
-            faceTheBossRP = 1 if match.redDidFaceBoss else 0
-        return winRPs + autoQuestRP + faceTheBossRP
-
-    def predictedRPsForAllianceForMatch(self, allianceIsRed, match):
-        alliance = map(self.su.replaceWithAverageIfNecessary, self.su.getAllianceForMatch(match, allianceIsRed)) #Gets the correct alliance, either red or blue based on the boolean
-        scoreRPs = 2 * (self.getWinChanceForMatchForAllianceIsRed(match, allianceIsRed) or 0)
-        boilerRPs = self.get40KilopascalChanceForAlliance(alliance)
-        rotorRPs = self.getAllRotorsTurningChanceForAlliance(alliance)
-        RPs = scoreRPs + boilerRPs + rotorRPs
-        return RPs if not math.isnan(RPs) else None
 
     def teamsSortedByRetrievalFunctions(self, retrievalFunctions):
         return sorted(self.cachedComp.teamsWithMatchesCompleted, key = lambda t: (retrievalFunctions[0](t) or 0, retrievalFunctions[1](t) or 0), reverse = True)
@@ -535,6 +538,12 @@ class Calculator(object):
 
     def getTeamRPsFromTBA(self, team):
         return filter(lambda x: int(x[1]) == team.number, self.cachedComp.actualSeedings)[0][2]
+
+    def RPsGainedFromMatchForAlliance(self, allianceIsRed, match):
+        win = (1 if match.redScore == match.blueScore else 2 * (match.redScore > match.blueScore)) if allianceIsRed else (1 if match.redScore == match.blueScore else 2 * (match.blueScore > match.redScore))
+        ftb = (1 if match.redDidFaceBoss else 0) if allianceIsRed else (1 if match.blueDidFaceBoss else 0)
+        autoQuest = (1 if match.redDidAutoQuest else 0) if allianceIsRed else (1 if match.blueDidAutoQuest else 0)
+        return win + ftb + autoQuest
 
     #CACHING
     def cacheFirstTeamData(self):
@@ -549,6 +558,12 @@ class Calculator(object):
                      (lambda t: t.calculatedData.avgAgility, self.cachedComp.agilityZScores),
                      (lambda t: t.calculatedData.avgDefense, self.cachedComp.defenseZScores),
                      (lambda t: t.calculatedData.avgDrivingAbility, self.cachedComp.drivingAbilityZScores)]
+
+    def rScoreTIMDParams(self):
+        return [(lambda tm: tm.rankSpeed, self.cachedComp.speedTIMDZScores),
+                     (lambda tm: tm.rankAgility, self.cachedComp.agilityTIMDZScores),
+                     (lambda tm: tm.rankDefense, self.cachedComp.defenseTIMDZScores),
+                     (lambda tm: tm.calculatedData.drivingAbility, self.cachedComp.drivingAbilityTIMDZScores)]   
 
     def cacheSecondTeamData(self):
         print('> Caching Second Team Data...')
@@ -572,10 +587,6 @@ class Calculator(object):
 
     def doSecondCachingForTeam(self, team):
         cachedData = self.cachedTeamDatas[team.number]
-
-    def getTBAShotsForTeamForKey(self, team, key):
-        TBAMatches = self.cachedComp.TBAMatches
-        return sum([match['score_breakdown']['red' if team in self.su.getMatchForNumber(match['match_number']).redAllianceTeamNumbers else 'blue'][key] for match in TBAMatches if self.su.teamInMatch(team, self.su.getMatchForNumber(match['match_number']))])
 
     def cacheTBAMatches(self):
         try:
@@ -668,9 +679,7 @@ class Calculator(object):
             self.cacheFirstTeamData()
             self.doFirstTeamCalculations()
             self.cacheSecondTeamData()
-            print('Hello')
             self.doMatchesCalculations()
-            print('Second')
             self.doSecondTeamCalculations()
             print('> Calculations finished, adding data to firebase')
             PBC.addCalculatedTIMDatasToFirebase(self.su.getCompletedTIMDsInCompetition())
