@@ -323,9 +323,13 @@ try:
 												formatKeyWarning(c, [x,y,z,h], cF[x][y][z][h][c])
 											elif type(b[c]) == dict:
 												for d in b[c]:
-													if type(b[c][d]) == dict:
+													if type(b[c][d]) == dict and type(sD[x][ry][z][h][c][d]) == dict:
 														print('Error 52G: Script needs more continuation')
-													elif type(b[c][d]) == list:
+													elif type(b[c][d]) == list and type(sD[x][ry][z][h][c][d]) == list:
+														print(b[c][d])
+														print('b', b)
+														print('c', c)
+														print('d', d)
 														print('Error 52F: Script needs more continuation')
 													else:
 														h = cF[x][y][z].index(b)
@@ -402,7 +406,7 @@ try:
 										print("Error #2A: Script needs more continuation")
 									else:
 										if type(b) != type(sD[x][ix][z][a]):
-											formatTypeWarning(a, type(b), type(sD[x][f][z][a]), [x,ix,z], cF[x][ix][z][a])
+											formatTypeWarning(a, type(b), type(sD[x][ix][z][a]), [x,ix,z], cF[x][ix][z][a])
 							else:
 								if type(y[z]) != type(sD[x][ix][z]):
 									formatTypeWarning(z, type(y[z]), type(sD[x][ix][z]), [x,ix], cF[x][ix][z])
