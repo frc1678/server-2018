@@ -1,4 +1,4 @@
-#Last Updated: 2/11/18
+#Last Updated: 2/15/18
 import pyrebase
 import DataModel
 import SPR
@@ -6,17 +6,17 @@ import firebaseCommunicator
 import time
 import traceback
 import CrashReporter
-import numpy as np
 import pprint
 import json
 
+SPR = SPR.ScoutPrecision()
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 fb = PBC.firebase
+global oldMatchNum
+oldMatchNum = fb.child('currentMatchNum').get().val()
 
 numScouts = 24
 scouts = 'Carl Justin Calvin Aakash Aidan Anoushka Asha Carter Eli Emily Freddy Hanson Jack James Joey Kenny Lyra Rolland Stephen Teo Tim Zach Zatara Zoe'.split()
-
-SPR = SPR.ScoutPrecision()
 
 #Creates list of availability values in firebase for each scout
 def resetAvailability():
@@ -28,6 +28,15 @@ def resetScouts():
 	scoutsList = {'scout' + str(num) : {'currentUser': '', 'scoutStatus': ''} for num in range(1, 19)}
 	fb.child('scouts').set(scoutsList)
 
+#Sets scouts which are not set yet on firebase
+def setNotSetScouts(scoutsAlreadySet):
+	scoutsList = {'scout' + str(num) : {'currentUser': scouts[num - 1], 'scoutStatus': 'requested'} for num in range(1, 19)}
+	print(scoutsList)
+	for i in scoutsList:
+		if i in scoutsAlreadySet:
+			del i
+	fb.child('scouts').set(scoutsList)
+
 #Main function for scout assignment
 def doSPRsAndAssignments(data):
 	#Wait until the availability has been confirmed to be correct
@@ -35,7 +44,7 @@ def doSPRsAndAssignments(data):
 		try:
 			availabilityUpdated = fb.child('availabilityUpdated').get().val()
 		except KeyboardInterrupt:
-			break
+			return
 		except:
 			availabilityUpdated = 0
 		if availabilityUpdated: break
@@ -63,7 +72,7 @@ def doSPRsAndAssignments(data):
 		fb.child('scouts').update(newAssignments)
 		print('New Assignments added')
 	except KeyboardInterrupt:
-		break
+		return
 	except:
 		print(traceback.format_exc())
 		# CrashReporter.reportServerCrash(traceback.format_exc())
@@ -72,18 +81,33 @@ def doSPRsAndAssignments(data):
 #e.g. at the beginning of the day at a competition
 def tabletHandoutStream():
 	resetScouts()
-	#resetAvailability()
+	resetAvailability()
 	fb.child('currentMatchNum').stream(doSPRsAndAssignments)
 
 def startAtNewMatch(newMatchNum):
+	global oldMatchNum
 	if fb.child('currentMatchNum').get().val() > oldMatchNum:
 		doSPRsAndAssignments(newMatchNum)
 
-#Use this for running the server again (e.g. after a crash) to avoid assigning scouts to new robots or tablets
-def alreadyAssignedStream():
+#Assign Scouts and Tablet Handouts- reset ALL scouts at beggining of day in a comp
+def notSimpleStream():
 	global oldMatchNum
-	oldMatchNum = fb.child('currentMatchNum').get().val()
-	fb.child('currentMatchNum').stream(startAtNewMatch)
+	fb.child('currentMatchNum').get().val()
+	oldScoutNames = [fb.child('scouts').child('scout' + str(num)).child('currentUser').get().val() for num in range(1, 19)]
+	scoutsAlreadySet = set(oldScoutNames)
+	if len(scoutsAlreadySet) >= 19:
+		#If it's good, it's good. -Kenny 2k18
+		print(scoutsAlreadySet)
+		print('It\'s Good')
+	else:
+		#Otherwise, it's not good.
+		setNotSetScouts(scoutsAlreadySet)
+		fb.child('currentMatchNum').stream(startAtNewMatch)
+	if oldScoutNames == []:
+		#If there are no scoutNames, then we have stuff to do
+		resetScouts()
+		resetAvailability()
+		fb.child('currentMatchNum').stream(doSPRsAndAssignments)
 
 #Use this if you are restarting the server and need to reassign scouts but scouts already have tablets
 #Also useful for unexpected changes in availability
@@ -111,9 +135,6 @@ def sortScoutDisagreements():
 	findScoutDisagreements()
 	totalDisagreements = {}
 	map(lambda scout: totalDisagreements.update({scout: sum(SPR.disagreementBreakdown[scout].values())}))
-	#Same thing as
-	# for scout in SPR.disagreementBreakdown:
-	#	 totalDisagreements.update({scout: sum(SPR.disagreementBreakdown[scout].values())})
 	pprint.pprint(totalDisagreements)
 	pprint.pprint(sorted(totalDisagreements.items(), key = lambda scout: scout[1]))
 	pprint.pprint(sorted(SPR.sprs.items(), key = lambda scout: scout[1]))
