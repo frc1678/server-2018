@@ -47,8 +47,8 @@ if testMode:
 	url = 'servervartest-2018'
 else:
 	#url = 'servervartest-2018'
-	#url = 'scouting-2018-9023a'
-	url = 'scouting-2018-temp'
+	url = 'scouting-2018-9023a'
+	#url = 'scouting-2018-temp'
 	#url = 'schema-enforcer'
 
 config = {
@@ -225,9 +225,10 @@ def formatKeyWarning(key, pathList, value):
 	storeDeletionKey(str(key), path, 'key', value)
 	print("[!] (K) '"+str(key)+"' (P:"+str(path)+") not in stored database!")
 	storeSlack("[!] (K) '"+str(key)+"' (P:"+str(path)+") should not exist!", 'key')
-	if pathList[0] == 'TempTeamInMatchDatas':
-		global slackTagCalvin
-		slackTagCalvin = True
+	if len(pathList) >=1:
+		if pathList[0] == 'TempTeamInMatchDatas':
+			global slackTagCalvin
+			slackTagCalvin = True
 
 def formatTypeWarning(key, typeUsed, typeCorrect, pathList, value):
 	if not(typeUsed == int and typeCorrect == float):
@@ -237,9 +238,10 @@ def formatTypeWarning(key, typeUsed, typeCorrect, pathList, value):
 		storeDeletionType(str(key), path, 'type', value, str(typeCorrect)[7:-2])
 		print("[!] (T) '"+str(key)+"' (P:"+str(path)+") incorrect type: " + str(typeUsed)[7:-2] +", should be type: " +str(typeCorrect)[7:-2])
 		storeSlack("[!] (T) '"+str(key)+"' (P:"+str(path)+") incorrect type: " + str(typeUsed)[7:-2] +", should be type: " +str(typeCorrect)[7:-2], 'type')
-		if pathList[0] == 'TempTeamInMatchDatas':
-			global slackTagCalvin
-			slackTagCalvin = True
+		if len(pathList) >= 1:
+			if pathList[0] == 'TempTeamInMatchDatas':
+				global slackTagCalvin
+				slackTagCalvin = True
 
 def formatListTypeWarning(key, numProblems, typeCorrect, pathList):
 	path = ""
@@ -248,7 +250,7 @@ def formatListTypeWarning(key, numProblems, typeCorrect, pathList):
 	storeDeletionListType(str(key), path, 'list', key, str(typeCorrect)[7:-2])
 	print("[!] (LT) '"+str(key)+"' (P:"+str(path)+") "+str(numProblems)+" incorrect type(s) in list, all should be: "+str(typeCorrect)[7:-2])
 	storeSlack("[!] (LT) '"+str(key)+"' (P:"+str(path)+") "+str(numProblems)+" incorrect type(s) in list, all should be: "+str(typeCorrect)[7:-2], 'list')
-	if len(pathList) > 0:
+	if len(pathList) >= 1:
 		if pathList[0] == 'TempTeamInMatchDatas':
 			global slackTagCalvin
 			slackTagCalvin = True
