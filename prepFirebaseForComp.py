@@ -13,7 +13,7 @@ competition = DataModel.Competition(FBC)
 competition.eventCode = TBAC.code
 competition.PBC.JSONteams = TBAC.makeEventTeamsRequest()
 competition.PBC.JSONmatches = TBAC.makeEventMatchesRequest()
-competition.PBC.wipeDatabase()
+#competition.PBC.wipeDatabase()
 competition.PBC.addCurrentMatchToFirebase()
 competition.PBC.addTeamsToFirebase()
 competition.PBC.addMatchesToFirebase()

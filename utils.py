@@ -5,11 +5,40 @@ import time
 import math
 import numpy as np
 import pdb
+import firebaseCommunicator
+from collections import Counter
 
 ########## Defining Util/Convenience Functions ############
 '''If there were too many more of these, or if this
 were actual server code, I would make a module, but
 for fake database creation purposes it is not worth it'''
+
+def mode(lis):
+	highestItemCount = [0, 0]
+	for item, count in dict(Counter(lis)).items():
+		if count > highestItemCount[1]:
+			highestItemCount = [item, count]
+		elif count == highestItemCount[1]:
+			highestItemCount += [item, count]
+	return highestItemCount[0] if len(highestItemCount) <= 2 else None
+
+def matrixZscores(m):
+	mean = np.mean(m)
+	std = np.std(m)
+	for rowNum, row in enumerate(range(m.shape[0])):
+		for columnNum, column in enumerate(range(m.shape[1])):
+			m[rowNum][columnNum] = float((m[rowNum][columnNum] - mean)) / std
+	return m
+
+def avg(lis):
+	l = [False if x == None else x for x in lis]
+	return float(sum(l)) / len(l)
+
+def removeNoneFrom(lis):
+	return [x for x in lis if x != None]
+
+def replaceFromNone(lis, replace):
+	return [replace if x == None else x for x in lis]
 
 def sumStdDevs(stdDevs):
 	return sum(map(lambda x: x ** 2 , filter(lambda s: s != None, stdDevs))) ** 0.5
@@ -24,6 +53,9 @@ def rms(values):
 
 def convertNoneToIdentity(x, identity):
 	return identity if x == None else x
+
+def convertIdentity(x, identity, testvar):
+	return identity if x == testvar else x
 
 def dictOperation(dict1, dict2, dictOp, identity):
 	newDict = {}
@@ -79,7 +111,10 @@ def makeTeamsFromDicts(dicts):
 	return map(makeTeamFromDict, dicts.values())
 
 def makeMatchesFromDicts(dicts):
-	return [makeMatchFromDict(m) for m in dicts if m != None]
+	try:
+		return [makeMatchFromDict(dicts[m]) for m in dicts if m != None]
+	except:
+		return [makeMatchFromDict(m) for m in dicts if m != None]
 
 def makeDictFromObject(o):
 	if isinstance(o, dict):

@@ -19,12 +19,17 @@ class SchemaUtils(object):
             print(str(teamNumber), 'does not exist.')
 
     def getMatchesForTeam(self, team):
-        return [m for m in self.comp.matches if team.number in m.redAllianceTeamNumbers + m.blueAllianceTeamNumbers]
+        returnList = []
+        for match in self.comp.matches:
+            if match.blueAllianceTeamNumbers != None:
+                if team.number in (match.blueAllianceTeamNumbers + match.redAllianceTeamNumbers):
+                    returnList.append(match)
+        return returnList
 
     def teamsWithCalculatedData(self):
         return filter(lambda t: self.teamCalculatedDataHasValues(t.calculatedData), self.comp.teams)
 
-    def getCompletedMatchesForTeam(self,team):
+    def getCompletedMatchesForTeam(self, team):
         return filter(self.matchIsCompleted, self.getMatchesForTeam(team))
 
     def findTeamsWithMatchesCompleted(self):

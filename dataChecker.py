@@ -1,4 +1,4 @@
-#Last Updated: 2/11/18
+#Last Updated: 3/15/18
 import pyrebase
 import numpy as np
 import utils
@@ -7,23 +7,25 @@ import firebaseCommunicator
 import time
 import pdb
 from TBACommunicator import TBACommunicator
+import sys
+import SPR
+import random
+import csv
 
 #These are the keys that have lists of dicts
 #Lists may have different numbers of dicts, but the keys in the dicts should be the same
-listKeys = ['highShotTimesForBoilerTele', 'highShotTimesForBoilerAuto', 'lowShotTimesForBoilerAuto', 'lowShotTimesForBoilerTele']
+listKeys = ['allianceSwitchAttemptAuto', 'allianceSwitchAttemptTele', 'opponentSwitchAttemptTele', 'scaleAttemptAuto', 'scaleAttemptTele']
+
+#For enumerated dicts of platform intakes
+boolDictKeys = ['alliancePlatformIntakeAuto', 'alliancePlatformIntakeTele', 'opponentPlatformIntakeTele']
 
 #These ought to be the same across all tempTIMDs for the same TIMD
 constants = ['matchNumber', 'teamNumber']
 
-#These are the keys within each dict from the listKeys
-boilerKeys = ['time', 'numShots', 'position']
-
-#These are the keys that have dicts with consistent keys
-standardDictKeys = ['gearsPlacedByLiftAuto', 'gearsPlacedByLiftTele']
-
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 firebase = PBC.firebase
 tbac = TBACommunicator()
+spr = SPR.ScoutPrecision()
 
 class DataChecker(multiprocessing.Process):
 	'''Combines data from tempTIMDs into TIMDs...'''
@@ -32,111 +34,265 @@ class DataChecker(multiprocessing.Process):
 		self.consolidationGroups = {}
 
 	#Gets a common value for a list depending on the data type
-	def commonValue(self, vals):
+	def commonValue(self, vals, sprKing):
 		#If there are several types, they are probably misformatted bools (e.g. 0 or None for False), so attempt tries turning them into bools and trying again
 		if len(set(map(type, vals))) != 1:
-			return self.attempt(vals)
+			return self.attempt(vals, sprKing)
 		#If the values are bools, it goes to a function for bools
 		elif type(vals[0]) == bool:
-			return self.joinBools(vals)
+			return self.joinBools(vals, sprKing)
 		#Text does not need to be joined
 		elif type(vals[0]) == str or type(vals[0]) == unicode:
+			if vals[0] == 'left' or vals[0] == 'center' or vals[0] == 'right':
+				return self.joinStartingPosition(vals, sprKing)
 			return vals
 		#Otherwise, if the values are something like ints or floats, it goes to a general purpose function
 		else:
-			return self.joinList(vals)
+			return self.joinList(vals, sprKing)
 
 	#Uses commonValue if at least one value is a bool, on the basis that they should all be bools, but some are just not written properly
-	def attempt(self, vals):
+	def attempt(self, vals, sprKing):
 		if map(type, vals).count(bool) > 0:
-			return self.commonValue(map(bool, vals))
+			return self.commonValue(map(bool, vals), sprKing)
+
+	def joinStartingPosition(self, vals, sprKing):
+		return 'left' if vals.count('left') > len(vals) / 2 else 'center' if vals.count('center') > len(vals) / 2 else 'right' if vals.count('right') > len(vals) / 2 else vals[sprKing]
 
 	#Gets the most common bool of a list of inputted bools
-	def joinBools(self, bools):
-		return False if bools.count(False) > len(bools) / 2 else True
+	def joinBools(self, bools, sprKing):
+		return utils.convertNoneToIdentity(utils.mode(bools), bools[sprKing])
 
 	#Returns the most common value in a list, or the average if no value is more than half the list
-	def joinList(self, values):
+	def joinList(self, values, sprKing):
 		if values:
 			a = map(values.count, values)
 			mCV = values[a.index(max(a))]
 			try:
-				return mCV if values.count(mCV) > len(values) / 2 else np.mean(values)
+				return mCV if values.count(mCV) > len(values) / 2 else values[sprKing]
 			except KeyboardInterrupt:
 				break
 			except:
 				return
 
-	#This is the common value function for lists of dicts
-	#It consolidates the data on shots from scouts, by comparing each shot to other scouts' info on the same shot
-	#The nth dict on each list should be the same
-	def findCommonValuesForKeys(self, lis):
-		#Finds the largest number of dicts within each list (within each scout's observations)
-		#(e.g. if there is disagreement over how many shots a robot took in a particular match)
+	def commonValueForBoolDict(self, consolidationList, sprKing):
+		conjunctionJunction = [[],[],[],[],[],[]]
+		for item in consolidationList:
+			for number in range(len(item)):
+				conjunctionJunction[number].append(item[number])
+		dictOfTruth = {}
+		for number in range(len(conjunctionJunction)):
+			dictOfTruth[number] = self.joinBools(conjunctionJunction[number], sprKing)
+		return dictOfTruth
+
+	#Same function as findCommonValuesForKeys except for climbs specifically because of the different schema
+	def findCommonValuesForClimb(self, lis, sprKing):
 		if lis:
 			largestListLength = max(map(len, lis))
-			#If someone missed a dict (for a shot, that is, they did not include one that another scout did, this makes one with no values)
 			for aScout in lis:
 				if len(aScout) < largestListLength:
-					aScout += [{'numShots': 0, 'position': 'Other  ', 'time': 0}] * (largestListLength - len(aScout))
+					aScout += [{'soloClimb' : {'didSucceed': False, 'startTime': 0.0, 'endTime': 0.0}}]
+			returnList = []
+			for num in range(largestListLength):
+				returnList += [{}]
+				dicts = [scout[num] for scout in lis]
+				consolidationDict = {}
+				
+				climbTypes = [dic.keys()[0] for dic in dicts]
+				if len(climbTypes) == 1:
+					climbType = climbTypes[0]
+				elif len(climbTypes) % 2 == 0:
+					if climbTypes[0] == climbTypes[1]:
+						climbType = climbTypes[0]
+					else:
+						climbType = climbTypes[sprKing]
+				else:
+					climbFrequencies = map(climbTypes.count, climbTypes)
+					commonClimb = climbTypes[climbFrequencies.index(max(climbFrequencies))]
+					if max(climbFrequencies) > 1:
+						climbType = commonClimb
+					else:
+						climbType = climbTypes[sprKing]
+
+				offset = 0
+				scoutNum = 0
+				offsetList = []
+				for scout in dicts:
+					try:
+						scout[climbType]
+					except:
+						del dicts[dicts.index(scout)]	
+						offset += 1
+						offsetList + [scoutNum]
+					scoutNum += 1
+
+				sprKing = sprKing - len([n for n in offsetList if n <= sprKing])
+
+				for key in dicts[0][dicts[0].keys()[0]].keys():
+					consolidationDict[key] = []
+					for aDict in dicts:
+						consolidationDict[key] += [aDict[(aDict.keys()[0])][key]]	
+
+				returnList[num][climbType] = {}
+				for key in consolidationDict.keys():
+					if key != 'partnerLiftType':
+						returnList[num][climbType].update({key: self.commonValue(consolidationDict[key], sprKing)})
+				
+				#Strange happenings in the down-low - Don't ask if you can't handle the truth
+				try:
+					if len(consolidationDict['partnerLiftType']) == 1:
+						returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType']})
+					elif len(consolidationDict['partnerLiftType']) % 2 == 0:
+						if consolidationDict['partnerLiftType'][0] == consolidationDict['partnerLiftType'][1]:
+							returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType'][0]})
+						else:
+							returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType'][random.randint(0, 1)]})
+							#change to whoever has better SPR
+					else:
+						liftTypeFrequencies = map(consolidationDict['partnerLiftType'].count, consolidationDict['partnerLiftType'])
+						commonLiftType = consolidationDict['partnerLiftType'][liftTypeFrequencies.index(max(liftTypeFrequencies))]
+						if max(liftTypeFrequencies) > 1:
+							returnList[num][climbType].update({'partnerLiftType': commonLiftType})
+						else:
+							returnList[num][climbType].update({'partnerLiftType': commonLiftType})
+				except:
+					pass
+			return returnList
+
+	def findCommonValuesForKeys(self, lis, sprKing):
+		if lis:
+			largestListLength = max(map(len, lis))
+			for aScout in lis:
+				if len(aScout) < largestListLength:
+					aScout += [{'didSucceed': False, 'startTime': 0.0, 'endTime': 0.0, 'status': 'balanced', 'layer': 0}] * (largestListLength - len(aScout))
 			returnList = []
 			for num in range(largestListLength):
 				returnList += [{}] #adds a list of dictionaries to the returnList for every character (the length) in the largest list
-				#Finds dicts that should be the same (e.g. each shot time dict for the same shot) within the tempTIMDs
-				#This means comparisons such as the first shot in teleop by a given robot, as recorded by multiple scouts
+				#Finds dicts that should be the same (e.g. status) within the tempTIMDs
+				#This means comparisons such as the first cube attempt in teleop by a given robot, as recorded by multiple scouts
 				dicts = [scout[num] for scout in lis]
 				consolidationDict = {}
-				#Combines dicts that should be the same into a consolidation dict
-				for key in dicts[0].keys():
+				#Combines dicts that should be the same into a consolidation dict-penisandpussy
+				for key in ['didSucceed', 'startTime', 'endTime', 'status', 'layer']:
 					consolidationDict[key] = []
 					for aDict in dicts:
-						consolidationDict[key] += [aDict[key]]
-					#The time and number of shots can be compared to get a common value
-					if key != 'position':
-						returnList[num].update({key: self.commonValue(consolidationDict[key])})
-				#If there is only one scout, their statement about position is accepted as right
-				if len(consolidationDict['position']) == 1:
-					returnList[num].update({'position': consolidationDict['position'][0]})
-				#If there are 2 scouts, pick position that isn't the key unless they are both in agreement
-				elif len(consolidationDict['position']) % 2 == 0:
-					if consolidationDict['position'][0].lower() != 'key':
-						returnList[num].update({'position': consolidationDict['position'][0]})
-					else:
-						returnList[num].update({'position': consolidationDict['position'][1]})
-				#If there are 3 scouts (or more, but that shouldn't happen), the position value is the most common position value
+						try:
+							consolidationDict[key] += [aDict[key]]
+						except:
+							if key == 'status':
+								consolidationDict[key] += ['owned']
+							elif key == 'layer':
+								consolidationDict[key] += [1]
+					if 'Time' in key:
+						returnList[num].update({key: self.commonValue(consolidationDict[key], sprKing)})
+				#Same thing with didSucceed
+				if len(consolidationDict['didSucceed']) == 1:
+					returnList[num].update({'didSucceed': consolidationDict['didSucceed'][0]})
+				elif len(consolidationDict['didSucceed']) % 2 == 0:
+					returnList[num].update({'didSucceed': consolidationDict['didSucceed'][sprKing]})
+					#change to whoever has better SPR
 				else:
-					positionFrequencies = map(consolidationDict['position'].count, consolidationDict['position'])
-					commonPosition = consolidationDict['position'][positionFrequencies.index(max(positionFrequencies))]
-					returnList[num].update({'position': commonPosition})
+					successFrequencies = map(consolidationDict['didSucceed'].count, consolidationDict['didSucceed'])
+					commonSuccess = consolidationDict['didSucceed'][successFrequencies.index(max(successFrequencies))]
+					if max(successFrequencies) > 1:
+						returnList[num].update({'didSucceed': commonSuccess})
+					else:
+						returnList[num].update({'didSucceed': consolidationDict['didSucceed'][sprKing]})
+				offset = 0
+				offsetList = []
+				if False in consolidationDict['didSucceed'] and returnList[num]['didSucceed'] == True:
+					for number in range(len(consolidationDict['didSucceed'])):
+						if consolidationDict['didSucceed'][(number - offset)] == False:
+							for item in consolidationDict:
+								del consolidationDict[item][(number - offset)]
+							offset += 1
+							offsetList + [number]
+
+				sprKing = sprKing - len([n for n in offsetList if n <= sprKing])
+
+				if returnList[num]['didSucceed'] == True:
+					#If there is only one scout, their statement about status is accepted as right
+					if len(consolidationDict['status']) == 1:
+						returnList[num].update({'status': consolidationDict['status'][0]})
+					elif len(consolidationDict['status']) % 2 == 0:
+						if consolidationDict['status'][0].lower() == consolidationDict['status'][1]:
+							returnList[num].update({'status': consolidationDict['status'][0]})
+						else:
+							returnList[num].update({'status': consolidationDict['status'][sprKing]})
+							#change to whoever has better SPR
+					#If there are 3 scouts (or more, but that shouldn't happen), the status value is the most common status value
+					else:
+						statusFrequencies = map(consolidationDict['status'].count, consolidationDict['status'])
+						commonStatus = consolidationDict['status'][statusFrequencies.index(max(statusFrequencies))]
+						if max(statusFrequencies) > 1:
+							returnList[num].update({'status': commonStatus})
+						else:
+							returnList[num].update({'status': consolidationDict['status'][sprKing]})
+
+					#Same thing with layer
+					if len(consolidationDict['layer']) == 1:
+						returnList[num].update({'layer': consolidationDict['layer'][0]})
+					elif len(consolidationDict['layer']) % 2 == 0:
+						if consolidationDict['layer'][0] == consolidationDict['layer'][1]:
+							returnList[num].update({'layer': consolidationDict['layer'][0]})
+						else:
+							returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
+							#change to whoever has better SPR
+					else:
+						layerFrequencies = map(consolidationDict['layer'].count, consolidationDict['layer'])
+						commonLayer = consolidationDict['layer'][layerFrequencies.index(max(layerFrequencies))]
+						if max(layerFrequencies) > 1:
+							returnList[num].update({'layer': commonLayer})
+						else:
+							returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
 			return returnList
 
 	#Combines data from whole TIMDs
 	def joinValues(self, key):
 		returnDict = {}
+		sprKing = self.getSPRKing(map(lambda tm: (tm.get('scoutName') or []), self.consolidationGroups[key]))
 		#Flattens the list of lists of keys into a list of keys
 		for k in self.getAllKeys(map(lambda v: v.keys(), self.consolidationGroups[key])):
-			if k in listKeys:
-				#Gets a common value for lists of dicts (for boiler/ball values) and puts it into the combined TIMD
-				returnDict.update({k: self.findCommonValuesForKeys(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key]))})
+			if k in boolDictKeys:
+				#Finds a common value for a dictionary of bools
+				returnDict.update({k: self.commonValueForBoolDict(self.getConsolidationList(key, k), sprKing)})
+			elif k in listKeys:
+				#Gets a common value for lists of dicts (for cube values) and puts it into the combined TIMD
+				returnDict.update({k: self.findCommonValuesForKeys(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key]), sprKing)})
+			elif k == 'climb':
+				#Finds a common value for climbs 
+				returnDict.update({k: self.findCommonValuesForClimb(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key]), sprKing)})
 			elif k in constants:
 				#Constants should be the same across all tempTIMDs, so the common value is just the value in one of them
 				#Puts the value into the combined TIMD
 				returnDict.update({k: self.consolidationGroups[key][0][k]})
-			elif k in standardDictKeys:
-				#Gets a common value for each key in a dict and puts the combined dict into the combined TIMD
-				returnDict.update({k: self.avgDict(map(lambda c: (c.get(k) or {}), self.consolidationGroups[key]))})
 			else:
 				#Gets a common value across any kind of list of values and puts it into the combined TIMD
-				listToConsolidate = []
-				for tm in self.consolidationGroups[key]:
-					if tm.get(k) != None:
-						listToConsolidate += [tm.get(k)]
-					else:
-						listToConsolidate += [0]
-				returnDict.update({k: self.commonValue(listToConsolidate)})
+				returnDict.update({k: self.commonValue(self.getConsolidationList(key, k), sprKing)})
 		return returnDict
-	#The line below is supposed to do the same thing as this 'joinvalues' function, and may or may not work, but is now out of date
-	# return {k : self.findCommonValuesForKeys(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key])) if k in listKeys else self.consolidationGroups[key][0][k] if k in constants else self.avgDict(map(lambda c: (c.get(k) or {}), self.consolidationGroups[key])) if k in standardDictKeys else self.commonValue(map(lambda tm: tm.get(k) or 0, self.consolidationGroups[key])) for k in self.getAllKeys(map(lambda v: v.keys(), self.consolidationGroups[key]))}
+
+	#Gets the index of the scout with the lowest SPR
+	def getSPRKing(self, preScoutNames):
+		scoutNames = []
+		sprDict = {}
+		with open('scoutRankExport.csv', 'r') as sre:
+			sprs = csv.DictReader(sre, delimiter = ' ', quotechar = '|')
+			for row in sre:
+				try:
+					sprDict[row.split(',')[0]] = row.split(',')[1]
+				except:
+					pass
+		for item in preScoutNames:
+			scoutNames.append(item.strip())
+		if scoutNames:
+			if sprDict:
+				try:
+					return 0 if sprDict[scoutNames[0]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else 1 if sprDict[scoutNames[1]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else 2 if sprDict[scoutNames[0]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else random.randint(0,3) 
+				except:
+					return 0
+			else:
+				return 0
+		else:
+			return 0
 
 	#Flattens the list of lists of keys into a list of keys
 	def getAllKeys(self, keyArrays):
@@ -146,6 +302,15 @@ class DataChecker(multiprocessing.Process):
 	def avgDict(self, dicts):
 		keys = self.getAllKeys(map(lambda d: d.keys(), dicts))
 		return {k : self.commonValue(map(lambda v: (v.get(k) or 0), dicts)) for k in keys}
+
+	def getConsolidationList(self, key, k):
+		listToConsolidate = []
+		for tm in self.consolidationGroups[key]:
+			if tm.get(k) != None:
+				listToConsolidate += [tm.get(k)]
+			else:
+				listToConsolidate += [0]
+		return listToConsolidate
 
 	#Consolidates tempTIMDs for the same team and match
 	def getConsolidationGroups(self, tempTIMDs):
@@ -164,13 +329,12 @@ class DataChecker(multiprocessing.Process):
 			index = 0
 			while index < len(self.consolidationGroups.keys()):
 				key = self.consolidationGroups.keys()[index]
-				#Updates a TIMD on firebase
+				#Updates a TIMD on firebases
 				try:
 					firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key))
 					index += 1
-				except KeyboardInterrupt:
-					break
-				except:
+				except Exception as e:
+          print(e)
 					continue
 			time.sleep(10)
 

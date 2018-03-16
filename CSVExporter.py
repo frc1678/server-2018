@@ -1,5 +1,5 @@
 #CSV Exporter, by Bryton 2/10/16
-#Last Updated: 1/4/18
+#Last Updated: 2/19/18
 import utils
 from collections import OrderedDict
 from TBACommunicator import TBACommunicator
@@ -10,10 +10,10 @@ import Math
 #Puts scout z-scores in csv file
 def CSVExportScoutZScores(zscores):
 	with open('./scoutRankExport.csv', 'w') as f:
-		writer = csv.DictWriter(f, fieldnames = ['name', 'spr', 'Z-Score'])
+		writer = csv.DictWriter(f, fieldnames = ['name', 'spr', 'Z-Score', 'matches'])
 		writer.writeheader()
 		for k, v in zscores.items():
-			writer.writerow({'name' : k, 'spr' : zscores[k][1], 'Z-Score' : zscores[k][0]})
+			writer.writerow({'name' : k, 'spr' : zscores[k][1], 'Z-Score' : zscores[k][0], 'matches' : zscores[k][2]})
 
 #Puts some scouted and calculated data in csv file
 def CSVExportTeam(comp, name, keys = []):
@@ -49,6 +49,37 @@ def CSVExportTIMD(comp, name, keys = []):
 			keys = sorted(defaultKeys, key = lambda k: (k != 'matchNumber' and k != 'teamNumber', k.lower()))
 			writer.writerow({k : tDict[k] for k in keys})
 
+def CSVExportMatch(comp, name, keys = []):
+	calculator = Math.Calculator(comp)
+	excluded = ['calculatedData', 'name']
+	with open('./EXPORT-' + name + '.csv', 'w') as f:
+		defaultKeys = [k for k in Match().__dict__.keys() if k not in excluded and k in keys]
+		defaultKeys += [k for k in Match().calculatedData.__dict__.keys() if k in keys]
+		defaultKeys = sorted(defaultKeys, key = lambda k: (k != 'number', k.lower()))
+		writer = csv.DictWriter(f, fieldnames = defaultKeys)
+		writer.writeheader()
+		for match in comp.matches:
+			tDict = match.__dict__
+			tDict.update(match.calculatedData.__dict__)
+			keys = sorted(defaultKeys, key = lambda k: (k != 'number', k.lower()))
+			writer.writerow({k : tDict[k] for k in keys})
+
+def CSVZscoresPerMatch(comp, name, keys = []):
+	calculator = Math.Calculator(comp)
+	excluded = ['calculatedData', 'name', 'imageKeys', 'pitAllImageURLs', 'pitSelectedImageName']
+	with open('./EXPORT-' + name + '.csv', 'w') as f:
+		defaultKeys = [k for k in Team().__dict__.keys() if k not in excluded and k in keys]
+		defaultKeys += [k for k in Team().calculatedData.__dict__.keys() if k in keys]
+		defaultKeys = sorted(defaultKeys, key = lambda k: (k != 'number', k.lower()))
+		writer = csv.DictWriter(f, fieldnames = defaultKeys)
+		writer.writeheader()
+		for team in comp.teams:
+			team.numMatchesPlayed = len(calculator.su.getCompletedMatchesForTeam(team))
+			tDict = team.__dict__
+			tDict.update(team.calculatedData.__dict__)
+			keys = sorted(defaultKeys, key = lambda k: (k != 'number', k.lower()))
+			writer.writerow({k : tDict[k] for k in keys})
+
 #Creates a dictionary of teams and their keys are the data associated with them
 def readOPRData(dataFilePath):
 	teamsDict = {}
@@ -68,13 +99,11 @@ def CSVExportTeamOPRDataForComp(dataFilePath, dataOutputFilePath):
 	teamNums = [team['team_number'] for team in teams]
 	teamsDict = readOPRData(dataFilePath)
 	teamsDict = {k : v for k, v in teamsDict.items() if int(k) in teamNums}
-	print(teamsDict)
 	# comp.updateTeamsAndMatchesFromFirebase()
 	with open(dataOutputFilePath, 'w') as f:
 		writer = csv.DictWriter(f, fieldnames = wantedKeys)
 		writer.writeheader()
 		for key, value in teamsDict.items():
-			print(key)
 			writer.writerow({k : teamsDict[key][k] for k in wantedKeys})
 
 # CSVExportTeamOPRDataForComp('./ChampionshipHouston-Table 1.csv','./newton2017data.csv)
@@ -85,3 +114,12 @@ def CSVExportTeamALL(comp):
 
 def CSVExportTIMDALL(comp):
 	CSVExportTIMD(comp, 'TIMDALL', keys = TeamInMatchData().__dict__.keys() + TeamInMatchData().calculatedData.__dict__.keys())
+
+def CSVExportMatchPredictedErrors(comp):
+	CSVExportMatch(comp, 'PREDICTEDERRORS', keys = ['number', 'predictedBlueScore', 'predictedRedScore', 'blueScore', 'redScore'])
+
+def CSVExportMatchFoulComparison(comp):
+	CSVExportMatch(comp, 'FOULCOMPARISON', keys = ['number', 'foulPointsGainedBlue', 'foulPointsGainedRed', 'blueScore', 'redScore'])
+
+def CSVExportTeamRScores(comp):
+	CSVExportTeam(comp, 'RSCORES', keys = ['number', 'RScoreSpeed', 'RScoreAgility', 'RScoreDrivingAbility', 'RScoreDefense'])

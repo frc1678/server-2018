@@ -8,11 +8,14 @@ import traceback
 import CrashReporter
 import numpy as np
 import pprint
+import json
 
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 fb = PBC.firebase
 
-scouts = 'Jon Jim Bob Bill Joe Bran Ken Mat Dog End Mrs Hi Death The Adhoc Pro 001 Ergo'.split()
+numScouts = 24
+scouts = 'Carl Justin Calvin Aakash Aidan Anoushka Asha Carter Eli Emily Freddy Hanson Jack James Joey Kenny Lyra Rolland Stephen Teo Tim Zach Zatara Zoe'.split()
+
 SPR = SPR.ScoutPrecision()
 
 #Creates list of availability values in firebase for each scout
@@ -39,7 +42,7 @@ def doSPRsAndAssignments(data):
 		time.sleep(2)
 	try:
 		fb.child('availabilityUpdated').set(0)
-		if data.get('data') == None: return
+		#if data.get('data') == None: return
 		#Gets scouting data from firebase
 		newMatchNumber = str(fb.child('currentMatchNum').get().val())
 		print('Setting scouts for match', str(newMatchNumber))
@@ -47,11 +50,14 @@ def doSPRsAndAssignments(data):
 		#Gets the teams we need to scout for the upcoming match
 		blueTeams = fb.child('Matches').child(newMatchNumber).get().val()['blueAllianceTeamNumbers']
 		redTeams = fb.child('Matches').child(newMatchNumber).get().val()['redAllianceTeamNumbers']
+		print(redTeams + blueTeams)
 		#Finds and assigns available scouts
 		available = [k for (k, v) in fb.child('availability').get().val().items() if v == 1]
 		#Grades scouts and assigns them to robots
 		SPR.calculateScoutPrecisionScores(fb.child('TempTeamInMatchDatas').get().val(), available)
 		SPR.sprZScores(PBC)
+		with open('./disagreementBreakdownExport.json', 'w') as file:
+			json.dump(SPR.disagreementBreakdown, file)
 		newAssignments = SPR.assignScoutsToRobots(available, redTeams + blueTeams, scoutDict)
 		#And it is put on firebase
 		fb.child('scouts').update(newAssignments)
@@ -66,7 +72,7 @@ def doSPRsAndAssignments(data):
 #e.g. at the beginning of the day at a competition
 def tabletHandoutStream():
 	resetScouts()
-	resetAvailability()
+	#resetAvailability()
 	fb.child('currentMatchNum').stream(doSPRsAndAssignments)
 
 def startAtNewMatch(newMatchNum):
@@ -111,4 +117,3 @@ def sortScoutDisagreements():
 	pprint.pprint(totalDisagreements)
 	pprint.pprint(sorted(totalDisagreements.items(), key = lambda scout: scout[1]))
 	pprint.pprint(sorted(SPR.sprs.items(), key = lambda scout: scout[1]))
-
