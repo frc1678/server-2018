@@ -81,7 +81,7 @@ def doSPRsAndAssignments(data):
 #e.g. at the beginning of the day at a competition
 def tabletHandoutStream():
 	resetScouts()
-	resetAvailability()
+	#resetAvailability()
 	fb.child('currentMatchNum').stream(doSPRsAndAssignments)
 
 def startAtNewMatch(newMatchNum):

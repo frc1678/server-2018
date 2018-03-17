@@ -69,8 +69,6 @@ class DataChecker(multiprocessing.Process):
 			mCV = values[a.index(max(a))]
 			try:
 				return mCV if values.count(mCV) > len(values) / 2 else values[sprKing]
-			except KeyboardInterrupt:
-				break
 			except:
 				return
 
@@ -184,6 +182,7 @@ class DataChecker(multiprocessing.Process):
 								consolidationDict[key] += [1]
 					if 'Time' in key:
 						returnList[num].update({key: self.commonValue(consolidationDict[key], sprKing)})
+
 				#Same thing with didSucceed
 				if len(consolidationDict['didSucceed']) == 1:
 					returnList[num].update({'didSucceed': consolidationDict['didSucceed'][0]})
@@ -197,6 +196,7 @@ class DataChecker(multiprocessing.Process):
 						returnList[num].update({'didSucceed': commonSuccess})
 					else:
 						returnList[num].update({'didSucceed': consolidationDict['didSucceed'][sprKing]})
+
 				offset = 0
 				offsetList = []
 				if False in consolidationDict['didSucceed'] and returnList[num]['didSucceed'] == True:
@@ -334,7 +334,6 @@ class DataChecker(multiprocessing.Process):
 					firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key))
 					index += 1
 				except Exception as e:
-          print(e)
 					continue
 			time.sleep(10)
 

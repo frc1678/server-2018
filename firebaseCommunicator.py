@@ -12,8 +12,9 @@ class PyrebaseCommunicator(object):
 		self.JSONmatches = []
 		self.JSONteams = []
 		self.teamsList = []
-		self.url = 'scouting-2018-temp'
-		#self.url = 'into-the-firebase-and-flames'
+		#self.url = 'scouting-2018-temp'
+		#self.url = 'scouting-2018-9023a'
+		self.url = 'into-the-firebase-and-flames'
 		config = {
 			'apiKey': 'mykey',
 			'authDomain': self.url + '.firebaseapp.com',
@@ -27,8 +28,6 @@ class PyrebaseCommunicator(object):
 	#Turns inputted team (class) object into dict and puts on firebase
 	def updateFirebaseWithTeam(self, team):
 		print(str(team.number) + ',',)
-		print(team)
-		print(team.number)
 		teamDict = utils.makeDictFromTeam(team)
 		self.teamsList.append(team.number)
 		self.firebase.child('Teams').child(team.number).set(teamDict)

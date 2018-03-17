@@ -35,6 +35,9 @@ while(True):
 				elif cmd[2] == '-rs':
 					CSVExportTeamRScores(comp)
 					comp.PBC.sendExport('EXPORT-RSCORES.csv')
+				elif cmd[2] == '-R':
+					CSVExportTeamRichard(comp, cmd[3])
+					comp.PBC.sendExport('EXPORT-' + cmd[3] + '.csv')
 				elif cmd[2] == '-other':
 					print('')
 			elif cmd[1] == 'match':
@@ -44,7 +47,7 @@ while(True):
 				elif cmd[2] == '-fouls':
 					CSVExportMatchFoulComparison(comp)
 					comp.PBC.sendExport('EXPORT-FOULCOMPARISON.csv')
-		except Exception as e:
+		except Exception as e:			
 			print(traceback.format_exc())
 	elif cmd[0] == 'calc':
 		if cmd[1] == 'full':

@@ -1,5 +1,6 @@
 #By Bryton Moeller (2015-2016)
 #Last Updated: 3/15/18
+>>>>>>> a37bafdce24bd849bf397dda0a6e0cab30445774
 import sys
 import traceback
 import DataModel

@@ -118,6 +118,7 @@ class ScoutPrecision(object):
 		self.SPRBreakdown = {}
 		self.disagreementBreakdown = {}
 		self.scoutNumMatches = {}
+		self.unusedTablets = ['scout15', 'scout14', 'scout7', 'scout9', 'scout8', 'scout12', 'scout18']
 		self.avgScore = 1
 
 	#SPR
@@ -171,7 +172,7 @@ class ScoutPrecision(object):
 		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), tempTIMDs))
 		lists = filter(lambda v: v != None, map(lambda t: t[key] if t.get('scoutName') else None, tempTIMDs))
 		# Checks to make sure all the lists are the same length (2018 specific)
-    # (A set can not have repeat values, so if a set is len of 1, they are all the same length)
+    	# A set can not have repeat values, so if a set is len of 1, they are all the same length
 		if len(set([len(lis) for lis in lists])) == 1:
 			for index in range(len(lists[0])):
 				items = [lists[x][index] for x in range(len(lists))]
@@ -400,11 +401,11 @@ class ScoutPrecision(object):
 				else:
 					avgScout[key] = np.mean(avgScout[key])
 			self.disagreementBreakdown.update({'avgScout': avgScout})
-
+			
 			# Sets avg score before new scouts are set to 0
 			realValues = filter(lambda x: x != -1, self.sprs.values())
 			self.avgScore = np.mean(realValues) if realValues else 1
-
+			
 			#Changes all sprs of -1 (someone who somehow has an spr key but no matches) to 0
 			for a in self.sprs.keys():
 				if self.sprs[a] == -1:
