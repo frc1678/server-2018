@@ -123,3 +123,6 @@ def CSVExportMatchFoulComparison(comp):
 
 def CSVExportTeamRScores(comp):
 	CSVExportTeam(comp, 'RSCORES', keys = ['number', 'RScoreSpeed', 'RScoreAgility', 'RScoreDrivingAbility', 'RScoreDefense'])
+
+def CSVExportTeamRichard(comp, name):
+	CSVExportTeam(comp, name, keys = ['number', 'maxScaleCubes', 'avgCubesPlacedInScaleAuto', 'avgCubesPlacedInScaleTele', 'avgAllianceSwitchCubesAuto', 'avgAllianceSwitchCubesTele', 'avgOpponentSwitchCubesTele', 'avgNumCubesPlacedAuto', 'avgNumCubesPlacedTele', 'avgNumExchangeInputTele'])

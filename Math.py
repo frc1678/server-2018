@@ -125,7 +125,10 @@ class Calculator(object):
         return utils.avg([climb[1]['didSucceed'] if climb[0] == 'activeLift' and climb[1].get('didClimb', None) == didClimb and climb[1].get('partnerLiftType', None) == liftType else False for x in self.su.getCompletedTIMDsForTeam(team) for attempt in x.climb for climb in attempt.items()])
 
     def parkPercentageForTeam(self, team):
-        return (team.calculatedData.totalNumParks / len(self.su.getCompletedTIMDsForTeam(team)))
+        parks = float(team.calculatedData.totalNumParks)
+        matches = float(team.calculatedData.numMatchesPlayed)
+        percentage = (parks / matches)
+        return percentage
 
     def getCanGroundIntake(self, team):
         return True if (team.calculatedData.avgNumGroundIntakeTele + team.calculatedData.avgNumAlliancePlatformIntakeAuto + team.calculatedData.avgNumAlliancePlatformIntakeTele + team.calculatedData.avgNumOpponentPlatformIntakeTele + team.calculatedData.avgNumGroundPyramidIntakeAuto + team.calculatedData.avgNumGroundPyramidIntakeTele + team.calculatedData.avgNumGroundPortalIntakeTele) > 0 else False
@@ -321,7 +324,7 @@ class Calculator(object):
 
     def predictedParkForTeam(self, team):
         try:
-            return (team.calculatedData.totalNumParks / (sum(self.su.getCompletedTIMDsForTeam(team)) - team.calculatedData.numSuccessfulClimbs))
+            return (float(team.calculatedData.totalNumParks) / (sum(self.su.getCompletedTIMDsForTeam(team)) - team.calculatedData.numSuccessfulClimbs))
         except:
             return 0.0
 
@@ -675,7 +678,7 @@ class Calculator(object):
             #map(lambda t: t.join(), threads)
             #Converts the shared list into a normal list            
             self.comp.TIMDs = self.calcTIMDs
-            #self.setPointsPerCubes()
+            self.setPointsPerCubes()
             self.cacheFirstTeamData()
             self.doFirstTeamCalculations()
             self.cacheSecondTeamData()

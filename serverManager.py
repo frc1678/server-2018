@@ -35,6 +35,9 @@ while(True):
 				elif cmd[2] == '-rs':
 					CSVExportTeamRScores(comp)
 					comp.PBC.sendExport('EXPORT-RSCORES.csv')
+				elif cmd[2] == '-R':
+					CSVExportTeamRichard(comp, cmd[3])
+					comp.PBC.sendExport('EXPORT-' + cmd[3] + '.csv')
 				elif cmd[2] == '-other':
 					print('')
 			elif cmd[1] == 'match':

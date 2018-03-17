@@ -103,13 +103,13 @@ def firstCalculationDict(team, calc):
         numSuccessfulClimbs = lambda tm: tm.calculatedData.didClimb,
         totalNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
         )
+    cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
     cd.predictedPark = calc.predictedParkForTeam(team)
     cd.soloClimbPercentage = calc.getPercentageForClimbType(team, 'soloClimb')
     cd.assistedClimbPercentage = calc.getPercentageForClimbType(team, 'assistedClimb')
     cd.activeLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'passive')
     cd.activeNoClimbLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, False, 'passive')
     cd.activeAssistClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'assisted')
-    cd.parkPercentage = calc.parkPercentageForTeam(team)
     cd.allianceSwitchSuccessPercentageAuto = calc.getAllianceSwitchSuccessPercentageAuto(team)
     cd.allianceSwitchSuccessPercentageTele = calc.getAllianceSwitchSuccessPercentageTele(team)
     cd.opponentSwitchSuccessPercentageTele = calc.getOpponentSwitchSuccessPercentageTele(team)
@@ -128,6 +128,7 @@ def firstCalculationDict(team, calc):
     cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
     cd.percentSuccessOppositeSwitchSideAuto = calc.getPercentSuccessOppositeSwitchSideAuto(team)
     cd.maxScaleCubes = calc.getMaxScaleCubes(team)
+    cd.parkPercentage = calc.parkPercentageForTeam(team)
 
 def Rscorecalcs(team, calc):
     cd = team.calculatedData

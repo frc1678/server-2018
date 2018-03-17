@@ -12,9 +12,9 @@ class PyrebaseCommunicator(object):
 		self.JSONmatches = []
 		self.JSONteams = []
 		self.teamsList = []
-		self.url = 'scouting-2018-temp'
-		#self.url = 'testing-so-extreme-it-hurts'
-		#self.url = 'into-the-firebase-and-flames'
+		#self.url = 'scouting-2018-temp'
+		#self.url = 'scouting-2018-9023a'
+		self.url = 'into-the-firebase-and-flames'
 		config = {
 			'apiKey': 'mykey',
 			'authDomain': self.url + '.firebaseapp.com',
