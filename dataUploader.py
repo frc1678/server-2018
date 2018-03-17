@@ -325,12 +325,6 @@ config = {
 	'authDomain': url + '.firebaseapp.com',
 	'storageBucket': url + '.appspot.com',
 	'databaseURL': url + '.firebaseio.com/'
-	# 'authDomain': '1678-scouting-2016.firebaseapp.com',
-	# 'storageBucket': '1678-scouting-2016.appspot.com',
-	# 'databaseURL': 'https://1678-scouting-2016.firebaseio.com/'
-	# 'authDomain': '1678-dev-2016.firebaseapp.com',
-	# 'storageBucket': '1678-dev-2016.appspot.com',
-	# 'databaseURL': 'https://1678-dev-2016.firebaseio.com/'
 }
 pbc = firebaseCommunicator.PyrebaseCommunicator()
 app = pyrebase.initialize_app(config)
@@ -355,6 +349,7 @@ for TIMD in TIMDs:
 		randScout = random.choice(testScouts)
 		fb.child('TempTeamInMatchDatas').child((str(name) + '-' + str(testScoutNums[randScout]))).set(newTempTIMDs.__dict__)
 	print('Created and uploaded a tempTIMD- ' + str(name) + ' | ' + str(mnum))
+	break
 	mnum += 1
 time.sleep(1)
 print('Done.')

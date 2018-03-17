@@ -1,4 +1,4 @@
-#Last Updated: 1/13/18
+#Last Updated: 3/15/18
 from CSVExporter import *
 from scoutRotator import *
 from SPR import ScoutPrecision

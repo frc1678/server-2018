@@ -1,4 +1,4 @@
-#Last Updated: 8/26/17
+#Last Updated: 2/11/18
 import shutil
 import sys
 import os
@@ -81,6 +81,8 @@ try:
 	videoFolder = sys.argv[1]
 	destFolder = sys.argv[2]
 #Otherwise, the folder locations need to be entered later
+except KeyboardInterrupt:
+	break
 except:
 	videoFolder = ''
 	destFolder = ''
@@ -94,11 +96,15 @@ while(True):
 	try:
 		if cmd[0] == 'setdest':
 			destFolder = cmd[1]
+	except KeyboardInterrupt:
+		break
 	except:
 		print('Error: Must supply more arguments')
 	try:
 		if cmd[0] == 'setvid':
 			videoFolder = cmd[1]
+	except KeyboardInterrupt:
+		break
 	except:
 		print('Error: Must supply more arguments')
 	if cmd[0] == 'replay':
@@ -108,6 +114,8 @@ while(True):
 	elif cmd[0] == 'skip':
 		try:
 			skip(videoFolder, destFolder, int(cmd[1]))
+		except KeyboardInterrupt:
+			break
 		except:
 			print(traceback.format_exc())
 	elif cmd[0] == 'help':

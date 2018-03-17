@@ -1,5 +1,6 @@
 #By Bryton Moeller (2015-2016)
-#Last Updated: 2/7/18
+#Last Updated: 3/15/18
+>>>>>>> a37bafdce24bd849bf397dda0a6e0cab30445774
 import sys
 import traceback
 import DataModel
@@ -10,11 +11,10 @@ import CSVExporter
 import pdb
 from CrashReporter import reportServerCrash
 import dataChecker
-import scoutRotator
+from scoutRotator import ScoutRotator
 import scheduleUpdater
 import pprint
 import APNServer
-
 
 #APNServer.startNotiStream()
 PBC = firebaseCommunicator.PyrebaseCommunicator()
@@ -23,6 +23,7 @@ comp.updateTeamsAndMatchesFromFirebase()
 comp.updateTIMDsFromFirebase()
 calculator = Math.Calculator(comp)
 cycle = 1
+scheduleUpdater.scheduleListener()
 shouldSlack = True
 consolidator = dataChecker.DataChecker()
 consolidator.start()
@@ -32,7 +33,7 @@ fb.child('availabilityUpdated').set(0)
 #Scout assignment streams:
 
 #Note: availability child on firebase should have each scout with an availability of 1 or 0
-	#If that isn't the case, use scoutRotator.tabletHandoutStream() for resetAvailability()
+	#If that isn't the case, use ScoutRotator.tabletHandoutStream() for resetAvailability()
 
 #Use this if tablets need assigned to scouts by the server, and will then be given to the correct scouts
 #This means at the beginning of a competition day
@@ -45,7 +46,7 @@ scoutRotator.tabletHandoutStream()
 #Also useful for unexpected changes in availability
 #Note: Only use if availability child on Firebase has each scout with a value of 1 or 0
 
-scoutRotator.simpleStream()
+#scoutRotator.simpleStream()
 
 def checkForMissingData():
 	with open('missing_data.txt', 'w') as missingDataFile:
@@ -66,20 +67,23 @@ while(True):
 			comp.updateTeamsAndMatchesFromFirebase()
 			comp.updateTIMDsFromFirebase()
 			break
+		except KeyboardInterrupt:
+			break
 		except Exception as e:
 			print(e)
+			print(traceback.format_exc())
 	checkForMissingData() #opens missing_data.txt and prints all missing data if there is missing data each cycle
 	try:
 		calculator.doCalculations(PBC)
 	except OSError:
 		continue
+	except KeyboardInterrupt:
+		break
 	except:
 		#reports error to slack
 		if shouldSlack:
 			reportServerCrash(traceback.format_exc())
-		#prints the error if shouldSlack isn't True
-		else:
-			print(traceback.format_exc())
+		print(traceback.format_exc())
 		sys.exit(0)
 	time.sleep(1)
 	cycle += 1

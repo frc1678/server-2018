@@ -3,9 +3,9 @@ from Tkinter import Tk
 from tkFileDialog import askopenfilename
 import json
 
-url = 'servervartest-2018'
+#url = 'servervartest-2018'
 #url = 'scouting-2018-9023a'
-#url = 'scouting-2018-temp'
+url = 'scouting-2018-temp'
 
 config = {
 	"apiKey": "AIzaSyBXfDygtDWxzyRaLFO75XeGc2xhfvLLwkU ",

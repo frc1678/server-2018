@@ -7,6 +7,7 @@ import scipy.stats as stats
 import CSVExporter
 import pprint
 import firebaseCommunicator
+import json
 
 pbc = firebaseCommunicator.PyrebaseCommunicator()
 
@@ -118,6 +119,7 @@ class ScoutPrecision(object):
 		self.disagreementBreakdown = {}
 		self.scoutNumMatches = {}
 		self.unusedTablets = ['scout15', 'scout14', 'scout7', 'scout9', 'scout8', 'scout12', 'scout18']
+		self.avgScore = 1
 
 	#SPR
 	#Scout precision rank(ing): checks accuracy of scouts by comparing their past TIMDs to the consensus
@@ -147,7 +149,7 @@ class ScoutPrecision(object):
 	def findOddScoutForDataPoint(self, tempTIMDs, key):
 		weight = self.gradingKeys[key]
 		#Finds scout names in tempTIMDs
-		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), list(tempTIMDs)))
+		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), tempTIMDs.iteritems()))
 		#Finds values (at an inputted key) in tempTIMDs
 		values = filter(lambda v: v != None, map(lambda t: t[key] if t.get('scoutName') else None, tempTIMDs))
 		#Finds the most common value in the list of values, or the average if none of them is the majority
@@ -162,14 +164,15 @@ class ScoutPrecision(object):
 					self.SPRBreakdown.update({key: (self.SPRBreakdown.get(key) or []) + [(differenceFromMode[c])]})
 					#Updates disagreements by category and scout
 					if differenceFromMode[c] != 0:
-						#self.disagreementBreakdown[str(scouts[c])].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0) + 1})
-						self.sprs.update({scouts[c] : (self.sprs.get(str(scouts[c])) or 0) + differenceFromMode[c]})
+						self.disagreementBreakdown[scouts[c]].update({key: (self.disagreementBreakdown[scouts[c]].get(key) or 0) + 1})
+						self.sprs.update({scouts[c] : (self.sprs.get(scouts[c]) or 0) + differenceFromMode[c]})
 
 	def findOddScoutForList(self, tempTIMDs, key):
 		weight = self.gradingLists[key]
 		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), tempTIMDs))
 		lists = filter(lambda v: v != None, map(lambda t: t[key] if t.get('scoutName') else None, tempTIMDs))
 		# Checks to make sure all the lists are the same length (2018 specific)
+    	# A set can not have repeat values, so if a set is len of 1, they are all the same length
 		if len(set([len(lis) for lis in lists])) == 1:
 			for index in range(len(lists[0])):
 				items = [lists[x][index] for x in range(len(lists))]
@@ -334,12 +337,7 @@ class ScoutPrecision(object):
 			#Combines all tempTIMDs for the same match
 			g = self.consolidateTIMDs(temp)
 			#Makes a list of scouts with data
-			print('ATTENTION\n\n\n\n\n\n\n\n\n\n\n')
-			priorScouts = []
-			for scout in [ind for timd in g.values() for ind in timd]:
-				print(ind)
-				print(ind['scoutName'])
-				priorScouts.append(ind['scoutName'])
+			priorScouts = [ind['scoutName'] for timd in g.values() for ind in timd]
 			priorScouts = set(priorScouts) #updates priorScouts so that one scoutName cannot appear more than once
 			for scout in priorScouts:
 				self.disagreementBreakdown.update({scout: {}})
@@ -358,7 +356,6 @@ class ScoutPrecision(object):
 			If a scout is in more matches, they will likely have more disagreements, but the same number per match if they are equally accurate
 			If someone has no tempTIMDs (but still an SPR key somehow), their SPR score is set to -1 (changed in the next section)'''
 			self.sprs = {k:((v / float(self.getTotalTIMDsForScoutName(k, temp))) if self.getTotalTIMDsForScoutName(k, temp) > 0 else -1) for (k, v) in self.sprs.items()}
-			print(self.disagreementBreakdown)
 			#Makes an average number of disagreements per scout per category
 			avgScout = {}
 			for scout in self.disagreementBreakdown.keys():
@@ -404,18 +401,26 @@ class ScoutPrecision(object):
 				else:
 					avgScout[key] = np.mean(avgScout[key])
 			self.disagreementBreakdown.update({'avgScout': avgScout})
-			print(self.disagreementBreakdown)
-			#Changes all sprs of -1 (someone who somehow has an spr key but no matches) to average or 1
+			
+			# Sets avg score before new scouts are set to 0
+			realValues = filter(lambda x: x != -1, self.sprs.values())
+			self.avgScore = np.mean(realValues) if realValues else 1
+			
+			#Changes all sprs of -1 (someone who somehow has an spr key but no matches) to 0
 			for a in self.sprs.keys():
 				if self.sprs[a] == -1:
-					realValues = filter(lambda x: x != -1, self.sprs.values())
-					avgScore = np.mean(realValues) if realValues else 1
-					self.sprs[a] = avgScore
-			#Any scout in available without an spr score or without any matches is set to the average score or 1
+					self.sprs[a] = 0.0
+			#Any scout in available without an spr score or without any matches is set to 0
 			for a in available:
 				if a not in self.sprs.keys():
-					avgScore = np.mean(self.sprs.values()) if self.sprs else 1
-					self.sprs[a] = avgScore
+					self.sprs[a] = 0.0
+			self.scoutNumMatches = {scout:self.getTotalTIMDsForScoutName(scout, temp) for scout in self.sprs}
+		
+			with open('./SPROutput.txt', 'w') as f:
+				json.dump(self.sprs, f)
+			with open('./SPRBreakdownOutput.txt', 'w') as f:
+				json.dump(self.disagreementBreakdown, f)
+        
 		#If there are no tempTIMDs, everyone is set to 1
 		else:
 			for a in available:
@@ -435,6 +440,12 @@ class ScoutPrecision(object):
 		return utils.extendList(map(func, available))
 
 	def organizeScouts(self, available, currentTeams, scoutSpots):
+		zeroSPRs = []
+		# Temporarily sets scouts with no matches to the average SPR for assignments
+		for scout in self.sprs.keys():
+			if self.sprs.items()[scout] == 0.0 and self.scoutNumMatches[scout] == 0:
+				self.sprs[scout] = self.avgScore
+				zeroSPRs.append(scout)
 		#Picks a random member of the inputted group
 		groupFunc = lambda l: l[random.randint(0, len(l) - 1)]
 		#Creates list of groupings that the scouts could be in, with as many scouts as are available and have spaces, for 6 robots with a max group size of 3
@@ -460,6 +471,11 @@ class ScoutPrecision(object):
 			newGroup = self.group(freqs, c)
 			scouts += [newGroup[0]]
 			freqs = newGroup[1]
+
+		# Resets scouts who had no matches to an SPR of 0
+		for scout in zeroSPRs:
+			self.sprs[scout] = 0.0
+
 		#Returns the scouts grouped and paired to robots
 		return self.scoutsToRobotNums(scouts, currentTeams)
 
@@ -543,8 +559,6 @@ class ScoutPrecision(object):
 	#Records z-scores of each scouts spr, for later checking and comparison
 	def sprZScores(self, PBC):
 		if np.std(self.sprs.values()) == 0:
-			print(self.sprs)
-			print(self.scoutNumMatches)
 			zscores = {k : (0.0, self.sprs[k], self.scoutNumMatches[k]) for k in self.sprs.keys()}
 		else:
 			zscores = {k : (zscore, self.sprs[k], self.scoutNumMatches[k]) for (k, zscore) in zip(self.sprs.keys(), stats.zscore(self.sprs.values()))}

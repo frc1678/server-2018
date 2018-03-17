@@ -1,4 +1,4 @@
-#Last Updated: 2/7/18
+#Last Updated: 3/15/18
 import math
 import time
 import random
@@ -98,6 +98,8 @@ class Calculator(object):
         try:
             t = stats.ttest_ind_from_stats(mean1, std1, sampleSize1, mean2, std2, sampleSize2, False).statistic #False means the variances are unequal
             return t if t != np.nan else mean1 > mean2
+        except KeyboardInterrupt:
+            break
         except:
             return 0.0
 
@@ -108,6 +110,8 @@ class Calculator(object):
         try:
             numerator = ((s1 ** 4 / n1) + (s2 ** 4 / n2)) ** 2
             denominator = (s1 ** 8 / ((n1 ** 2) * (n1 - 1))) + (s2 ** 8 / ((n2 ** 2) * (n2 - 1)))
+        except KeyboardInterrupt:
+            break
         except:
             numerator = 0.0
             denominator = 0.0
@@ -127,8 +131,7 @@ class Calculator(object):
     def parkPercentageForTeam(self, team):
         parks = float(team.calculatedData.totalNumParks)
         matches = float(team.calculatedData.numMatchesPlayed)
-        percentage = (parks / matches)
-        return percentage
+        return (parks / matches)
 
     def getCanGroundIntake(self, team):
         return True if (team.calculatedData.avgNumGroundIntakeTele + team.calculatedData.avgNumAlliancePlatformIntakeAuto + team.calculatedData.avgNumAlliancePlatformIntakeTele + team.calculatedData.avgNumOpponentPlatformIntakeTele + team.calculatedData.avgNumGroundPyramidIntakeAuto + team.calculatedData.avgNumGroundPyramidIntakeTele + team.calculatedData.avgNumGroundPortalIntakeTele) > 0 else False
@@ -260,6 +263,15 @@ class Calculator(object):
         except:
             return 15
 
+    def getTotalSuccessForListOfBools(self, boolList):
+        try:
+            return sum(boolList)
+        except:
+            return sum(boolList.values())
+
+    def getCanGroundIntake(self, team):
+        return True if (team.calculatedData.avgNumGroundIntake) > 0 else False
+
     #OVERALL DATA
 
     #Standard Deviation: Variation of a set of data values, or lowercase sigma
@@ -306,7 +318,7 @@ class Calculator(object):
             zscores = utils.matrixZscores(values)
         [utils.setDictionaryValue(d, self.cachedComp.teamsWithMatchesCompleted[i].number, zscores[i]) for i in range(len(self.cachedComp.teamsWithMatchesCompleted))]
 
-    #TBA INVOLVEMENT FOR SCORE BREAKDOWN 
+    #TBA INVOLVEMENT FOR SCORE BREAKDOWN
 
     def getPointsEarnedOnScaleForAllianceAuto(self, match, allianceIsRed):
         return self.TBAC.getScoreBreakdownForMatch(match.number)['red']['autoScaleOwnershipSec'] if allianceIsRed else self.TBAC.getScoreBreakdownForMatch(match.number)['blue']['autoScaleOwnershipSec']
@@ -574,7 +586,9 @@ class Calculator(object):
         map(self.doSecondCachingForTeam, self.comp.teams)
         try:
             self.cachedComp.actualSeedings = self.TBAC.makeEventRankingsRequest()
-        except Exception as e:
+        except KeyboardInterrupt:
+            break
+        except:
             self.cachedComp.actualSeedings = self.teamsSortedByRetrievalFunctions(self.getSeedingFunctions())
         self.cachedComp.predictedSeedings = self.teamsSortedByRetrievalFunctions(self.getPredictedSeedingFunctions())
         map(lambda t: Rscorecalcs(t, self), self.cachedComp.teamsWithMatchesCompleted)
@@ -583,6 +597,8 @@ class Calculator(object):
     def doCachingForTeam(self, team):
         try:
             cachedData = self.cachedTeamDatas[team.number]
+        except KeyboardInterrupt:
+            break
         except:
             self.cachedTeamDatas[team.number] = cache.CachedTeamData(**{'teamNumber': team.number})
             cachedData = self.cachedTeamDatas[team.number]
@@ -594,6 +610,8 @@ class Calculator(object):
     def cacheTBAMatches(self):
         try:
             self.cachedComp.TBAMatches = filter(lambda m: m['comp_level'] == 'qm', self.TBAC.makeEventMatchesRequest())
+        except KeyboardInterrupt:
+            break
         except:
             print(traceback.format_exc())
 
@@ -682,7 +700,9 @@ class Calculator(object):
             self.cacheFirstTeamData()
             self.doFirstTeamCalculations()
             self.cacheSecondTeamData()
+            print('Saru')
             self.doMatchesCalculations()
+            print('Koko')
             self.doSecondTeamCalculations()
             print('> Calculations finished, adding data to firebase')
             PBC.addCalculatedTIMDatasToFirebase(self.su.getCompletedTIMDsInCompetition())

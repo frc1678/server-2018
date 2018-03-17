@@ -1,4 +1,4 @@
-#Last Updated: 1/20/17
+#Last Updated: 2/1/18
 import firebaseCommunicator
 import utils
 
@@ -212,7 +212,7 @@ class CalculatedMatchData(object):
 		self.redTeleopExchangeAbility = None #Float
 		self.blueTeleopExchangeAbility = None #Float
 		self.redPredictedFaceTheBoss = None #Float
-		self.bluePredictedFaceTheBoss = None #Float\
+		self.bluePredictedFaceTheBoss = None #Float
 		self.__dict__.update(args)
 
 
