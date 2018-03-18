@@ -1,6 +1,5 @@
 #By Bryton Moeller (2015-2016)
 #Last Updated: 3/15/18
->>>>>>> a37bafdce24bd849bf397dda0a6e0cab30445774
 import sys
 import traceback
 import DataModel
@@ -11,7 +10,7 @@ import CSVExporter
 import pdb
 from CrashReporter import reportServerCrash
 import dataChecker
-from scoutRotator import ScoutRotator
+import scoutRotator
 import scheduleUpdater
 import pprint
 import APNServer
@@ -23,7 +22,7 @@ comp.updateTeamsAndMatchesFromFirebase()
 comp.updateTIMDsFromFirebase()
 calculator = Math.Calculator(comp)
 cycle = 1
-scheduleUpdater.scheduleListener()
+#scheduleUpdater.scheduleListener()
 shouldSlack = True
 consolidator = dataChecker.DataChecker()
 consolidator.start()
@@ -78,7 +77,9 @@ while(True):
 	except OSError:
 		continue
 	except KeyboardInterrupt:
-		break
+		sys.exit()
+		consolidator.terminate()
+		consolidator.join()
 	except:
 		#reports error to slack
 		if shouldSlack:

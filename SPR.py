@@ -17,6 +17,7 @@ class ScoutPrecision(object):
 	def __init__(self):
 		super(ScoutPrecision, self).__init__()
 		self.sprs = {}
+		self.numTablets = 18
 		self.robotNumToScouts = []
 		#These keys are the names of sections of the tempTIMDs on which scouts will be graded
 		#The value is the weight, since some data points are more important than others
@@ -118,7 +119,7 @@ class ScoutPrecision(object):
 		self.SPRBreakdown = {}
 		self.disagreementBreakdown = {}
 		self.scoutNumMatches = {}
-		self.unusedTablets = ['scout15', 'scout14', 'scout7', 'scout9', 'scout8', 'scout12', 'scout18']
+		self.unusedTablets = []
 		self.avgScore = 1
 
 	#SPR
@@ -149,7 +150,7 @@ class ScoutPrecision(object):
 	def findOddScoutForDataPoint(self, tempTIMDs, key):
 		weight = self.gradingKeys[key]
 		#Finds scout names in tempTIMDs
-		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), tempTIMDs.iteritems()))
+		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), tempTIMDs))
 		#Finds values (at an inputted key) in tempTIMDs
 		values = filter(lambda v: v != None, map(lambda t: t[key] if t.get('scoutName') else None, tempTIMDs))
 		#Finds the most common value in the list of values, or the average if none of them is the majority
@@ -172,7 +173,7 @@ class ScoutPrecision(object):
 		scouts = filter(lambda v: v != None, map(lambda k: k.get('scoutName'), tempTIMDs))
 		lists = filter(lambda v: v != None, map(lambda t: t[key] if t.get('scoutName') else None, tempTIMDs))
 		# Checks to make sure all the lists are the same length (2018 specific)
-    	# A set can not have repeat values, so if a set is len of 1, they are all the same length
+    # (A set can not have repeat values, so if a set is len of 1, they are all the same length)
 		if len(set([len(lis) for lis in lists])) == 1:
 			for index in range(len(lists[0])):
 				items = [lists[x][index] for x in range(len(lists))]
@@ -290,13 +291,9 @@ class ScoutPrecision(object):
 					#Comparing dicts that should be the same (e.g. each shot time dict for the same shot) within the tempTIMDs
 					#This means the nth shot by a given robot in a given match, as recorded by multiple scouts
 					#The comparison itself is the same as the other findOddScout functions
-					print('lists', lists)
-					print(modeListLength)
 					dicts = [lis[num] for lis in lists]
 					keys = []
-					print(dicts)
 					for x in dicts:
-						print(x.keys())
 						keys.append(x.keys()[0])
 					modeKey = max(set(keys), key=keys.count)
 					modeKeyAmount = keys.count(modeKey)
@@ -401,11 +398,11 @@ class ScoutPrecision(object):
 				else:
 					avgScout[key] = np.mean(avgScout[key])
 			self.disagreementBreakdown.update({'avgScout': avgScout})
-			
+
 			# Sets avg score before new scouts are set to 0
 			realValues = filter(lambda x: x != -1, self.sprs.values())
 			self.avgScore = np.mean(realValues) if realValues else 1
-			
+
 			#Changes all sprs of -1 (someone who somehow has an spr key but no matches) to 0
 			for a in self.sprs.keys():
 				if self.sprs[a] == -1:
@@ -443,17 +440,17 @@ class ScoutPrecision(object):
 		zeroSPRs = []
 		# Temporarily sets scouts with no matches to the average SPR for assignments
 		for scout in self.sprs.keys():
-			if self.sprs.items()[scout] == 0.0 and self.scoutNumMatches[scout] == 0:
+			if self.sprs[scout] == 0.0 and self.scoutNumMatches[scout] == 0:
 				self.sprs[scout] = self.avgScore
 				zeroSPRs.append(scout)
 		#Picks a random member of the inputted group
-		groupFunc = lambda l: l[random.randint(0, len(l) - 1)]
+		groupFunc = lambda l: l[random.randint(0, (len(l) - 1))]
 		#Creates list of groupings that the scouts could be in, with as many scouts as are available and have spaces, for 6 robots with a max group size of 3
-		grpCombos = utils.sum_to_n(min(len(available), scoutSpots), 6, 3)
-		grpCombosList = [combo for combo in grpCombos]
+		grpCombosList = utils.sum_to_n(min(len(available), (self.numTablets - len(self.unusedTablets))), 4)
 		#Picks a random grouping of scouts that, if possible, has an even number of scouts per team
 		NoOneCombos = filter(lambda l: 1 not in l, grpCombosList)
 		NoTwoCombos = filter(lambda l: 2 not in l, NoOneCombos)
+		
 		if len(NoTwoCombos) > 0:
 			scoutsPGrp = groupFunc(NoTwoCombos)
 		elif len(NoOneCombos) > 0:
@@ -505,6 +502,13 @@ class ScoutPrecision(object):
 		freqs = filter(lambda name: name != scout, freqs)
 		return scout, freqs
 
+	def deleteUnassigned(self, d, available):
+		for scout in dict(d).keys():
+			if scout not in available:
+				d[scout]['team'] = -1
+				d[scout]['alliance'] = 'red'
+		return d
+
 	def getScoutNumFromName(self, name, scoutsInRotation):
 		try:
 			return filter(lambda k: scoutsInRotation[k].get('mostRecentUser') == name, scoutsInRotation.keys())[0]
@@ -513,6 +517,14 @@ class ScoutPrecision(object):
 
 	def getScoutNameFromNum(self, name, scoutsInRotation):
 		return scoutsInRotation[str(name)]['currentUser']
+
+	def getTeamColor(self, team, redTeams, blueTeams):
+		if team in redTeams:
+			return 'red'
+		elif team in blueTeams:
+			return 'blue'
+		else:
+			return 'error'
 
 	#Returns the first scout key that doesn't have a current user
 	def findEmptySpotsForScout(self, scoutRotatorDict, available):
@@ -523,37 +535,26 @@ class ScoutPrecision(object):
 		return emptyScouts
 
 	#Updates a dict going to firebase with information about scouts for the next match
-	def assignScoutsToRobots(self, available, currentTeams, scoutRotatorDict):
-		scoutsWithNames = filter(lambda v: v.get('currentUser') != (None or ''), scoutRotatorDict.values())
-		namesOfScouts = map(lambda v: v.get('currentUser'), scoutsWithNames)
+	def assignScoutsToRobots(self, available, currentTeams, scoutRotatorDict, redTeams, blueTeams):
+		namesOfScouts = [name for name in scoutRotatorDict.keys() if name != (None or '')]
 		scoutSpots = len(scoutRotatorDict.keys())
 		#Assigns available scouts to robots, and shows exactly which available scouts will be scouting
 		teams = self.organizeScouts(available, currentTeams, scoutSpots)
-		#Moves the current user to the previous user spot, assigns a new user if necessary, and assigns a robot to each scout
-		for scout in scoutRotatorDict.keys():
-			#The current user is now the previous user, as the match has changed
-			if scoutRotatorDict[scout].get('currentUser'):
-				oldName = scoutRotatorDict[scout]['currentUser']
-				scoutRotatorDict[scout].update({'mostRecentUser': oldName})
-				if oldName not in available:
-					#If they are not scouting again, team and current user are deleted, since either that scout spot will be empty this match or someone else will be put there
-					scoutRotatorDict[scout].update({'team': None, 'currentUser': None})
+		teamColors = {team: self.getTeamColor(team, redTeams, blueTeams) for team in teams.values()}
 		for scout in available:
 			#Each available scout is put into the dict to send to firebase, in an appropriate spot and with a team number
-			scoutRotatorDict = self.assignScoutToRobot(scout, teams, scoutRotatorDict, available, namesOfScouts)
+			scoutRotatorDict = self.assignScoutToRobot(scout, teams, scoutRotatorDict, available, namesOfScouts, teamColors)
 		return scoutRotatorDict
 
 	#Finds a spot and a robot for an inputted available scout
-	def assignScoutToRobot(self, availableScout, teams, scoutRotatorDict, available, names):
+	def assignScoutToRobot(self, availableScout, teams, scoutRotatorDict, available, names, teamColors):
 		#If the available scout already has a spot on firebase, all that needs to be updated is the robot they scout for
-		print(names)
 		if availableScout in names:
-			scoutNum = self.getScoutNumFromName(availableScout, scoutRotatorDict)
-			scoutRotatorDict[scoutNum].update({'team': teams[availableScout], 'currentUser': availableScout, 'scoutStatus': 'requested'})
+			scoutRotatorDict[availableScout].update({'team': teams[availableScout], 'alliance':teamColors[teams[availableScout]]})
 		#If they don't, it needs to find an empty scout spot in firebase and put the available scout there (if there is an empty spot, which there always should be)
 		else:
-			newSpace = self.findEmptySpotsForScout(scoutRotatorDict, available)[0]
-			scoutRotatorDict[newSpace].update({'team': teams[availableScout], 'currentUser': availableScout, 'scoutStatus': 'requested'})
+			# Shouldn't ever run, right?
+			scoutRotatorDict[availableScout].update({'team': teams[availableScout], 'alliance':teamColors[teams[availableScout]]})
 		return scoutRotatorDict
 
 	#Records z-scores of each scouts spr, for later checking and comparison

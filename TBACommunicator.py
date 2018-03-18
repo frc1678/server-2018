@@ -7,7 +7,7 @@ class TBACommunicator(object):
 	'''docstring for TBACommunicator'''
 	def __init__(self):
 		super(TBACommunicator, self).__init__()
-		self.code = 'utwv'
+		self.code = 'txda'
 		self.year = 2018
 		self.key = str(self.year) + self.code
 		self.authCode = 'erssexII0ARbu0mOasscljFGkq0zsreIBbzpnERZYrKV397fzoOTM7607SZzYjo8'

@@ -184,20 +184,25 @@ def extendListWithStrings(lis):
 			returnList += l
 	return returnList
 
-def sum_to_n(n, size, limit = None):
+def sum_to_n(n, limit = None):
 	#Finds possible groupings of individuals (n of them) into a specified number of groups (size) with each group's maximum size of limit
 	#e.g. sum_to_n(6, 3) -> (2,2,2), (1,2,3)
 	#sum_to_n(6, 3, 3) -> (2,2,2)
-    if size == 1:
-        yield [n]
-        return
+    combos = []
+    good = []
     if limit is None:
         limit = n
-    start = (n + size - 1) // size
-    stop = min(limit, n - size + 1) + 1
-    for i in range(start, stop):
-        for tail in sum_to_n(n - i, size - 1, i):
-            yield [i] + tail
+    for x in range(1, limit):
+    	for y in range(1, limit):
+    		for z in range(1, limit):
+    			for x1 in range(1, limit):
+    				for y2 in range(1, limit):
+    					for z3 in range(1, limit):
+    						combos.append([x,y,z,x1,y2,z3])
+    for lis in combos:
+    	if sum(lis) == n:
+    		good.append(lis)
+    return good
 
 def makeASCIIFromJSON(input):
     if isinstance(input, dict):

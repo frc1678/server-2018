@@ -16,7 +16,7 @@ import multiprocessing
 import warnings
 from FirstTIMDProcess import FirstTIMDProcess
 from schemaUtils import SchemaUtils
-from CrashReporter import reportOverestimate
+#from CrashReporter import reportOverestimate
 import csv
 
 class Calculator(object):
@@ -99,7 +99,7 @@ class Calculator(object):
             t = stats.ttest_ind_from_stats(mean1, std1, sampleSize1, mean2, std2, sampleSize2, False).statistic #False means the variances are unequal
             return t if t != np.nan else mean1 > mean2
         except KeyboardInterrupt:
-            break
+            return
         except:
             return 0.0
 
@@ -111,7 +111,7 @@ class Calculator(object):
             numerator = ((s1 ** 4 / n1) + (s2 ** 4 / n2)) ** 2
             denominator = (s1 ** 8 / ((n1 ** 2) * (n1 - 1))) + (s2 ** 8 / ((n2 ** 2) * (n2 - 1)))
         except KeyboardInterrupt:
-            break
+            return
         except:
             numerator = 0.0
             denominator = 0.0
@@ -270,7 +270,7 @@ class Calculator(object):
             return sum(boolList.values())
 
     def getCanGroundIntake(self, team):
-        return True if (team.calculatedData.avgNumGroundIntake) > 0 else False
+        return True if (team.calculatedData.avgNumGroundIntakeTele) > 0 else False
 
     #OVERALL DATA
 
@@ -479,6 +479,14 @@ class Calculator(object):
         return sum(utils.replaceFromNone([self.getTeleopOpponentSwitchAbilityForTeam(team) for team in self.su.getAllianceForMatch(match, allianceIsRed)], 0.0))
 
     def getFirstPickAbilityForTeam(self, team):
+        total = 5 * (team.calculatedData.avgNumCubesPlacedAuto + team.calculatedData.avgNumCubesPlacedTele) 
+        scale = 5 * (team.calculatedData.avgCubesPlacedInScaleAuto + team.calculatedData.avgCubesPlacedInScaleTele)
+        maxSc = 5 * (team.calculatedData.maxScaleCubes)
+        speed = 1 * (team.calculatedData.RScoreSpeed)
+        agile = 4 * (team.calculatedData.RScoreAgility)
+        return (total + scale + maxSc + speed + agile)
+
+    def getSecondPickAbilityForTeam(self, team):
         autoPoints = ((15 - team.calculatedData.avgTimeToOwnScaleAuto) * 2 + (15 - team.calculatedData.avgTimeToOwnAllianceSwitchAuto) * 2 + team.calculatedData.autoRunPercentage * 5)
         scalePoints = team.calculatedData.teleopScaleAbility
         switchPoints = team.calculatedData.teleopAllianceSwitchAbility + team.calculatedData.teleopOpponentSwitchAbility
@@ -487,14 +495,6 @@ class Calculator(object):
         drivingAbility = team.calculatedData.avgDrivingAbility
         climb = (team.calculatedData.avgNumRobotsLifted * 30) * (team.calculatedData.activeLiftClimbPercentage + team.calculatedData.soloClimbPercentage + team.calculatedData.activeAssistClimbPercentage)
         return ((drivingAbility + exchangePoints + autoPoints) + ((switchPoints + scalePoints) * groundPickup))
-    
-    def getSecondPickAbilityForTeam(self, team):
-        autoPoints = ((15 - team.calculatedData.avgTimeToOwnAllianceSwitchAuto) * 2 + team.calculatedData.autoRunPercentage * 5)
-        switchPoints = team.calculatedData.teleopAllianceSwitchAbility + team.calculatedData.teleopOpponentSwitchAbility
-        exchangePoints = team.calculatedData.teleopExchangeAbility
-        drivingAbility = team.calculatedData.avgDrivingAbility
-        climb = (team.calculatedData.avgNumRobotsLifted * 30) * (team.calculatedData.activeLiftClimbPercentage + team.calculatedData.soloClimbPercentage + team.calculatedData.assistedClimbPercentage + team.calculatedData.activeAssistClimbPercentage)
-        return (drivingAbility + exchangePoints + autoPoints + switchPoints)
 
     #HEAVY PREDICTIONS AND ABILITIES - I'm in for a world of hurt
 
@@ -515,10 +515,10 @@ class Calculator(object):
         return self.getPredictedTeleopScoreForAlliance(match, allianceIsRed) + self.predictedScoreForAllianceAuto(match, allianceIsRed) + self.predictedFaceTheBoss(match, allianceIsRed)
 
     def drivingAbilityForTeam(self, team):
-        agility = (0.45 * utils.convertNoneToIdentity(team.calculatedData.RScoreAgility, 0.0)) * 10
-        speed = (0.45 * utils.convertNoneToIdentity(team.calculatedData.RScoreSpeed, 0.0)) * 10
-        defense = (0.10 * utils.convertNoneToIdentity(team.calculatedData.RScoreDefense, 0.0)) * 10
-        return agility + speed + defense
+        agile = 0.80 * (utils.convertNoneToIdentity(team.calculatedData.RScoreAgility, 0.0)) * 10
+        speed = 0.20 * (utils.convertNoneToIdentity(team.calculatedData.RScoreSpeed, 0.0)) * 10
+        defen = 0.00 * (utils.convertNoneToIdentity(team.calculatedData.RScoreDefense, 0.0)) * 10
+        return agile + speed + defen
 
     #SEEDING - How each team seeds in the competition
 
@@ -552,7 +552,7 @@ class Calculator(object):
         return int(filter(lambda x: int(x[1]) == team.number, self.cachedComp.actualSeedings)[0][0])
 
     def getTeamRPsFromTBA(self, team):
-        return filter(lambda x: int(x[1]) == team.number, self.cachedComp.actualSeedings)[0][2]
+        return float({team['team_key'] : team['extra_stats'][0] for team in TBAC.makeEventRankingsRequest()}[('frc' + str(team.number))]) / float(team.calculatedData.numMatchesPlayed)
 
     def RPsGainedFromMatchForAlliance(self, allianceIsRed, match):
         win = (1 if match.redScore == match.blueScore else 2 * (match.redScore > match.blueScore)) if allianceIsRed else (1 if match.redScore == match.blueScore else 2 * (match.blueScore > match.redScore))
@@ -585,11 +585,12 @@ class Calculator(object):
         [self.rValuesForAverageFunctionForDict(func, dictionary) for (func, dictionary) in self.rScoreParams()]
         map(self.doSecondCachingForTeam, self.comp.teams)
         try:
-            self.cachedComp.actualSeedings = self.TBAC.makeEventRankingsRequest()
+            self.cachedComp.actualSeedings = sorted({team['team_key'] : team['r'] for team in self.TBAC.makeEventRankingsRequest()}, key = lambda t: t)
         except KeyboardInterrupt:
-            break
+            return
         except:
             self.cachedComp.actualSeedings = self.teamsSortedByRetrievalFunctions(self.getSeedingFunctions())
+        print(self.cachedComp.actualSeedings)
         self.cachedComp.predictedSeedings = self.teamsSortedByRetrievalFunctions(self.getPredictedSeedingFunctions())
         map(lambda t: Rscorecalcs(t, self), self.cachedComp.teamsWithMatchesCompleted)
         self.rValuesForAverageFunctionForDict(lambda t: t.calculatedData.avgDrivingAbility, self.cachedComp.drivingAbilityZScores)
@@ -598,7 +599,7 @@ class Calculator(object):
         try:
             cachedData = self.cachedTeamDatas[team.number]
         except KeyboardInterrupt:
-            break
+            return
         except:
             self.cachedTeamDatas[team.number] = cache.CachedTeamData(**{'teamNumber': team.number})
             cachedData = self.cachedTeamDatas[team.number]
@@ -611,7 +612,7 @@ class Calculator(object):
         try:
             self.cachedComp.TBAMatches = filter(lambda m: m['comp_level'] == 'qm', self.TBAC.makeEventMatchesRequest())
         except KeyboardInterrupt:
-            break
+            return
         except:
             print(traceback.format_exc())
 
@@ -696,7 +697,7 @@ class Calculator(object):
             #map(lambda t: t.join(), threads)
             #Converts the shared list into a normal list            
             self.comp.TIMDs = self.calcTIMDs
-            self.setPointsPerCubes()
+            #self.setPointsPerCubes()
             self.cacheFirstTeamData()
             self.doFirstTeamCalculations()
             self.cacheSecondTeamData()

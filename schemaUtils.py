@@ -14,7 +14,7 @@ class SchemaUtils(object):
         try:
             return [team for team in self.comp.teams if team.number == teamNumber][0]
         except KeyboardInterrupt:
-            break
+            return
         except:
             print(str(teamNumber), 'does not exist.')
 

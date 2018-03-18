@@ -12,8 +12,8 @@ class PyrebaseCommunicator(object):
 		self.JSONmatches = []
 		self.JSONteams = []
 		self.teamsList = []
-		#self.url = 'scouting-2018-temp'
 		#self.url = 'scouting-2018-9023a'
+		#self.url = 'scouting-2018-temp'
 		self.url = 'into-the-firebase-and-flames'
 		config = {
 			'apiKey': 'mykey',
@@ -112,7 +112,7 @@ class PyrebaseCommunicator(object):
 			with open('./CachedFirebases/' + now + '.json', 'w+') as f:
 				json.dump(data, f)
 		except KeyboardInterrupt:
-			break
+			return
 		except:
 			pass
 

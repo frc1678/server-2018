@@ -149,7 +149,7 @@ def secondCalculationDict(team, calc):
         cd.actualNumRPs = calc.getTeamRPsFromTBA(team)
         cd.actualSeed = calc.getTeamSeed(team)
     except KeyboardInterrupt:
-        break
+        return
     except:
         if team in calc.cachedComp.actualSeedings:
             cd.actualSeed = calc.cachedComp.actualSeedings.index(team) + 1
@@ -190,7 +190,7 @@ def TIMDCalcDict(timd, calc):
     c.numAlliancePlatformIntakeTele = calc.getTotalSuccessForListOfBools(timd.alliancePlatformIntakeTele)
     c.numOpponentPlatformIntakeTele = calc.getTotalSuccessForListOfBools(timd.opponentPlatformIntakeTele)
     c.numCubesPlacedAuto = calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptAuto, timd.scaleAttemptAuto])
-    c.numCubesPlacedTele = calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptTele, timd.opponentSwitchAttemptTele, timd.scaleAttemptTele])
+    c.numCubesPlacedTele = (calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptTele, timd.opponentSwitchAttemptTele, timd.scaleAttemptTele])) + timd.numExchangeInput
     c.numClimbAttempts = calc.getClimbAttempts(timd.climb)
     c.drivingAbility = calc.drivingAbilityForTeam(team)
     c.didConflictWithAuto = calc.checkAutoForConflict()
