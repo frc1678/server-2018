@@ -33,7 +33,7 @@ class SchemaUtils(object):
         return filter(self.matchIsCompleted, self.getMatchesForTeam(team))
 
     def findTeamsWithMatchesCompleted(self):
-        return filter(lambda team: len(self.getCompletedMatchesForTeam(team)) > 0, self.comp.teams)
+        return filter(lambda team: len(self.getCompletedTIMDsForTeam(team)) > 0, self.comp.teams)
 
     def teamCalculatedDataHasValues(self, calculatedData):
         return calculatedData.avgClimbTime != None
@@ -53,7 +53,7 @@ class SchemaUtils(object):
         return team in self.teamsInMatch(match)
 
     def matchIsCompleted(self, match):
-        return len(self.getCompletedTIMDsForMatch(match)) == 6 and self.matchHasValuesSet(match)
+        return len(self.getCompletedTIMDsForMatch(match)) > 0 and self.matchHasValuesSet(match)
 
     def getCompletedMatchesInCompetition(self):
         return filter(self.matchIsCompleted, self.comp.matches)
@@ -84,6 +84,10 @@ class SchemaUtils(object):
     def getTIMDsForTeam(self, team):
         return filter(lambda t: t.teamNumber == team.number, self.comp.TIMDs)
 
+    def getRecentTIMDsForTeam(self, team):
+        timds = self.getCompletedTIMDsForTeam(team)
+        return sorted(timds, key = lambda t: t.matchNumber)[len(timds) - 4:]
+
     def getTIMDsForMatch(self, match):
         return filter(lambda t: t.matchNumber == match.number, self.comp.TIMDs)
 
@@ -91,7 +95,9 @@ class SchemaUtils(object):
         return filter(lambda t: (t.matchNumber, t.teamNumber) == (match.number, team.number), self.comp.TIMDs)
            
     def getCompletedTIMDsForTeam(self, team):
-        return filter(self.timdIsCompleted, self.getTIMDsForTeam(team))
+        timds = list(set(filter(self.timdIsCompleted, self.getTIMDsForTeam(team))))
+        dic = {timd.matchNumber : timd for timd in timds}
+        return dic.values()
 
     def getTIMDsForMatchForAllianceIsRed(self, match, allianceIsRed):
         if allianceIsRed:

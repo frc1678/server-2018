@@ -4,6 +4,7 @@ import json
 import datetime
 import numpy as np
 import pyrebase
+from slackclient import SlackClient
 
 class PyrebaseCommunicator(object):
 	'''docstring for PyrebaseCommunicator'''
@@ -12,9 +13,9 @@ class PyrebaseCommunicator(object):
 		self.JSONmatches = []
 		self.JSONteams = []
 		self.teamsList = []
-		#self.url = 'scouting-2018-9023a'
+		self.url = 'scouting-2018-9023a'
 		#self.url = 'scouting-2018-temp'
-		self.url = 'into-the-firebase-and-flames'
+		#self.url = 'into-the-firebase-and-flames'
 		config = {
 			'apiKey': 'mykey',
 			'authDomain': self.url + '.firebaseapp.com',
@@ -24,6 +25,8 @@ class PyrebaseCommunicator(object):
 		app = pyrebase.initialize_app(config)
 		self.firebase = app.database()
 		self.fbStorage = app.storage()
+		with open('SlackToken.csv', 'r') as file:
+			self.slack = SlackClient(file.read())
 
 	#Turns inputted team (class) object into dict and puts on firebase
 	def updateFirebaseWithTeam(self, team):
@@ -104,6 +107,20 @@ class PyrebaseCommunicator(object):
 		addTIMD = lambda m: map(lambda t: timdFunc(t, m), m.redAllianceTeamNumbers + m.blueAllianceTeamNumbers)
 		map(addTIMD, matches)
 
+	def addSlackProfilesToFirebase(self):
+		#Adds all of the slack profiles to the firebase
+		print('\nAdding slack profiles\n')
+		data = self.slack.api_call('users.list')
+		for member in data['members']:
+			if not member['deleted'] and not (member['is_bot'] or member['name'] == 'slackbot'):
+				ID = member['id']
+				tag = member['profile']['display_name_normalized']
+				name = member['profile']['real_name_normalized']
+				if tag == '':
+					tag = name
+				print('Added the lovely person known as ' + name)
+				self.firebase.child('slackProfiles/'+str(ID)).set({'name':name,'tag':tag})
+
 	#Puts all of firebase onto a local JSON
 	def cacheFirebase(self):
 		try:
@@ -115,10 +132,6 @@ class PyrebaseCommunicator(object):
 			return
 		except:
 			pass
-
-	def addCompInfoToFirebase(self):
-		#Doing these keys manually so less clicking in firebase is better and because just easier
-		self.firebase.child('code').set('cama')
 
 	#Empties everything from firebase
 	def wipeDatabase(self):
@@ -136,5 +149,6 @@ class PyrebaseCommunicator(object):
 		self.fbStorage.child('Exports').child(fileName).put(filePath)
 
 	#Puts current match number on firebase as 1
-	def addCurrentMatchToFirebase(self):
+	def addSingleKeysToFirebase(self):
 		self.firebase.child('currentMatchNum').set(1)
+		self.firebase.child('cycleCounter').set(0)

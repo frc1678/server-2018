@@ -23,11 +23,10 @@ comp.updateTIMDsFromFirebase()
 calculator = Math.Calculator(comp)
 cycle = 1
 #scheduleUpdater.scheduleListener()
-shouldSlack = True
+shouldSlack = False
 consolidator = dataChecker.DataChecker()
 consolidator.start()
 fb = PBC.firebase
-fb.child('availabilityUpdated').set(0)
 
 #Scout assignment streams:
 
@@ -50,8 +49,6 @@ scoutRotator.tabletHandoutStream()
 def checkForMissingData():
 	with open('missing_data.txt', 'w') as missingDataFile:
 		missingDatas = calculator.getMissingDataString()
-		if missingDatas:
-			print(missingDatas)
 		missingDataFile.write(str(missingDatas))
 
 while(True):

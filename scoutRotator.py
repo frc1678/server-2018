@@ -15,12 +15,12 @@ fb = PBC.firebase
 global oldMatchNum
 oldMatchNum = fb.child('currentMatchNum').get().val()
 
-numScouts = 24
-scouts = 'Justin Joey Amanda Anoushka Zoe Rolland Teo Hanson Jack Tim Calvin Asha Erik James Carl Freddy Carter Kenny Emily Eli Stephen Aidan Lyra Aakash'.split()
+numScouts = 25
+scouts = 'Justin Joey Amanda Anoushka Zoe Rolland Teo Hanson Jack Tim Calvin Asha Erik James Carl Freddy Carter Kenny Emily Eli Stephen Aidan Lyra Aakash Zatara'.split()
 
 #Creates list of availability values in firebase for each scout
 def resetAvailability():
-	availability = {name: 1 for name in scouts}
+	availability = {name: 0 for name in scouts}
 	fb.child('availability').set(availability)
 
 #Creates firebase objects for 18 scouts
@@ -28,49 +28,45 @@ def resetScouts():
 	scouts = []
 	for scout in fb.child('availability').get().val().keys():
 		scouts.append(scout)
-	fb.child('scouts/assignments').set({scout:{'team':-1,'alliance':'red'} for scout in scouts})
-	fb.child('scouts/match').set(fb.child('currentMatchNum').get().val())
+	cycleCounter = fb.child('cycleCounter').get().val()
+	fb.child('scouts').child('cycle').set(cycleCounter)
 
 
 #Main function for scout assignment
 def doSPRsAndAssignments(data):
 	#Wait until the availability has been confirmed to be correct
-	while(True):
-		try:
-			availabilityUpdated = fb.child('availabilityUpdated').get().val()
-		except KeyboardInterrupt:
-			return
-		except:
-			availabilityUpdated = 0
-		if availabilityUpdated: break
-		time.sleep(2)
 	try:
-		fb.child('availabilityUpdated').set(0)
-		#if data.get('data') == None: return
-		#Gets scouting data from firebase
-		newMatchNumber = str(fb.child('currentMatchNum').get().val())
-		print('Setting scouts for match', str(newMatchNumber))
-		scoutDict = fb.child('scouts/assignments').get().val()
-		#Gets the teams we need to scout for the upcoming match
-		blueTeams = fb.child('Matches').child(newMatchNumber).get().val()['blueAllianceTeamNumbers']
-		redTeams = fb.child('Matches').child(newMatchNumber).get().val()['redAllianceTeamNumbers']
+		fb.child('scouts/matches').set(None)
 		#Finds and assigns available scouts
 		available = [k for (k, v) in fb.child('availability').get().val().items() if v == 1]
 		if len(available) > (SPR.numTablets - len(SPR.unusedTablets)):
-			print('There are too many scouts!')
-			print('Please set the availablility!')
-			fb.child('currentMatchNum').set((int(newMatchNumber) - 1))
-			return
-		#Grades scouts and assigns them to robots
+				print('There are too many scouts!')
+				print('Please set the availablility!')
+				fb.child('currentMatchNum').set((int(newMatchNumber) - 1))
+				return
+		#Calculates scout precision rankings
 		SPR.calculateScoutPrecisionScores(fb.child('TempTeamInMatchDatas').get().val(), available)
 		SPR.sprZScores(PBC)
 		with open('./disagreementBreakdownExport.json', 'w') as file:
 			json.dump(SPR.disagreementBreakdown, file)
-		print(SPR.sprs)
-		newAssignments = SPR.deleteUnassigned(SPR.assignScoutsToRobots(available, redTeams + blueTeams, scoutDict, redTeams, blueTeams), available)
-		#And it is put on firebase
-		fb.child('scouts/assignments').set(newAssignments)
-		fb.child('scouts/match').set(int(newMatchNumber))
+		fb.child('SPRs').set(SPR.sprs)
+		#Gets scouting data from firebase
+		startingMatchNumber = str(fb.child('currentMatchNum').get().val())
+		for newMatchNumber in range(int(startingMatchNumber), int(startingMatchNumber) + 10):
+			newMatchNumber = str(newMatchNumber)
+			print('Setting scouts for match' + str(newMatchNumber))
+			tupScouts = fb.child('availability').get().val()
+			scoutDict = {scout : {'team' : -1, 'alliance' : 'red'} for scout in [tup for tup in tupScouts]}
+			#Gets the teams we need to scout for the upcoming match
+			blueTeams = fb.child('Matches').child(newMatchNumber).get().val()['blueAllianceTeamNumbers']
+			redTeams = fb.child('Matches').child(newMatchNumber).get().val()['redAllianceTeamNumbers']
+			#Grades scouts and assigns them to robots
+			newAssignments = SPR.deleteUnassigned(SPR.assignScoutsToRobots(available, redTeams + blueTeams, scoutDict, redTeams, blueTeams), available)
+			print(newAssignments)
+			#And it is put on firebase
+			fb.child('scouts/matches/match' + newMatchNumber).set(newAssignments)
+		cycle = fb.child('cycleCounter').get().val()
+		fb.child('scouts/cycle').set(cycle)
 		print('New Assignments added')
 	except KeyboardInterrupt:
 		return
@@ -81,9 +77,9 @@ def doSPRsAndAssignments(data):
 #Use this to reset scouts and availability before assigning tablets
 #e.g. at the beginning of the day at a competition
 def tabletHandoutStream():
-	resetAvailability()
-	resetScouts()
-	fb.child('currentMatchNum').stream(doSPRsAndAssignments)
+	#resetAvailability()
+	#resetScouts()
+	fb.child('cycleCounter').stream(doSPRsAndAssignments)
 
 def startAtNewMatch(newMatchNum):
 	global oldMatchNum
@@ -138,5 +134,3 @@ def sortScoutDisagreements():
 	pprint.pprint(totalDisagreements)
 	pprint.pprint(sorted(totalDisagreements.items(), key = lambda scout: scout[1]))
 	pprint.pprint(sorted(SPR.sprs.items(), key = lambda scout: scout[1]))
-
-tabletHandoutStream()

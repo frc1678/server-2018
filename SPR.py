@@ -22,7 +22,6 @@ class ScoutPrecision(object):
 		#These keys are the names of sections of the tempTIMDs on which scouts will be graded
 		#The value is the weight, since some data points are more important than others
 		self.gradingKeys = {
-			'didCrossAutoZone': 1.5,
 			'didGetDisabled': 2.0,
 			'didGetIncapacitated': 2.0,
 			'didMakeAutoRun': 2.0,
@@ -428,13 +427,12 @@ class ScoutPrecision(object):
 
 	#Orders available scouts by spr ranking, then makes a list of how frequently each scout should be selected
 	#Better (lower scoring) scouts appear more frequently
-	def getScoutFrequencies(self, available):
+	def getScoutRankingGroups(self, available):
 		#Sorts scouts by spr score
 		#It is reversed so the scouts with lower spr are later, causing them to be repeated more
-		rankedScouts = sorted(self.sprs.keys(), key = lambda k: self.sprs[k])
+		rankedScouts = sorted(available, key = lambda k: self.sprs[k])
 		#Lower sprs, so higher number list index scouts are repeated more frequently, but less if there are more scouts
-		func = lambda s: [s] * (rankedScouts.index(s) + 1) * ((100 / (len(rankedScouts) + 1)) + 1)
-		return utils.extendList(map(func, available))
+		return [rankedScouts[x : x + 6] for x in range(0, len(rankedScouts), 6)]
 
 	def organizeScouts(self, available, currentTeams, scoutSpots):
 		zeroSPRs = []
@@ -461,20 +459,33 @@ class ScoutPrecision(object):
 		#Since scout groups are reversed, smaller groups come first, so are picked first, so tend to have better scouts
 		scoutsPGrp.reverse()
 		#Used to make better scouts more likely to be picked
-		freqs = self.getScoutFrequencies(available)
 		scouts = []
+		rankingGroups = self.getScoutRankingGroups(available)
 		#Chooses the correct number of nonrepeating scouts for each group of scouts (of size 1, 2, or 3)
 		for c in scoutsPGrp:
-			newGroup = self.group(freqs, c)
-			scouts += [newGroup[0]]
-			freqs = newGroup[1]
-
+			newGroup = self.group(c, rankingGroups)
+			scouts += [newGroup]
+			rankingGroups = self.removeUsedScouts(rankingGroups, newGroup)
+		
 		# Resets scouts who had no matches to an SPR of 0
 		for scout in zeroSPRs:
 			self.sprs[scout] = 0.0
 
 		#Returns the scouts grouped and paired to robots
 		return self.scoutsToRobotNums(scouts, currentTeams)
+
+	def group(self, c, rankingGroups):
+		finalScouts = []
+		for scoutNum in range(c):
+			finalScouts.append(random.choice(rankingGroups[scoutNum]))
+		return finalScouts
+
+	def removeUsedScouts(self, orderedScouts, removedGroup):
+		for index, group in enumerate(orderedScouts):
+			for scout in group:
+				if scout in removedGroup:
+					del orderedScouts[index][group.index(scout)]
+		return orderedScouts
 
 	#Assigns a list of scouts to a list of robots in order, and returns as a single dict
 	def scoutsToRobotNums(self, scouts, currentTeams):
@@ -485,15 +496,6 @@ class ScoutPrecision(object):
 	#Makes a dict with the same value attached to each inputted key
 	def mapKeysToValue(self, keys, value):
 		return {k : value for k in keys}
-
-	#Picks an inputted number of random non-repeating members for a group, and also returns the list of members not picked
-	def group(self, availableForGroup, count):
-		toReturn = []
-		for num in range(count):
-			newMember = availableForGroup[random.randint(0, len(availableForGroup) - 1)]
-			availableForGroup = filter(lambda m: m != newMember, availableForGroup)
-			toReturn += [newMember]
-		return toReturn, availableForGroup
 
 	#Picks a random member of a group, and also returns a list of mambers not picked
 	def getRandomIndividuals(self, freqs):
@@ -559,8 +561,9 @@ class ScoutPrecision(object):
 
 	#Records z-scores of each scouts spr, for later checking and comparison
 	def sprZScores(self, PBC):
-		if np.std(self.sprs.values()) == 0:
-			zscores = {k : (0.0, self.sprs[k], self.scoutNumMatches[k]) for k in self.sprs.keys()}
-		else:
-			zscores = {k : (zscore, self.sprs[k], self.scoutNumMatches[k]) for (k, zscore) in zip(self.sprs.keys(), stats.zscore(self.sprs.values()))}
-		CSVExporter.CSVExportScoutZScores(zscores)
+		if self.sprs.values():
+			if np.std(self.sprs.values()) == 0:
+				zscores = {k : (0.0, self.sprs[k], self.scoutNumMatches[k]) for k in self.sprs.keys()}
+			else:
+				zscores = {k : (zscore, self.sprs[k], self.scoutNumMatches[k]) for (k, zscore) in zip(self.sprs.keys(), stats.zscore(self.sprs.values()))}
+			CSVExporter.CSVExportScoutZScores(zscores)
