@@ -103,7 +103,6 @@ class CalculatedTeamData(object):
 		self.lfmAvgAllianceSwitchTimeAuto = None #Float
 		self.lfmAvgAllianceSwitchTimeTele = None #Float
 		self.lfmAvgOpponentSwitchTimeTele = None #Float
-		
 		self.lfmMaxScaleCubes = None #Int
 		self.lfmMaxExchangeCubes = None #Int
 		self.lfmAutoRunPercentage = None #Float
@@ -117,7 +116,6 @@ class CalculatedTeamData(object):
 		self.lfmActiveNoClimbLiftClimbPercentage = None #Float
 		self.lfmActiveAssistClimbPercentage = None #Float
 		self.lfmAvgClimbTime = None #Float
-		
 		self.lfmAvgSpeed = None #Float
 		self.lfmAvgDefense = None #Float
 		self.lfmAvgAgility = None #Float
