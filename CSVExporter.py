@@ -116,7 +116,7 @@ def CSVExportTIMDALL(comp):
 	CSVExportTIMD(comp, 'TIMDALL', keys = TeamInMatchData().__dict__.keys() + TeamInMatchData().calculatedData.__dict__.keys())
 
 def CSVExportMatchPredictedErrors(comp):
-	CSVExportMatch(comp, 'PREDICTEDERRORS', keys = ['number', 'predictedBlueScore', 'predictedRedScore', 'blueScore', 'redScore'])
+	CSVExportMatch(comp, 'PREDICTEDERRORS', keys = ['number', 'predictedBlueRPs', 'predictedRedRPs', 'actualBlueRPs', 'actualRedRPs'])
 
 def CSVExportMatchFoulComparison(comp):
 	CSVExportMatch(comp, 'FOULCOMPARISON', keys = ['number', 'foulPointsGainedBlue', 'foulPointsGainedRed', 'blueScore', 'redScore'])

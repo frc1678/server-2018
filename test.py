@@ -8,8 +8,9 @@ import utils
 import random
 import operator
 from collections import Counter
-'''
+
 TBAC = TBACommunicator.TBACommunicator()
+'''
 FBC = firebaseCommunicator.PyrebaseCommunicator()
 competition = DataModel.Competition(FBC)
 competition.eventCode = TBAC.code
@@ -627,5 +628,6 @@ teamCalc = {
 
 db.child('Teams').child(180).child('calculatedData').set(teamCalc)
 '''
-print(sorted([1,2,3]))
-print(int(False))
+rps = {team['team_key'] : team['extra_stats'][0] for team in TBAC.makeEventRankingsRequest()}
+print(sorted(rps.keys(), key = lambda t: rps[t]))
+		

@@ -47,11 +47,23 @@ while(True):
 				elif cmd[2] == '-fouls':
 					CSVExportMatchFoulComparison(comp)
 					comp.PBC.sendExport('EXPORT-FOULCOMPARISON.csv')
-		except Exception as e:			
-			print(traceback.format_exc())
-	elif cmd[0] == 'calc':
-		if cmd[1] == 'full':
-			calc.doCalculations(PBC)
+		except Exception as e:
+			if len(cmd) < 3:
+				print('The command exp requires 3 arguments, you provided ' + str(len(cmd)))			
+			else:
+				print(traceback.format_exc())
+	elif cmd[0] == 'cycle':
+		cycle = fb.child('cycleCounter').get().val()
+		fb.child('cycleCounter').set(cycle + 1)
+	elif cmd[0] == 'match':
+		if len(cmd) > 1:
+			try:
+				int(cmd[1])
+				fb.child('currentMatchNum').set(int(cmd[1]))
+			except:
+				print('Please input an int for an argument')
+		else:
+			print('The command match requires 2 arguments, you provided ' + str(len(cmd)))
 	elif cmd[0] == 'sns':
 		tempTIMDs = fb.child('TempTeamInMatchDatas').get().val()
 		curMatch = fb.child('currentMatchNum').get().val() 
@@ -71,12 +83,17 @@ while(True):
 		try:
 			play(AudioSegment.from_mp3('/home/etking/Music/' + cmd[1] + '.mp3'))
 		except:
-			print('\'' + str(cmd[1]) + '\' is not a sound on the soundboard.')
+			try:
+				print('\'' + str(cmd[1]) + '\' is not a sound on the soundboard.')
+			except:
+				print('The command play requires 2 arguments, you provided ' + str(len(cmd)))
 	elif cmd[0] == 'test':
 		print('Test completed.')
 	elif cmd[0] == 'help':
-		print('exp [timd/team] [all] - Tries to export')
-		print('sns - Prints the scouts that haven\'t sent for current match')
-		print('test - Prints Test Completed.')
+		print(' exp [timd/team] [all] - Tries to export')
+		print(' sns - Prints the scouts that haven\'t sent for current match')
+		print(' cycle - Updates cycleCounter on firebase.')
+		print(' match [int] - Updates currentMatchNum on firebase.')
+		print(' test - Prints Test Completed.')
 	else:
 		print('\'' + str(cmd[0]) + '\' is not a valid function. Type help for help.')

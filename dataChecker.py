@@ -62,6 +62,17 @@ class DataChecker(multiprocessing.Process):
 	def joinBools(self, bools, sprKing):
 		return utils.convertNoneToIdentity(utils.mode(bools), bools[sprKing])
 
+	def consolidateParking(self, consolidation, matches, key, sprKing):
+		team = 'frc' + key.split('Q')[0]
+		match = filter(lambda match: match['match_number'] == key and match['comp_level'] == 'qm', matches)[0]
+		if match['score_breakdown']:
+			allianceColor = 'blue' if team in match['alliances']['blue']['team_keys'] else 'red'
+			robotNum = (match['alliances'][allianceColor]['team_keys'].index(team)) + 1
+			didPark = (match['score_breakdown'][allianceColor]['endgameRobot' + str(robotNum)] == 'Parking')
+		else:
+			didPark = self.commonValue(consolidation, sprKing)
+		return didPark			
+
 	#Returns the most common value in a list, or the average if no value is more than half the list
 	def joinList(self, values, sprKing):
 		if values:
@@ -247,7 +258,7 @@ class DataChecker(multiprocessing.Process):
 			return returnList
 
 	#Combines data from whole TIMDs
-	def joinValues(self, key):
+	def joinValues(self, key, matches):
 		returnDict = {}
 		sprKing = self.getSPRKing(map(lambda tm: (tm.get('scoutName') or []), self.consolidationGroups[key]))
 		#Flattens the list of lists of keys into a list of keys
@@ -258,6 +269,9 @@ class DataChecker(multiprocessing.Process):
 			elif k in listKeys:
 				#Gets a common value for lists of dicts (for cube values) and puts it into the combined TIMD
 				returnDict.update({k: self.findCommonValuesForKeys(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key]), sprKing)})
+			elif k == 'didPark':
+				#Gets didPark from TBA
+				returnDict.update({k: self.consolidateParking(self.getConsolidationList(key, k), matches, key, sprKing)})
 			elif k == 'climb':
 				#Finds a common value for climbs 
 				returnDict.update({k: self.findCommonValuesForClimb(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key]), sprKing)})
@@ -325,13 +339,14 @@ class DataChecker(multiprocessing.Process):
 			if tempTIMDs == None:
 				time.sleep(5)
 				continue
+			matches = tbac.makeEventMatchesRequest()
 			self.consolidationGroups = self.getConsolidationGroups(tempTIMDs)
 			index = 0
 			while index < len(self.consolidationGroups.keys()):
 				key = self.consolidationGroups.keys()[index]
 				#Updates a TIMD on firebases
 				try:
-					firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key))
+					firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key, matches))
 					index += 1
 				except Exception as e:
 					continue

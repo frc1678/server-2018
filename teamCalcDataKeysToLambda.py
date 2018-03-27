@@ -49,7 +49,7 @@ def firstCalculationDict(team, calc):
         avgSpeed = lambda tm: tm.rankSpeed,
         avgDrivingAbility = lambda tm: tm.calculatedData.drivingAbility,
         actualNumRPs = lambda tm: tm.calculatedData.numRPs,
-        autoRunPercentage = lambda tm: tm.didMakeAutoRun,
+        autoRunPercentage = lambda tm: tm.didMakeAutoRun, 
         climbPercentage = lambda tm: tm.calculatedData.didClimb,
         didThreeExchangeInputPercentage = lambda tm: tm.calculatedData.didThreeExchangeInput,
         avgNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
@@ -59,6 +59,9 @@ def firstCalculationDict(team, calc):
         avgNumCubesPlacedTele = lambda tm: tm.calculatedData.numCubesPlacedTele,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getRecentAverageForDataFunctionForTeam(team, f),
+        lfmDisabledPercentage = lambda tm: tm.didGetDisabled,
+        lfmIncapacitatedPercentage = lambda tm: tm.didGetIncapacitated,
+        lfmDysfunctionalPercentage = lambda tm: tm.calculatedData.isDysfunctional,
         lfmAvgNumAlliancePlatformIntakeAuto = lambda tm: tm.calculatedData.numAlliancePlatformIntakeAuto,
         lfmAvgNumAlliancePlatformIntakeTele = lambda tm: tm.calculatedData.numAlliancePlatformIntakeTele,
         lfmAvgNumOpponentPlatformIntakeTele = lambda tm: tm.calculatedData.numOpponentPlatformIntakeTele,
@@ -95,6 +98,8 @@ def firstCalculationDict(team, calc):
         lfmAvgNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
         lfmAvgNumCubesPlacedAuto = lambda tm: tm.calculatedData.numCubesPlacedAuto,
         lfmAvgNumCubesPlacedTele = lambda tm: tm.calculatedData.numCubesPlacedTele,
+        lfmAutoRunPercentage = lambda tm: tm.didMakeAutoRun,
+        lfmAvgClimbTime = lambda tm: tm.calculatedData.climbTime,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getSumForDataFunctionForTeam(team, f),
         totalNumGoodDecisions = lambda tm: tm.numGoodDecisions,
@@ -105,11 +110,16 @@ def firstCalculationDict(team, calc):
         )
     cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
     cd.predictedPark = calc.predictedParkForTeam(team)
-    cd.soloClimbPercentage = calc.getPercentageForClimbType(team, 'soloClimb')
-    cd.assistedClimbPercentage = calc.getPercentageForClimbType(team, 'assistedClimb')
-    cd.activeLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'passive')
-    cd.activeNoClimbLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, False, 'passive')
-    cd.activeAssistClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'assisted')
+    cd.soloClimbPercentage = calc.getPercentageForClimbType(team, 'soloClimb', False)
+    cd.assistedClimbPercentage = calc.getPercentageForClimbType(team, 'assistedClimb', False)
+    cd.activeLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'passive', False)
+    cd.activeNoClimbLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, False, 'passive', False)
+    cd.activeAssistClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'assisted', False)
+    cd.lfmSoloClimbPercentage = calc.getPercentageForClimbType(team, 'soloClimb', True)
+    cd.lfmAssistedClimbPercentage = calc.getPercentageForClimbType(team, 'assistedClimb', True)
+    cd.lfmActiveLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'passive', True)
+    cd.lfmActiveNoClimbLiftClimbPercentage = calc.getPercentageForActiveClimbType(team, False, 'passive', True)
+    cd.lfmActiveAssistClimbPercentage = calc.getPercentageForActiveClimbType(team, True, 'assisted', True)
     cd.allianceSwitchSuccessPercentageAuto = calc.getAllianceSwitchSuccessPercentageAuto(team)
     cd.allianceSwitchSuccessPercentageTele = calc.getAllianceSwitchSuccessPercentageTele(team)
     cd.opponentSwitchSuccessPercentageTele = calc.getOpponentSwitchSuccessPercentageTele(team)
@@ -125,10 +135,16 @@ def firstCalculationDict(team, calc):
     cd.totalNumHighLayerScaleCubes = calc.getTotalNumHighLayerScaleCubes(team)
     cd.canGroundIntake = calc.getCanGroundIntake(team)
     cd.totalSuperNotes = calc.getTotalSuperNotes(team)
-    cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
     cd.percentSuccessOppositeSwitchSideAuto = calc.getPercentSuccessOppositeSwitchSideAuto(team)
-    cd.maxScaleCubes = calc.getMaxScaleCubes(team)
+    cd.maxScaleCubes = calc.getMaxScaleCubes(team, False)
+    cd.lfmMaxScaleCubes = calc.getMaxScaleCubes(team, True)
+    cd.maxExchangeCubes = calc.getMaxExchangeCubes(team, False)
+    cd.lfmMaxExchangeCubes = calc.getMaxExchangeCubes(team, True)
+    cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
     cd.parkPercentage = calc.parkPercentageForTeam(team)
+    cd.totalCubesPlaced = calc.getTotalCubesPlaced(team, False)
+    cd.lfmTotalCubesPlaced = calc.getTotalCubesPlaced(team, True)
+    cd.autoRunPercentage = calc.autoRunBackup(team)
 
 def Rscorecalcs(team, calc):
     cd = team.calculatedData
@@ -149,7 +165,7 @@ def secondCalculationDict(team, calc):
         cd.actualNumRPs = calc.getTeamRPsFromTBA(team)
         cd.actualSeed = calc.getTeamSeed(team)
     except KeyboardInterrupt:
-        break
+        return
     except:
         if team in calc.cachedComp.actualSeedings:
             cd.actualSeed = calc.cachedComp.actualSeedings.index(team) + 1
@@ -190,7 +206,7 @@ def TIMDCalcDict(timd, calc):
     c.numAlliancePlatformIntakeTele = calc.getTotalSuccessForListOfBools(timd.alliancePlatformIntakeTele)
     c.numOpponentPlatformIntakeTele = calc.getTotalSuccessForListOfBools(timd.opponentPlatformIntakeTele)
     c.numCubesPlacedAuto = calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptAuto, timd.scaleAttemptAuto])
-    c.numCubesPlacedTele = calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptTele, timd.opponentSwitchAttemptTele, timd.scaleAttemptTele])
+    c.numCubesPlacedTele = (calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptTele, timd.opponentSwitchAttemptTele, timd.scaleAttemptTele])) + timd.numExchangeInput
     c.numClimbAttempts = calc.getClimbAttempts(timd.climb)
     c.drivingAbility = calc.drivingAbilityForTeam(team)
     c.didConflictWithAuto = calc.checkAutoForConflict()

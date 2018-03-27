@@ -82,7 +82,7 @@ try:
 	destFolder = sys.argv[2]
 #Otherwise, the folder locations need to be entered later
 except KeyboardInterrupt:
-	break
+	return
 except:
 	videoFolder = ''
 	destFolder = ''
@@ -97,14 +97,14 @@ while(True):
 		if cmd[0] == 'setdest':
 			destFolder = cmd[1]
 	except KeyboardInterrupt:
-		break
+		return
 	except:
 		print('Error: Must supply more arguments')
 	try:
 		if cmd[0] == 'setvid':
 			videoFolder = cmd[1]
 	except KeyboardInterrupt:
-		break
+		return
 	except:
 		print('Error: Must supply more arguments')
 	if cmd[0] == 'replay':
@@ -115,7 +115,7 @@ while(True):
 		try:
 			skip(videoFolder, destFolder, int(cmd[1]))
 		except KeyboardInterrupt:
-			break
+			return
 		except:
 			print(traceback.format_exc())
 	elif cmd[0] == 'help':

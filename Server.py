@@ -11,7 +11,7 @@ import CSVExporter
 import pdb
 from CrashReporter import reportServerCrash
 import dataChecker
-from scoutRotator import ScoutRotator
+import scoutRotator
 import scheduleUpdater
 import pprint
 import APNServer
@@ -23,12 +23,11 @@ comp.updateTeamsAndMatchesFromFirebase()
 comp.updateTIMDsFromFirebase()
 calculator = Math.Calculator(comp)
 cycle = 1
-scheduleUpdater.scheduleListener()
-shouldSlack = True
+#scheduleUpdater.scheduleListener()
+shouldSlack = False
 consolidator = dataChecker.DataChecker()
 consolidator.start()
 fb = PBC.firebase
-fb.child('availabilityUpdated').set(0)
 
 #Scout assignment streams:
 
@@ -51,8 +50,6 @@ scoutRotator.tabletHandoutStream()
 def checkForMissingData():
 	with open('missing_data.txt', 'w') as missingDataFile:
 		missingDatas = calculator.getMissingDataString()
-		if missingDatas:
-			print(missingDatas)
 		missingDataFile.write(str(missingDatas))
 
 while(True):
@@ -78,7 +75,9 @@ while(True):
 	except OSError:
 		continue
 	except KeyboardInterrupt:
-		break
+		sys.exit()
+		consolidator.terminate()
+		consolidator.join()
 	except:
 		#reports error to slack
 		if shouldSlack:
