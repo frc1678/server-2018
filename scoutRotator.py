@@ -15,8 +15,8 @@ fb = PBC.firebase
 global oldMatchNum
 oldMatchNum = fb.child('currentMatchNum').get().val()
 
-numScouts = 25
-scouts = 'Justin Joey Amanda Anoushka Zoe Rolland Teo Hanson Jack Tim Calvin Asha Erik James Carl Freddy Carter Kenny Emily Eli Stephen Aidan Lyra Aakash Zatara'.split()
+numScouts = 26
+scouts = 'Justin Joey Amanda Anoushka Zoe Zach Rolland Teo Hanson Jack Tim Calvin Asha Erik James Carl Freddy Carter Kenny Emily Eli Stephen Aidan Aakash Zatara David'.split()
 
 #Creates list of availability values in firebase for each scout
 def resetAvailability():
@@ -72,13 +72,12 @@ def doSPRsAndAssignments(data):
 		return
 	except:
 		print(traceback.format_exc())
-		CrashReporter.reportServerCrash(traceback.format_exc())
 
 #Use this to reset scouts and availability before assigning tablets
 #e.g. at the beginning of the day at a competition
 def tabletHandoutStream():
-	#resetAvailability()
-	#resetScouts()
+	resetAvailability()
+	resetScouts()
 	fb.child('cycleCounter').stream(doSPRsAndAssignments)
 
 def startAtNewMatch(newMatchNum):

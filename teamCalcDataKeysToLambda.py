@@ -269,5 +269,7 @@ def matchDict(match, calc):
     match.calculatedData.redLevitateProbability = calc.levitateProbabilityForAlliance(match, True)
     match.calculatedData.predictedBlueScore = calc.getPredictedScoreForAlliance(match, False)
     match.calculatedData.predictedRedScore = calc.getPredictedScoreForAlliance(match, True)
+    match.calculatedData.blueWinChance = calc.winChanceForAlliance(match, False)
+    match.calculatedData.redWinChance = calc.winChanceForAlliance(match, True)
     match.calculatedData.predictedBlueRPs = calc.predictedRPsForAlliance(match, False)
     match.calculatedData.predictedRedRPs = calc.predictedRPsForAlliance(match, True)

@@ -454,6 +454,7 @@ class ScoutPrecision(object):
 		elif len(NoOneCombos) > 0:
 			scoutsPGrp = groupFunc(NoOneCombos)
 		else:
+			grpCombosList = filter(lambda g: len(set(g)) < 3, grpCombosList)
 			scoutsPGrp = groupFunc(grpCombosList)
 		
 		#Since scout groups are reversed, smaller groups come first, so are picked first, so tend to have better scouts

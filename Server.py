@@ -9,24 +9,52 @@ import time
 import CSVExporter
 import pdb
 from CrashReporter import reportServerCrash
-import dataChecker
 import scoutRotator
 import scheduleUpdater
 import pprint
 import APNServer
+import TBACommunicator
 
-#APNServer.startNotiStream()
+#If an argument is passed when running the server, it skips confirmation
+forced = False
+if len(sys.argv) > 1:
+	if sys.argv[1] == '-f':
+		forced = True
+
+#Updates variables data to the local DataModel
+TBAC = TBACommunicator.TBACommunicator()
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 comp = DataModel.Competition(PBC)
 comp.updateTeamsAndMatchesFromFirebase()
 comp.updateTIMDsFromFirebase()
 calculator = Math.Calculator(comp)
 cycle = 1
-#scheduleUpdater.scheduleListener()
+fb = PBC.firebase
 shouldSlack = False
+
+#If forced is not true, it runs confirmation to prevent running the server on the wrong competition, firebase, etc.
+if forced != True:
+	print('\n    _______________SERVER_______________')
+	print('                                        ')
+	print('    Firebase - ' + PBC.url)
+	print('    Firebase Competition - ' + fb.child('TBAcode').get().val())
+	print('    TBACommunicator Competition - ' + TBAC.code + ' (Should be the same as above)')
+	print('    Available Scouts - ' + str(len([scout for scout, available in fb.child('availability').get().val().items() if available == 1])))
+	print('                                          ')
+	while True:
+		confirmation = raw_input(' Do you wish to continue? [y/n] ')
+		if confirmation == 'y':
+			break
+		elif confirmation == 'n':
+			sys.exit()
+		else:
+			print(' ' + confirmation + ' is not a valid option. \n')
+
+#Imports dataChecker and runs it later to avoid a subprocess being created before confirmation
+import dataChecker
+
 consolidator = dataChecker.DataChecker()
 consolidator.start()
-fb = PBC.firebase
 
 #Scout assignment streams:
 

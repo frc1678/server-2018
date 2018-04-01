@@ -22,6 +22,9 @@ def mode(lis):
 			highestItemCount += [item, count]
 	return highestItemCount[0] if len(highestItemCount) <= 2 else None
 
+def nullifyOutwardValue(v):
+	return v if v > 0 and v < 135 else 0 if v < 135 else 135
+
 def matrixZscores(m):
 	mean = np.mean(m)
 	std = np.std(m)

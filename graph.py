@@ -5,7 +5,7 @@ import csv
 import numpy as np
 
 dic = {}
-with open('./SPRExport.csv') as f:
+with open('./scoutRankExport.csv') as f:
 	reader = csv.DictReader(f)
 	for read in reader:
 		dic[read['name']] = read['Z-Score']
