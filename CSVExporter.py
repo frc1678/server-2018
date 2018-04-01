@@ -64,22 +64,6 @@ def CSVExportMatch(comp, name, keys = []):
 			keys = sorted(defaultKeys, key = lambda k: (k != 'number', k.lower()))
 			writer.writerow({k : tDict[k] for k in keys})
 
-def CSVZscoresPerMatch(comp, name, keys = []):
-	calculator = Math.Calculator(comp)
-	excluded = ['calculatedData', 'name', 'imageKeys', 'pitAllImageURLs', 'pitSelectedImageName']
-	with open('./EXPORT-' + name + '.csv', 'w') as f:
-		defaultKeys = [k for k in Team().__dict__.keys() if k not in excluded and k in keys]
-		defaultKeys += [k for k in Team().calculatedData.__dict__.keys() if k in keys]
-		defaultKeys = sorted(defaultKeys, key = lambda k: (k != 'number', k.lower()))
-		writer = csv.DictWriter(f, fieldnames = defaultKeys)
-		writer.writeheader()
-		for team in comp.teams:
-			team.numMatchesPlayed = len(calculator.su.getCompletedMatchesForTeam(team))
-			tDict = team.__dict__
-			tDict.update(team.calculatedData.__dict__)
-			keys = sorted(defaultKeys, key = lambda k: (k != 'number', k.lower()))
-			writer.writerow({k : tDict[k] for k in keys})
-
 #Creates a dictionary of teams and their keys are the data associated with them
 def readOPRData(dataFilePath):
 	teamsDict = {}
@@ -116,7 +100,7 @@ def CSVExportTIMDALL(comp):
 	CSVExportTIMD(comp, 'TIMDALL', keys = TeamInMatchData().__dict__.keys() + TeamInMatchData().calculatedData.__dict__.keys())
 
 def CSVExportMatchPredictedErrors(comp):
-	CSVExportMatch(comp, 'PREDICTEDERRORS', keys = ['number', 'predictedBlueRPs', 'predictedRedRPs', 'actualBlueRPs', 'actualRedRPs'])
+	CSVExportMatch(comp, 'PREDICTEDERRORS', keys = ['number', 'predictedBlueScore', 'predictedRedScore', 'blueScore', 'redScore', 'redWinChance', 'blueWinChance'])
 
 def CSVExportMatchFoulComparison(comp):
 	CSVExportMatch(comp, 'FOULCOMPARISON', keys = ['number', 'foulPointsGainedBlue', 'foulPointsGainedRed', 'blueScore', 'redScore'])

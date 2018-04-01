@@ -47,6 +47,7 @@ while(True):
 				elif cmd[2] == '-fouls':
 					CSVExportMatchFoulComparison(comp)
 					comp.PBC.sendExport('EXPORT-FOULCOMPARISON.csv')
+		
 		except Exception as e:
 			if len(cmd) < 3:
 				print('The command exp requires 3 arguments, you provided ' + str(len(cmd)))			

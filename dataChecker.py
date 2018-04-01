@@ -64,12 +64,14 @@ class DataChecker(multiprocessing.Process):
 
 	def consolidateParking(self, consolidation, matches, key, sprKing):
 		team = 'frc' + key.split('Q')[0]
-		match = filter(lambda match: match['match_number'] == key and match['comp_level'] == 'qm', matches)[0]
-		if match['score_breakdown']:
+		matchNum = int(key.split('Q')[1])
+		match = filter(lambda match: match['match_number'] == matchNum and match['comp_level'] == 'qm', matches)[0]
+		try:
+			match['score_breakdown']
 			allianceColor = 'blue' if team in match['alliances']['blue']['team_keys'] else 'red'
 			robotNum = (match['alliances'][allianceColor]['team_keys'].index(team)) + 1
 			didPark = (match['score_breakdown'][allianceColor]['endgameRobot' + str(robotNum)] == 'Parking')
-		else:
+		except:
 			didPark = self.commonValue(consolidation, sprKing)
 		return didPark			
 
