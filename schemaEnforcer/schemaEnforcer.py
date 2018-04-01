@@ -271,7 +271,7 @@ try:
 			formatKeyWarning(x, [], cF[x])
 		elif x in ['AppTokens', 'scouts', 'availability', 'slackProfiles']:
 			continue # Who cares about app tokens?
-		elif x in ["TempTeamInMatchDatas", "TeamInMatchDatas", "Teams"]: # Doesn't check first child name
+		elif x in ["TempTeamInMatchDatas", "TeamInMatchDatas", "Teams", "SPRs"]: # Doesn't check first child name
 			if type(cF[x]) == dict and type(sD[x]) == dict:
 				for y in cF[x]:
 					if y not in sD[x]:

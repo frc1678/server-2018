@@ -800,7 +800,7 @@ class Calculator(object):
                     self.calcTIMDs.append(timd)
                 time.sleep(.01)
             self.comp.TIMDs = self.calcTIMDs
-            #self.setPointsPerCubes()
+            self.setPointsPerCubes()
             self.cacheFirstTeamData()
             self.doFirstTeamCalculations()
             self.cacheSecondTeamData()

@@ -108,6 +108,7 @@ def firstCalculationDict(team, calc):
         numSuccessfulClimbs = lambda tm: tm.calculatedData.didClimb,
         totalNumRobotsLifted = lambda tm: tm.calculatedData.numRobotsLifted,
         )
+    cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
     cd.predictedPark = calc.predictedParkForTeam(team)
     cd.soloClimbPercentage = calc.getPercentageForClimbType(team, 'soloClimb', False)
     cd.assistedClimbPercentage = calc.getPercentageForClimbType(team, 'assistedClimb', False)
