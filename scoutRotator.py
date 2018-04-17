@@ -3,6 +3,7 @@ import pyrebase
 import DataModel
 import SPR
 import firebaseCommunicator
+import settingsCommunicator
 import time
 import traceback
 import CrashReporter
@@ -11,12 +12,13 @@ import json
 
 SPR = SPR.ScoutPrecision()
 PBC = firebaseCommunicator.PyrebaseCommunicator()
+SC = settingsCommunicator.SettingsCommunicator()
 fb = PBC.firebase
 global oldMatchNum
 oldMatchNum = fb.child('currentMatchNum').get().val()
 
-numScouts = 26
-scouts = 'Justin Joey Amanda Anoushka Zoe Zach Rolland Teo Hanson Jack Tim Calvin Asha Erik James Carl Freddy Carter Kenny Emily Eli Stephen Aidan Aakash Zatara David'.split()
+scouts = "Aakash Aidan Amanda Anoushka Asha Calvin Carl Carter David Emily Erik Ethan Freddy Hanson Jack Janet Jon Justin Kenny Lasthenia Lyra Rolland Sam Stephen Teo Tim Zachary Zatara Zoe Backup1 Backup2 Backup3 Backup4 Backup5".split()
+numScouts = len(scouts)
 
 #Creates list of availability values in firebase for each scout
 def resetAvailability():
@@ -36,7 +38,6 @@ def resetScouts():
 def doSPRsAndAssignments(data):
 	#Wait until the availability has been confirmed to be correct
 	try:
-		fb.child('scouts/matches').set(None)
 		#Finds and assigns available scouts
 		available = [k for (k, v) in fb.child('availability').get().val().items() if v == 1]
 		if len(available) > (SPR.numTablets - len(SPR.unusedTablets)):
@@ -45,11 +46,15 @@ def doSPRsAndAssignments(data):
 				fb.child('currentMatchNum').set((int(newMatchNumber) - 1))
 				return
 		#Calculates scout precision rankings
-		SPR.calculateScoutPrecisionScores(fb.child('TempTeamInMatchDatas').get().val(), available)
-		SPR.sprZScores(PBC)
+		try:
+			SPR.calculateScoutPrecisionScores(fb.child('TempTeamInMatchDatas').get().val(), available)
+			SPR.sprZScores(PBC)
+		except Exception as e:
+			#If spr calculation fails, it prints the error, but doesn't intercept with the scoutRotator
+			print(e)
 		with open('./disagreementBreakdownExport.json', 'w') as file:
 			json.dump(SPR.disagreementBreakdown, file)
-		fb.child('SPRs').set(SPR.sprs)
+		SC.firebase.child('SPRs').set(SPR.sprs)
 		#Gets scouting data from firebase
 		startingMatchNumber = str(fb.child('currentMatchNum').get().val())
 		for newMatchNumber in range(int(startingMatchNumber), int(startingMatchNumber) + 10):
@@ -78,36 +83,16 @@ def doSPRsAndAssignments(data):
 def tabletHandoutStream():
 	resetAvailability()
 	resetScouts()
-	fb.child('cycleCounter').stream(doSPRsAndAssignments)
-
+	
 def startAtNewMatch(newMatchNum):
 	global oldMatchNum
 	if fb.child('currentMatchNum').get().val() > oldMatchNum:
 		doSPRsAndAssignments(newMatchNum)
 
-#Assign Scouts and Tablet Handouts- reset ALL scouts at beggining of day in a comp
-def notSimpleStream():
-	global oldMatchNum
-	fb.child('currentMatchNum').get().val()
-	oldScoutNames = [fb.child('scouts/assignments').get()]
-	scoutsAlreadySet = set(oldScoutNames)
-	if len(scoutsAlreadySet) >= 19:
-		#If it's good, it's good. -Kenny 2k18
-		print(scoutsAlreadySet)
-		print('It\'s Good')
-	else:
-		#Otherwise, it's not good.
-		fb.child('currentMatchNum').stream(startAtNewMatch)
-	if oldScoutNames == []:
-		#If there are no scoutNames, then we have stuff to do
-		resetScouts()
-		resetAvailability()
-		fb.child('currentMatchNum').stream(doSPRsAndAssignments)
-
 #Use this if you are restarting the server and need to reassign scouts but scouts already have tablets
 #Also useful for unexpected changes in availability
 def simpleStream():
-	fb.child('currentMatchNum').stream(doSPRsAndAssignments)
+	fb.child('cycleCounter').stream(doSPRsAndAssignments)
 
 #Creates and prints a list of average amounts of inaccuracy by category
 def sprBreakdownExport():
@@ -133,3 +118,15 @@ def sortScoutDisagreements():
 	pprint.pprint(totalDisagreements)
 	pprint.pprint(sorted(totalDisagreements.items(), key = lambda scout: scout[1]))
 	pprint.pprint(sorted(SPR.sprs.items(), key = lambda scout: scout[1]))
+
+def doSPRs():
+	available = [k for (k, v) in fb.child('availability').get().val().items() if v == 1]
+	try:
+		SPR.calculateScoutPrecisionScores(fb.child('TempTeamInMatchDatas').get().val(), available)
+		SPR.sprZScores(PBC)
+	except Exception as e:
+		#If spr calculation fails, it prints the error, but doesn't intercept with the scoutRotator
+		print(e)
+	with open('./disagreementBreakdownExport.json', 'w') as file:
+		json.dump(SPR.disagreementBreakdown, file)
+	SC.firebase.child('SPRs').set(SPR.sprs)
