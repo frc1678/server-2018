@@ -44,11 +44,12 @@ testMode = False
 
 if testMode:
 	print(">>> Testing Mode <<<")
-	url = 'servervartest-2018'
+	#url = 'servervartest-2018'
+	url = 'scouting-2018-temp'
 else:
 	#url = 'servervartest-2018'
-	url = 'scouting-2018-9023a'
-	#url = 'scouting-2018-temp'
+	#url = 'scouting-2018-9023a'
+	url = 'scouting-2018-temp'
 	#url = 'schema-enforcer'
 
 config = {
@@ -269,7 +270,7 @@ try:
 	for x in cF:
 		if x not in sD:
 			formatKeyWarning(x, [], cF[x])
-		elif x in ['AppTokens', 'scouts', 'availability', 'slackProfiles']:
+		elif x in ['AppTokens', 'scouts', 'availability', 'slackProfiles', 'activeSlackProfiles', 'TempQRTeamInMatchDatas']:
 			continue # Who cares about app tokens?
 		elif x in ["TempTeamInMatchDatas", "TeamInMatchDatas", "Teams", "SPRs"]: # Doesn't check first child name
 			if type(cF[x]) == dict and type(sD[x]) == dict:
@@ -581,10 +582,10 @@ if areErrors:
 		if not testMode:
 			slack.api_call('chat.postMessage',
 			        channel = '#2_schema_changes',
-			        as_user = False,
-			        username = 'schemaEnforcer',
-			        icon_url = urls[status],
-			        attachments = attachments
+			        as_user = True,
+			        #username = 'schemaEnforcer',
+			        #icon_url = urls[status],
+			        attachments = attachments,
 			)
 
 		shouldDelete = deleteInput()
