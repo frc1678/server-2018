@@ -33,7 +33,6 @@ def resetScouts():
 	cycleCounter = fb.child('cycleCounter').get().val()
 	fb.child('scouts').child('cycle').set(cycleCounter)
 
-
 #Main function for scout assignment
 def doSPRsAndAssignments(data):
 	#Wait until the availability has been confirmed to be correct

@@ -13,6 +13,9 @@ from collections import Counter
 were actual server code, I would make a module, but
 for fake database creation purposes it is not worth it'''
 
+def stdList(lis):
+	return np.std(lis)
+
 def mode(lis):
 	highestItemCount = [0, 0]
 	for item, count in dict(Counter(lis)).items():

@@ -4,6 +4,7 @@ import DataModel
 import pdb
 import traceback
 import firebaseCommunicator
+import time
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 
 def mapFuncForCalcAvgsForTeam(team, func, **calcDatas):		
@@ -57,6 +58,11 @@ def firstCalculationDict(team, calc):
         avgTimeToOwnScaleAuto = lambda tm: tm.calculatedData.timeToOwnScaleAuto,
         avgNumCubesPlacedAuto = lambda tm: tm.calculatedData.numCubesPlacedAuto,
         avgNumCubesPlacedTele = lambda tm: tm.calculatedData.numCubesPlacedTele,
+        avgTotalCubesPlaced = lambda tm: tm.calculatedData.totalCubesPlaced,
+        avgScaleCubesBy100s = lambda tm: tm.calculatedData.numCubesScaleAt100s,
+        avgScaleCubesBy110s = lambda tm: tm.calculatedData.numCubesScaleAt110s,
+        avgSwitchOwnership = lambda tm: tm.calculatedData.switchOwnership,
+        avgAllVaultTime = lambda tm: tm.calculatedData.avgVaultTime,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getRecentAverageForDataFunctionForTeam(team, f),
         lfmDisabledPercentage = lambda tm: tm.didGetDisabled,
@@ -100,6 +106,11 @@ def firstCalculationDict(team, calc):
         lfmAvgNumCubesPlacedTele = lambda tm: tm.calculatedData.numCubesPlacedTele,
         lfmAutoRunPercentage = lambda tm: tm.didMakeAutoRun,
         lfmAvgClimbTime = lambda tm: tm.calculatedData.climbTime,
+        lfmAvgTotalCubesPlaced = lambda tm: tm.calculatedData.totalCubesPlaced,
+        lfmAvgScaleCubesBy100s = lambda tm: tm.calculatedData.numCubesScaleAt100s,
+        lfmAvgScaleCubesBy110s = lambda tm: tm.calculatedData.numCubesScaleAt110s,
+        lfmAvgSwitchOwnership = lambda tm: tm.calculatedData.switchOwnership,
+        lfmAvgAllVaultTime = lambda tm: tm.calculatedData.avgVaultTime,
         )
     mapFuncForCalcAvgsForTeam(team, lambda f: calc.getSumForDataFunctionForTeam(team, f),
         totalNumGoodDecisions = lambda tm: tm.numGoodDecisions,
@@ -142,9 +153,10 @@ def firstCalculationDict(team, calc):
     cd.lfmMaxExchangeCubes = calc.getMaxExchangeCubes(team, True)
     cd.numMatchesPlayed = len(calc.su.getCompletedTIMDsForTeam(team))
     cd.parkPercentage = calc.parkPercentageForTeam(team)
-    cd.totalCubesPlaced = calc.getTotalCubesPlaced(team, False)
-    cd.lfmTotalCubesPlaced = calc.getTotalCubesPlaced(team, True)
     cd.autoRunPercentage = calc.autoRunBackup(team)
+    if cd.avgClimbTime == None:
+        cd.avgClimbTime = 0.0
+        cd.lfmAvgClimbTime = 0.0
 
 def Rscorecalcs(team, calc):
     cd = team.calculatedData
@@ -159,6 +171,8 @@ def secondCalculationDict(team, calc):
     cd.teleopExchangeAbility = calc.getTeleopExchangeAbilityForTeam(team)
     cd.teleopAllianceSwitchAbility = calc.getTeleopAllianceSwitchAbilityForTeam(team)
     cd.teleopOpponentSwitchAbility = calc.getTeleopOpponentSwitchAbilityForTeam(team)
+    cd.vaultTimeScore = calc.getVaultTimeScore(team)
+    cd.totalNumRPs = calc.totalNumRPsForTeam(team)
     cd.predictedTotalNumRPs = calc.predictedTotalNumRPsForTeam(team)
     cd.predictedNumRPs = calc.predictedNumRPsForTeam(team)
     try:
@@ -207,6 +221,7 @@ def TIMDCalcDict(timd, calc):
     c.numOpponentPlatformIntakeTele = calc.getTotalSuccessForListOfBools(timd.opponentPlatformIntakeTele)
     c.numCubesPlacedAuto = calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptAuto, timd.scaleAttemptAuto])
     c.numCubesPlacedTele = (calc.getTotalSuccessForListListDicts([timd.allianceSwitchAttemptTele, timd.opponentSwitchAttemptTele, timd.scaleAttemptTele])) + timd.numExchangeInput
+    c.totalCubesPlaced = (c.numCubesPlacedAuto + c.numCubesPlacedTele)
     c.numClimbAttempts = calc.getClimbAttempts(timd.climb)
     c.drivingAbility = calc.drivingAbilityForTeam(team)
     c.didConflictWithAuto = calc.checkAutoForConflict()
@@ -217,6 +232,10 @@ def TIMDCalcDict(timd, calc):
     c.timeToOwnScaleAuto = calc.getTimeToOwnScaleAuto(timd)
     c.canScoreOppositeSwitchAuto = calc.getCanScoreOppositeSwitch(timd, team, match)
     c.switchIsOpposite = calc.getSwitchIsOpposite(timd, team, match)
+    c.numCubesScaleAt100s = calc.scaleCubesByCertainTime(timd, 35)
+    c.numCubesScaleAt110s = calc.scaleCubesByCertainTime(timd, 25)
+    c.switchOwnership = calc.switchOwnership(timd)
+    c.avgVaultTime = calc.getAvgVaultTime(timd.vault)
 
 def averageTeamDict(calc):
     a = calc.averageTeam

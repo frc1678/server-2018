@@ -31,6 +31,3 @@ for match in listOfMatches:
 		elif getTeamAllianceIsRedInMatch(team, match) == False:
 			for allianceTeam in getAllianceInMatch(match, False):
 				matrix[teamsToListPlacement.get(team)][teamsToListPlacement.get(allianceTeam)] += 1
-
-#Solves the error of same teams adding to the matrix twice
-map(lambda num: matrix[num][num] -= 9, range(len(listOfTeams - 1)))

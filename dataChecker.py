@@ -4,6 +4,7 @@ import numpy as np
 import utils
 import multiprocessing
 import firebaseCommunicator
+import settingsCommunicator
 import time
 import pdb
 from TBACommunicator import TBACommunicator
@@ -23,6 +24,7 @@ boolDictKeys = ['alliancePlatformIntakeAuto', 'alliancePlatformIntakeTele', 'opp
 constants = ['matchNumber', 'teamNumber']
 
 PBC = firebaseCommunicator.PyrebaseCommunicator()
+SC = settingsCommunicator.SettingsCommunicator()
 firebase = PBC.firebase
 tbac = TBACommunicator()
 spr = SPR.ScoutPrecision()
@@ -36,6 +38,7 @@ class DataChecker(multiprocessing.Process):
 	#Gets a common value for a list depending on the data type
 	def commonValue(self, vals, sprKing):
 		#If there are several types, they are probably misformatted bools (e.g. 0 or None for False), so attempt tries turning them into bools and trying again
+		
 		if len(set(map(type, vals))) != 1:
 			return self.attempt(vals, sprKing)
 		#If the values are bools, it goes to a function for bools
@@ -73,7 +76,20 @@ class DataChecker(multiprocessing.Process):
 			didPark = (match['score_breakdown'][allianceColor]['endgameRobot' + str(robotNum)] == 'Parking')
 		except:
 			didPark = self.commonValue(consolidation, sprKing)
-		return didPark			
+		return didPark	
+
+	def consolidateAutoRun(self, consolidation, matches, key, sprKing):
+		team = 'frc' + key.split('Q')[0]
+		matchNum = int(key.split('Q')[1])
+		match = filter(lambda match: match['match_number'] == matchNum and match['comp_level'] == 'qm', matches)[0]
+		try:
+			match['score_breakdown']
+			allianceColor = 'blue' if team in match['alliances']['blue']['team_keys'] else 'red'
+			robotNum = (match['alliances'][allianceColor]['team_keys'].index(team)) + 1
+			didAutoRun = (match['score_breakdown'][allianceColor]['autoRobot' + str(robotNum)] == 'AutoRun')
+		except:
+			didAutoRun = self.commonValue(consolidation, sprKing)
+		return didAutoRun		
 
 	#Returns the most common value in a list, or the average if no value is more than half the list
 	def joinList(self, values, sprKing):
@@ -83,7 +99,10 @@ class DataChecker(multiprocessing.Process):
 			try:
 				return mCV if values.count(mCV) > len(values) / 2 else values[sprKing]
 			except:
-				return
+				try:
+					return values[sprKing]
+				except:
+					return values[-1]
 
 	def commonValueForBoolDict(self, consolidationList, sprKing):
 		conjunctionJunction = [[],[],[],[],[],[]]
@@ -98,12 +117,14 @@ class DataChecker(multiprocessing.Process):
 	#Same function as findCommonValuesForKeys except for climbs specifically because of the different schema
 	def findCommonValuesForClimb(self, lis, sprKing):
 		if lis:
-			largestListLength = max(map(len, lis))
+			modeListLength = utils.mode(map(len, lis))
+			if modeListLength == None:
+				modeListLength = map(len, lis)[sprKing]
 			for aScout in lis:
-				if len(aScout) < largestListLength:
+				if len(aScout) < modeListLength:
 					aScout += [{'soloClimb' : {'didSucceed': False, 'startTime': 0.0, 'endTime': 0.0}}]
 			returnList = []
-			for num in range(largestListLength):
+			for num in range(modeListLength):
 				returnList += [{}]
 				dicts = [scout[num] for scout in lis]
 				consolidationDict = {}
@@ -135,28 +156,29 @@ class DataChecker(multiprocessing.Process):
 						offset += 1
 						offsetList + [scoutNum]
 					scoutNum += 1
-
+				
 				sprKing = sprKing - len([n for n in offsetList if n <= sprKing])
-
 				for key in dicts[0][dicts[0].keys()[0]].keys():
 					consolidationDict[key] = []
 					for aDict in dicts:
 						consolidationDict[key] += [aDict[(aDict.keys()[0])][key]]	
-
 				returnList[num][climbType] = {}
 				for key in consolidationDict.keys():
 					if key != 'partnerLiftType':
-						returnList[num][climbType].update({key: self.commonValue(consolidationDict[key], sprKing)})
-				
+						if sprKing <= (len(consolidationDict[key]) - 1):
+							returnList[num][climbType].update({key: self.commonValue(consolidationDict[key], sprKing)})
+						else:
+							returnList[num][climbType].update({key: self.commonValue(consolidationDict[key], (len(consolidationDict[key]) - 1))})
+						
 				#Strange happenings in the down-low - Don't ask if you can't handle the truth
 				try:
 					if len(consolidationDict['partnerLiftType']) == 1:
-						returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType']})
+						returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType'][0]})
 					elif len(consolidationDict['partnerLiftType']) % 2 == 0:
 						if consolidationDict['partnerLiftType'][0] == consolidationDict['partnerLiftType'][1]:
 							returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType'][0]})
 						else:
-							returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType'][random.randint(0, 1)]})
+							returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType'][sprKing]})
 							#change to whoever has better SPR
 					else:
 						liftTypeFrequencies = map(consolidationDict['partnerLiftType'].count, consolidationDict['partnerLiftType'])
@@ -169,14 +191,71 @@ class DataChecker(multiprocessing.Process):
 					pass
 			return returnList
 
+	def findCommonValuesForVault(self, lis, sprKing):
+		if lis:
+			modeListLength = utils.mode(map(len, lis))
+			if modeListLength == None:
+				modeListLength = map(len, lis)[sprKing]
+			for aScout in lis:
+				if len(aScout) < modeListLength:
+					pass
+				elif len(aScout) > modeListLength:
+					aScout = aScout[0:modeListLength]
+			returnList = []
+			print('first')
+			for num in range(modeListLength):
+				returnList += [{}]
+				consolidationDict = {}
+				try:
+					keys = lis[sprKing][num].keys()
+				except:
+					keys = ['cubes', 'time']
+				for key in keys:
+					consolidationDict[key] = []
+					for aDict in lis:
+						try:
+							consolidationDict[key] += [aDict[num][key]]
+						except:
+							pass
+				print('here')
+				returnList[num].update({'cubes': self.commonValue(consolidationDict['cubes'], sprKing)})
+				print('wat')
+				times = [time for scout, time in enumerate(consolidationDict['time']) if consolidationDict['cubes'][scout] == returnList[num]['cubes']]
+				print('here')
+				try:
+					stdTimes = utils.stdList(times)
+					mean = utils.avg(times)
+					zscores = {time : ((time - mean) / stdTimes) for time in times}
+					times = [time for time in times if zscores[time] < 1.0]
+				except:
+					pass
+				if times != []:
+					returnList[num].update({key: utils.avg(times)})
+				else:
+					try:
+						returnList[num].update({key: consolidationDict['time'][sprKing]})
+					except:
+						returnList[num].update({key: consolidationDict['time'][(len(consolidationDict['time']) - 1)]})
+			return returnList
+
+	def totalVaultInput(self, vault):
+		totalCubes = 0
+		for cycle in vault:
+			totalCubes += cycle['cubes']
+		return totalCubes
+
 	def findCommonValuesForKeys(self, lis, sprKing):
 		if lis:
-			largestListLength = max(map(len, lis))
+			modeListLength = utils.mode(map(len, lis))
+			if modeListLength == None:
+				modeListLength = map(len, lis)[sprKing]
 			for aScout in lis:
-				if len(aScout) < largestListLength:
-					aScout += [{'didSucceed': False, 'startTime': 0.0, 'endTime': 0.0, 'status': 'balanced', 'layer': 0}] * (largestListLength - len(aScout))
+				if len(aScout) < modeListLength:
+					aScout += [{'didSucceed': False, 'startTime': 0.0, 'endTime': 0.0}] * (modeListLength - len(aScout))
+				elif len(aScout) > modeListLength:
+					aScout = aScout[0:modeListLength]
 			returnList = []
-			for num in range(largestListLength):
+			for num in range(modeListLength):
 				returnList += [{}] #adds a list of dictionaries to the returnList for every character (the length) in the largest list
 				#Finds dicts that should be the same (e.g. status) within the tempTIMDs
 				#This means comparisons such as the first cube attempt in teleop by a given robot, as recorded by multiple scouts
@@ -194,8 +273,8 @@ class DataChecker(multiprocessing.Process):
 							elif key == 'layer':
 								consolidationDict[key] += [1]
 					if 'Time' in key:
+						consolidationDict[key] = [float(k) for k in consolidationDict[key]]
 						returnList[num].update({key: self.commonValue(consolidationDict[key], sprKing)})
-
 				#Same thing with didSucceed
 				if len(consolidationDict['didSucceed']) == 1:
 					returnList[num].update({'didSucceed': consolidationDict['didSucceed'][0]})
@@ -209,7 +288,6 @@ class DataChecker(multiprocessing.Process):
 						returnList[num].update({'didSucceed': commonSuccess})
 					else:
 						returnList[num].update({'didSucceed': consolidationDict['didSucceed'][sprKing]})
-
 				offset = 0
 				offsetList = []
 				if False in consolidationDict['didSucceed'] and returnList[num]['didSucceed'] == True:
@@ -221,16 +299,18 @@ class DataChecker(multiprocessing.Process):
 							offsetList + [number]
 
 				sprKing = sprKing - len([n for n in offsetList if n <= sprKing])
-
 				if returnList[num]['didSucceed'] == True:
 					#If there is only one scout, their statement about status is accepted as right
 					if len(consolidationDict['status']) == 1:
 						returnList[num].update({'status': consolidationDict['status'][0]})
 					elif len(consolidationDict['status']) % 2 == 0:
-						if consolidationDict['status'][0].lower() == consolidationDict['status'][1]:
+						if consolidationDict['status'][0].lower() == consolidationDict['status'][1].lower():
 							returnList[num].update({'status': consolidationDict['status'][0]})
 						else:
-							returnList[num].update({'status': consolidationDict['status'][sprKing]})
+							if sprKing <= (len(consolidationDict['status']) - 1):
+								returnList[num].update({'status': consolidationDict['status'][sprKing]})
+							else:
+								returnList[num].update({'status': consolidationDict['status'][(len(consolidationDict['status']) - 1)]})
 							#change to whoever has better SPR
 					#If there are 3 scouts (or more, but that shouldn't happen), the status value is the most common status value
 					else:
@@ -239,8 +319,10 @@ class DataChecker(multiprocessing.Process):
 						if max(statusFrequencies) > 1:
 							returnList[num].update({'status': commonStatus})
 						else:
-							returnList[num].update({'status': consolidationDict['status'][sprKing]})
-
+							if sprKing <= (len(consolidationDict['status']) - 1):
+								returnList[num].update({'status': consolidationDict['status'][sprKing]})
+							else:
+								returnList[num].update({'status': consolidationDict['status'][(len(consolidationDict['status']) - 1)]})
 					#Same thing with layer
 					if len(consolidationDict['layer']) == 1:
 						returnList[num].update({'layer': consolidationDict['layer'][0]})
@@ -248,7 +330,10 @@ class DataChecker(multiprocessing.Process):
 						if consolidationDict['layer'][0] == consolidationDict['layer'][1]:
 							returnList[num].update({'layer': consolidationDict['layer'][0]})
 						else:
-							returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
+							if sprKing <= (len(consolidationDict['status']) - 1):
+								returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
+							else:
+								returnList[num].update({'layer': consolidationDict['layer'][(len(consolidationDict['status']) - 1)]})
 							#change to whoever has better SPR
 					else:
 						layerFrequencies = map(consolidationDict['layer'].count, consolidationDict['layer'])
@@ -256,13 +341,16 @@ class DataChecker(multiprocessing.Process):
 						if max(layerFrequencies) > 1:
 							returnList[num].update({'layer': commonLayer})
 						else:
-							returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
+							if sprKing <= (len(consolidationDict['status']) - 1):
+								returnList[num].update({'layer': consolidationDict['layer'][sprKing]})
+							else:
+								returnList[num].update({'layer': consolidationDict['layer'][(len(consolidationDict['status']) - 1)]})
 			return returnList
 
 	#Combines data from whole TIMDs
-	def joinValues(self, key, matches):
+	def joinValues(self, key, matches, sprDict):
 		returnDict = {}
-		sprKing = self.getSPRKing(map(lambda tm: (tm.get('scoutName') or []), self.consolidationGroups[key]))
+		sprKing = self.getSPRKing(sprDict, map(lambda tm: (tm.get('scoutName') or []), self.consolidationGroups[key]))
 		#Flattens the list of lists of keys into a list of keys
 		for k in self.getAllKeys(map(lambda v: v.keys(), self.consolidationGroups[key])):
 			if k in boolDictKeys:
@@ -274,9 +362,19 @@ class DataChecker(multiprocessing.Process):
 			elif k == 'didPark':
 				#Gets didPark from TBA
 				returnDict.update({k: self.consolidateParking(self.getConsolidationList(key, k), matches, key, sprKing)})
+			elif k == 'didAutoRun':
+				#Gets didAutoRun from TBA
+				returnDict.update({k: self.consolidateAutoRun(self.getConsolidationList(key, k), matches, key, sprKing)})
 			elif k == 'climb':
 				#Finds a common value for climbs 
 				returnDict.update({k: self.findCommonValuesForClimb(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key]), sprKing)})
+			elif k == 'vault':
+				#Gets a common value for lists of dicts (for cube values) and puts it into the combined TIMD
+				returnDict.update({k: self.findCommonValuesForVault(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key]), sprKing)})
+			elif k == 'mode':
+				pass
+			elif k == 'cycle':
+				pass
 			elif k in constants:
 				#Constants should be the same across all tempTIMDs, so the common value is just the value in one of them
 				#Puts the value into the combined TIMD
@@ -284,31 +382,26 @@ class DataChecker(multiprocessing.Process):
 			else:
 				#Gets a common value across any kind of list of values and puts it into the combined TIMD
 				returnDict.update({k: self.commonValue(self.getConsolidationList(key, k), sprKing)})
+		try:
+			returnDict.update({'numExchangeInput' : self.totalVaultInput(returnDict['vault'])})
+		except:
+			returnDict.update({'numExchangeInput' : 0})
 		return returnDict
 
 	#Gets the index of the scout with the lowest SPR
-	def getSPRKing(self, preScoutNames):
-		scoutNames = []
-		sprDict = {}
-		with open('scoutRankExport.csv', 'r') as sre:
-			sprs = csv.DictReader(sre, delimiter = ' ', quotechar = '|')
-			for row in sre:
-				try:
-					sprDict[row.split(',')[0]] = row.split(',')[1]
-				except:
-					pass
-		for item in preScoutNames:
-			scoutNames.append(item.strip())
-		if scoutNames:
-			if sprDict:
-				try:
-					return 0 if sprDict[scoutNames[0]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else 1 if sprDict[scoutNames[1]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else 2 if sprDict[scoutNames[0]] == min([int(sprDict[scoutName]) for scoutName in scoutNames]) else random.randint(0,3) 
-				except:
-					return 0
+	def getSPRKing(self, sprDict, scoutNames):
+		try:
+			sortedList = sorted(scoutNames, key = lambda scout: sprDict[scout])
+			if sortedList:
+				return scoutNames.index(sortedList[0])
 			else:
 				return 0
-		else:
+		except:
 			return 0
+
+	def getSPRList(self):
+		sprs = SC.firebase.child('SPRs').get().val()
+		return dict(sprs)
 
 	#Flattens the list of lists of keys into a list of keys
 	def getAllKeys(self, keyArrays):
@@ -329,29 +422,37 @@ class DataChecker(multiprocessing.Process):
 		return listToConsolidate
 
 	#Consolidates tempTIMDs for the same team and match
-	def getConsolidationGroups(self, tempTIMDs):
+	def getConsolidationGroups(self, tempTIMDs, curMatch):
+		actualKeys = list(set([key.split('-')[0] for key in tempTIMDs.keys()]))
+		return {key : [v for k, v in tempTIMDs.items() if k.split('-')[0] == key] for key in actualKeys if int(key.split('Q')[1]) > (int(curMatch) - 5)}
+
+	def getFullConsolidationGroups(self, tempTIMDs, curMatch):
 		actualKeys = list(set([key.split('-')[0] for key in tempTIMDs.keys()]))
 		return {key : [v for k, v in tempTIMDs.items() if k.split('-')[0] == key] for key in actualKeys}
 
 	#Retrieves and consolidates tempTIMDs from firebase and combines their data, putting the result back onto firebase as TIMDs
-	def run(self):
-		while(True):
-			tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
-			#Keeps on iterating over the tempTIMDs until none exists on firebase
-			if tempTIMDs == None:
-				time.sleep(5)
-				continue
-			matches = tbac.makeEventMatchesRequest()
-			self.consolidationGroups = self.getConsolidationGroups(tempTIMDs)
-			index = 0
-			while index < len(self.consolidationGroups.keys()):
-				key = self.consolidationGroups.keys()[index]
-				#Updates a TIMD on firebases
-				try:
-					firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key, matches))
-					index += 1
-				except Exception as e:
-					continue
-			time.sleep(10)
-
-DataChecker().start()
+	def run(self, isFull):
+		tempTIMDs = firebase.child('TempTeamInMatchDatas').get().val()
+		#Keeps on iterating over the tempTIMDs until none exists on firebase
+		if tempTIMDs == None:
+			time.sleep(5)
+			print('> No tempTIMDs to compute\n')
+			return
+		print(' Taken tempTIMDs from firebase...')
+		matches = tbac.makeEventMatchesRequest()
+		curMatch = firebase.child('currentMatchNum').get().val()
+		if isFull:
+			self.consolidationGroups = self.getFullConsolidationGroups(tempTIMDs, curMatch)
+		else:
+			self.consolidationGroups = self.getConsolidationGroups(tempTIMDs, curMatch)
+		index = 0
+		sprDict = self.getSPRList()
+		while index < len(self.consolidationGroups.keys()):
+			key = sorted(self.consolidationGroups.keys(), key = lambda k: int(k.split('Q')[1]), reverse = True)[index]
+			print('> Consolidating ' + key)
+			#Updates a TIMD on firebases
+			try:
+				firebase.child('TeamInMatchDatas').child(key).update(self.joinValues(key, matches, sprDict))
+				index += 1
+			except Exception as e:
+				print(e)

@@ -10,27 +10,33 @@ comp = DataModel.Competition(pbc)
 db = pbc.firebase
 
 teams = [team['key'] for team in TBAC.makeEventTeamsRequest()]
-selected = ['team', 'autoRun', 'climb']
+selected = ['team', 'autoRun', 'climb', 'autoScale', 'autoSwitch']
 masterList = []
 
 print('Begining prescouting...')
-
+auto = {}
 for team in teams:
-	events = [event['event_code'] for event in TBAC.makeTeamEventsRequest(team) if event['week'] < 4]
+	full = {event['event_code'] : event['week'] for event in TBAC.makeTeamEventsRequest(team) if event['event_code'] != 'new'}
+	events = sorted([event for event in full.keys()], key = lambda event: full[event])
+	event = events[-1]
 	autoRuns = []
 	climbs = []
+	autoScales = []
+	autoSwitches = []
 	print('Prescouting for ' + team.split('c')[1] + '...')
 	for event in events:
-		matches = TBAC.makeRequest(TBAC.basicURL + 'team/' + team + '/event/' + str(TBAC.year) + event + '/matches')
-		for match in matches:
-			allianceColor = 'blue' if team in match['alliances']['blue']['team_keys'] else 'red'
-			robotNum = (match['alliances'][allianceColor]['team_keys'].index(team)) + 1
-			autoRuns += [True if match['score_breakdown'][allianceColor]['autoRobot' + str(robotNum)]  == 'AutoRun' else False]
-			climbs += [True if match['score_breakdown'][allianceColor]['endgameRobot' + str(robotNum)]  == 'Climbing' else False]
+	matches = TBAC.makeRequest(TBAC.basicURL + 'team/' + team + '/event/' + str(TBAC.year) + event + '/matches')
+	for match in matches:
+		allianceColor = 'blue' if team in match['alliances']['blue']['team_keys'] else 'red'
+		robotNum = (match['alliances'][allianceColor]['team_keys'].index(team)) + 1
+		autoRuns += [True if match['score_breakdown'][allianceColor]['autoRobot' + str(robotNum)]  == 'AutoRun' else False]
+		climbs += [True if match['score_breakdown'][allianceColor]['endgameRobot' + str(robotNum)]  == 'Climbing' else False]
+		autoScales += [match['score_breakdown'][allianceColor]['autoScaleOwnershipSec']]
+		autoSwitches += [match['score_breakdown'][allianceColor]['autoSwitchOwnershipSec']]
 	if events:
-		masterList += [{'team' : team, 'autoRun' : utils.avg(autoRuns), 'climb' : utils.avg(climbs)}]
+		masterList += [{'team' : team, 'autoRun' : utils.avg(autoRuns), 'climb' : utils.avg(climbs), 'autoScale' : utils.avg(autoScales), 'autoSwitch' : utils.avg(autoSwitches)}]
 	else:
-		masterList += [{'team' : team, 'autoRun' : None, 'climb' : None}]
+		masterList += [{'team' : team, 'autoRun' : None, 'climb' : None, 'autoSwitch' : None, 'autoScale' : None}]
 
 print('Prescouting Complete. Exporting to csv...')
 

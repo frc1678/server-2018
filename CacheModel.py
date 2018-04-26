@@ -16,5 +16,6 @@ class CachedCompetitionData(object):
 		self.predictedSeedings = []
 		self.actualSeedings = []
 		self.TBAMatches = {}
+		self.TBARankings = {}
 		self.scaleErrors = {}
 		self.switchErrors = {}

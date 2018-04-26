@@ -99,6 +99,11 @@ class SchemaUtils(object):
         dic = {timd.matchNumber : timd for timd in timds}
         return dic.values()
 
+    def getRecentCompletedTIMDsInCompetition(self):
+        completedTIMDs = self.getCompletedTIMDsInCompetition()
+        highestMatch = max([timd.matchNumber for timd in completedTIMDs])
+        return [timd for timd in completedTIMDs if timd.matchNumber > (highestMatch - 5)]
+
     def getTIMDsForMatchForAllianceIsRed(self, match, allianceIsRed):
         if allianceIsRed:
             return filter(lambda t: t.teamNumber in match.redAllianceTeamNumbers, self.getTIMDsForMatch(match))

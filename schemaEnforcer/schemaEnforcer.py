@@ -47,9 +47,10 @@ if testMode:
 	url = 'servervartest-2018'
 else:
 	#url = 'servervartest-2018'
-	url = 'scouting-2018-9023a'
+	#url = 'scouting-2018-9023a'
 	#url = 'scouting-2018-temp'
 	#url = 'schema-enforcer'
+	url = 'scouting-2018-houston'
 
 config = {
 	"apiKey": "AIzaSyBXfDygtDWxzyRaLFO75XeGc2xhfvLLwkU ",

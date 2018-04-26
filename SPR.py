@@ -22,20 +22,21 @@ class ScoutPrecision(object):
 		#These keys are the names of sections of the tempTIMDs on which scouts will be graded
 		#The value is the weight, since some data points are more important than others
 		self.gradingKeys = {
+			'totalNumScaleFoul': 1.0,
 			'didGetDisabled': 2.0,
 			'didGetIncapacitated': 2.0,
 			'didMakeAutoRun': 2.0,
 			'didPark': 3.0,
 			'numCubesFumbledAuto': 1.0,
 			'numCubesFumbledTele': 1.0,
-			'numElevatedPyramidIntakeAuto': 1.0,
-			'numElevatedPyramidIntakeTele': 1.0,
+			'numElevatedPyramidIntakeAuto': 0.25,
+			'numElevatedPyramidIntakeTele': 0.25,
 			'numExchangeInput': 1.5,
-			'numGroundIntakeTele': 1.0,
-			'numGroundPortalIntakeTele': 1.0,
-			'numGroundPyramidIntakeAuto': 1.0,
-			'numGroundPyramidIntakeTele': 1.0,
-			'numHumanPortalIntakeTele': 1.0,
+			'numGroundIntakeTele': 0.25,
+			'numGroundPortalIntakeTele': 0.25,
+			'numGroundPyramidIntakeAuto': 0.25,
+			'numGroundPyramidIntakeTele': 0.25,
+			'numHumanPortalIntakeTele': 0.25,
 			'numReturnIntake': 1.0,
 			'numSpilledCubesAuto': 1.0,
 			'numSpilledCubesTele': 1.0,
@@ -177,11 +178,12 @@ class ScoutPrecision(object):
 			for index in range(len(lists[0])):
 				items = [lists[x][index] for x in range(len(lists))]
 				mode = utils.mode(items)
-				differenceFromMode = [weight if x != mode else 0 for x in items]
-				for c in range(len(differenceFromMode)):
-					if differenceFromMode[c] != 0:
-						self.disagreementBreakdown[scouts[c]].update({key: self.disagreementBreakdown[scouts[c]].get(key, 0) + 1})
-						self.sprs.update({scouts[c]: (self.sprs.get(scouts[c]) or 0) + differenceFromMode[c]})
+				if items.count(mode) >= (len(items) / 2) and mode != None:
+					differenceFromMode = [weight if x != mode else 0 for x in items]
+					for c in range(len(differenceFromMode)):
+						if differenceFromMode[c] != 0:
+							self.disagreementBreakdown[scouts[c]].update({key: self.disagreementBreakdown[scouts[c]].get(key, 0) + 1})
+							self.sprs.update({scouts[c]: (self.sprs.get(scouts[c]) or 0) + differenceFromMode[c]})
 
 	def findOddScoutForDict(self, tempTIMDs, key):
 		# Not used 2018, needs changes to weight items in a dict differently if used
@@ -214,7 +216,7 @@ class ScoutPrecision(object):
 				if len(unsortedLists[aScoutIndex]) == modeListLength:
 					lists.append(unsortedLists[aScoutIndex])
 					aScouts.append(allScouts[aScoutIndex])
-				elif modeAmount > 1: # Updates SPR if incorecct list amount and at least 2 scouts agree
+				elif modeAmount > 1: # Updates SPR if incorrect list amount and at least 2 scouts agree
 					self.sprs.update({allScouts[aScoutIndex]: (self.sprs.get(allScouts[aScoutIndex]) or 0) + weight})
 					self.disagreementBreakdown[allScouts[aScoutIndex]].update({key1:{'amount': (self.disagreementBreakdown[allScouts[aScoutIndex]].get(key1, {}).get('amount', 0) + 1) }})
 			# Need at least 2 scouts to compare, or SPR is not affected
@@ -333,7 +335,13 @@ class ScoutPrecision(object):
 			#Combines all tempTIMDs for the same match
 			g = self.consolidateTIMDs(temp)
 			#Makes a list of scouts with data
-			priorScouts = [ind['scoutName'] for timd in g.values() for ind in timd]
+			priorScouts = []
+			for timd in g.values():
+				 for ind in timd:
+				 	try:
+				 		priorScouts.append(ind['scoutName'])
+				 	except:
+				 		pass
 			priorScouts = set(priorScouts) #updates priorScouts so that one scoutName cannot appear more than once
 			for scout in priorScouts:
 				self.disagreementBreakdown.update({scout: {}})
@@ -397,7 +405,6 @@ class ScoutPrecision(object):
 				else:
 					avgScout[key] = np.mean(avgScout[key])
 			self.disagreementBreakdown.update({'avgScout': avgScout})
-			
 			# Sets avg score before new scouts are set to 0
 			realValues = filter(lambda x: x != -1, self.sprs.values())
 			self.avgScore = np.mean(realValues) if realValues else 1
@@ -416,7 +423,6 @@ class ScoutPrecision(object):
 				json.dump(self.sprs, f)
 			with open('./SPRBreakdownOutput.txt', 'w') as f:
 				json.dump(self.disagreementBreakdown, f)
-        
 		#If there are no tempTIMDs, everyone is set to 1
 		else:
 			for a in available:
