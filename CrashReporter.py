@@ -1,13 +1,15 @@
-#Last Updated: 2/11/18
 from slackclient import SlackClient
 
-with open('SlackToken.csv', 'r') as SlackToken:
-	slackToken = SlackToken.read()
+with open('SlackToken.csv', 'r') as file:
+	slackToken = file.read()
+	
 sc = SlackClient(slackToken)
+userIDs = [
+	'U32M6EFLP', #Ethan
+	'U749CSZ36', #Carl
+	'U2UPYFFGA', #Kenny
+]
 
-et = 'U32M6EFLP'
-cc = 'U749CSZ36'
-kz = 'U2UPYFFGA'
 #Sends slack message to listed user(s)
 def reportServerCrash(message):
 	map(lambda u:
@@ -15,7 +17,7 @@ def reportServerCrash(message):
 		'chat.postMessage',
 		channel = u,
 		text = message
-	), [et, cc, kz])
+	), userIDs)
 
 #Sends slack message to listed user(s)
 def reportOverestimate(message):
@@ -24,4 +26,4 @@ def reportOverestimate(message):
 		'chat.postMessage',
 		channel = '@' + u,
 		text = message
-	), [et, cc, kz])
+	), userIDs)
