@@ -156,7 +156,7 @@ class ScoutPrecision(object):
 		if values:
 			mode = utils.mode(values)
 			#If less than half of the values agree, SPR should not be affected
-			if values.count(mode) >= (len(values) / 2) and mode != None:
+			if True:#values.count(mode) >= (len(values) / 2) and mode != None:
 				#Makes a list of the differences from the common value multiplied by weight, for relative importance of data points
 				differenceFromMode = [weight if x != mode else 0 for x in values]
 				#Adds the difference from this tempTIMD for this key to each scout's previous differences (spr score)
@@ -214,11 +214,11 @@ class ScoutPrecision(object):
 				if len(unsortedLists[aScoutIndex]) == modeListLength:
 					lists.append(unsortedLists[aScoutIndex])
 					aScouts.append(allScouts[aScoutIndex])
-				elif modeAmount > 1: # Updates SPR if incorecct list amount and at least 2 scouts agree
+				elif modeAmount > 0:#1: # Updates SPR if incorecct list amount and at least 2 scouts agree
 					self.sprs.update({allScouts[aScoutIndex]: (self.sprs.get(allScouts[aScoutIndex]) or 0) + weight})
 					self.disagreementBreakdown[allScouts[aScoutIndex]].update({key1:{'amount': (self.disagreementBreakdown[allScouts[aScoutIndex]].get(key1, {}).get('amount', 0) + 1) }})
 			# Need at least 2 scouts to compare, or SPR is not affected
-			if modeAmount > 1:
+			if modeAmount > 0:#1:
 				# check here with if statement before runing code below
 				for num in range(modeListLength):
 					#Comparing dicts that should be the same (e.g. each shot time dict for the same shot) within the tempTIMDs
@@ -231,7 +231,7 @@ class ScoutPrecision(object):
 					for aDict in dicts:
 						values += [aDict['didSucceed']]
 					modeSuccess = utils.mode(values)
-					if modeSuccess != None:
+					if True:#modeSuccess != None:
 						popList = []
 						weight = self.gradingListsOfDicts[key1][1]['didSucceed']
 						for aDictIndex in range(len(dicts)):
@@ -249,7 +249,7 @@ class ScoutPrecision(object):
 							values = [aDict[key2] for aDict in dicts]
 							weight = self.gradingListsOfDicts[key1][1][key2]
 							mode = utils.mode(values)
-							if mode != None:
+							if True:#mode != None:
 								differenceFromMode = [weight if v != mode else 0 for v in values]
 								#Gets inaccuracy by category
 								for c in range(len(differenceFromMode)):
@@ -281,11 +281,11 @@ class ScoutPrecision(object):
 				if len(unsortedLists[aScoutIndex]) == modeListLength:
 					lists.append(unsortedLists[aScoutIndex])
 					scouts.append(allScouts[aScoutIndex])
-				elif modeAmount > 1: # Updates SPR if incorecct list amount and at least 2 scouts agree
+				elif modeAmount > 0:#1: # Updates SPR if incorecct list amount and at least 2 scouts agree
 					self.sprs.update({allScouts[aScoutIndex]: (self.sprs.get(allScouts[aScoutIndex]) or 0) + weight})
 					self.disagreementBreakdown[allScouts[aScoutIndex]].update({key1:{'amount': (self.disagreementBreakdown[allScouts[aScoutIndex]].get(key1, {}).get('amount', 0) + 1) }})
 			# Need at least 2 scouts to compare, or SPR is not affected
-			if modeAmount > 1:
+			if modeAmount > 0:#1:
 				for num in range(modeListLength):
 					#Comparing dicts that should be the same (e.g. each shot time dict for the same shot) within the tempTIMDs
 					#This means the nth shot by a given robot in a given match, as recorded by multiple scouts
@@ -308,7 +308,7 @@ class ScoutPrecision(object):
 							self.sprs.update({scouts[index]: (self.sprs.get(scouts[index]) or 0) + weight})
 							self.disagreementBreakdown[scouts[index]].update({key1:{'climbType': (self.disagreementBreakdown[scouts[index]].get(key1, {}).get('climbType', 0) + 1) }})
 					# Must have 2 scouts to compare, or SPR is not affected
-					if modeKeyAmount > 1: 
+					if modeKeyAmount > 0:#1: 
 						for key2 in dicts2[0].keys():
 							for key3 in dicts2[0][key2].keys():
 								#Strings can be averaged (we're just looking at mean, not subtracting them)
@@ -320,7 +320,7 @@ class ScoutPrecision(object):
 								weight = self.gradingListsOfDictsDicts[key1][2][key2][key3]
 								if weight != 0.0:
 									mode = utils.mode(values)
-									if mode:	
+									if True:#mode:	
 										differenceFromMode = map(lambda v: weight if v != mode else 0, values)
 										#Gets inaccuracy by category
 										for c in range(len(differenceFromMode)):
