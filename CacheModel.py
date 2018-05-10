@@ -1,4 +1,3 @@
-#Last Updated: 1/20/17
 class CachedTeamData(object):
 	def __init__(self, teamNumber):
 		super(CachedTeamData, self).__init__()
