@@ -1,8 +1,7 @@
-#Last Updated: 2/1/18
-import firebaseCommunicator
 import utils
+import firebaseCommunicator
 
-#creates classes with keys which correspond to the data points collected and calculated by our scouting
+#Creates classes with keys which correspond to the data points collected and calculated by our scouting system
 
 class Competition(object):
 	'''docstring for Competition'''
@@ -139,7 +138,7 @@ class CalculatedTeamData(object):
 		self.totalSuperNotes = None #List of String
 		self.avgTotalCubesPlaced = None #Int
 		self.numSuccessfulClimbs = None #Int
-		self.predictedClimb = None #Float CHANGED
+		self.predictedClimb = None #Float
 		self.climbPercentage = None #Float
 		self.soloClimbPercentage = None #Float
 		self.activeAssistClimbPercentage = None #Float
@@ -149,8 +148,8 @@ class CalculatedTeamData(object):
 		self.parkPercentage = None
 		self.predictedSeed = None #Int
 		self.actualSeed = None #Int
-		self.predictedNumAllianceSwitchCubesAuto = None #Float CHANGED
-		self.predictedNumScaleCubesAuto = None #Float CHANGED
+		self.predictedNumAllianceSwitchCubesAuto = None #Float
+		self.predictedNumScaleCubesAuto = None #Float
 		self.predictedPark = None #Float
 		self.predictedNumRPs = None #Float
 		self.predictedTotalNumRPs = None #Float
@@ -201,16 +200,16 @@ class Team(object):
 		self.pitAllImageURLs = [] #String
 		self.pitAvailableWeight = None #Int
 		self.pitDriveTrain = None #String
-		self.pitImageKeys = [] #String CHANGED
+		self.pitImageKeys = [] #String
 		self.pitSEALsNotes = None #String
 		self.pitProgrammingLanguage = None #String
 		self.pitClimberType = None #String
 		self.pitRobotWidth = None #String
 		self.pitRobotLength = None #String
-		self.pitDriveTime = [] #Don't worry about it
-		self.pitRampTime = [] #Don't worry about it
-		self.pitDriveTimeOutcome = [] #Don't worry about it
-		self.pitRampTimeOutcome = [] #Don't worry about it
+		self.pitDriveTime = [] #List
+		self.pitRampTime = [] #List
+		self.pitDriveTimeOutcome = [] #List
+		self.pitRampTimeOutcome = [] #List
 		self.pitHasCamera = None #Bool
 		self.pitWheelDiameter = None #String
 		self.pitCanDoPIDOnDriveTrain = None #Bool
@@ -309,7 +308,7 @@ class CalculatedTeamInMatchData(object):
 		self.numOpponentSwitchFailedTele = None #Int
 		self.numScaleSuccessAuto = None #Int
 		self.numScaleFailedAuto = None #Int
-		self.numScaleSuccessTele = None #numReturnIntake
+		self.numScaleSuccessTele = None #Int
 		self.numScaleFailedTele = None #Int
 		self.numCubesScaleAt100s = None #Int
 		self.numCubesScaleAt110s = None #Int
@@ -330,7 +329,7 @@ class CalculatedTeamInMatchData(object):
 		self.totalCubesPlaced = None #Int
 		self.numClimbAttempts = None #Int
 		self.isDysfunctional = None #Bool
-		self.drivingAbility = None #Float probably
+		self.drivingAbility = None #Float
 		self.didConflictWithAuto = None #Bool
 		self.didThreeExchangeInput = None #Bool
 		self.numRobotsLifted = None #Int
@@ -448,7 +447,7 @@ class TeamInMatchData(object):
 		self.rankAgility = None #Int
 		self.rankDefense = None #Int
 		self.rankSpeed = None #Int
-		self.startingPosition = None #String 'left' 'right' or 'center' CHANGED
+		self.startingPosition = None #String 'left' 'right' or 'center'
 		self.opponentSwitchAttemptTele = [
 			{
 				'didSucceed' : None, #Bool
