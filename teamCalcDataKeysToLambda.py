@@ -1,10 +1,7 @@
-#Last Updated: 2/11/18
 import utils
 import DataModel
-import pdb
-import traceback
 import firebaseCommunicator
-import time
+
 PBC = firebaseCommunicator.PyrebaseCommunicator()
 
 def mapFuncForCalcAvgsForTeam(team, func, **calcDatas):		
