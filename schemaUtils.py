@@ -1,4 +1,3 @@
-#Last Updated: 2/11/18
 import DataModel
 import pdb
 
@@ -10,6 +9,7 @@ class SchemaUtils(object):
         self.calc = calc
     
      #Team utility functions
+
     def getTeamForNumber(self, teamNumber):
         try:
             return [team for team in self.comp.teams if team.number == teamNumber][0]
@@ -42,6 +42,7 @@ class SchemaUtils(object):
         return team if team and self.teamCalculatedDataHasValues(team.calculatedData) and len(self.getCompletedMatchesForTeam(team)) > 0 else self.calc.averageTeam
 
     #Match utility functions
+
     def getMatchForNumber(self, matchNumber):
         if not len([match for match in self.comp.matches if match.number == matchNumber]): print('Match', str(matchNumber), 'does not exist.')
         return [match for match in self.comp.matches if match.number == matchNumber][0]
@@ -75,12 +76,15 @@ class SchemaUtils(object):
             match.blueScore, match.blueDidFaceBoss, match.blueDidAutoQuest, match.foulPointsGainedBlue)
 
     def getTeamAllianceIsRedInMatch(self, team, match):
-        if team.number == -1 or team.number in match.redAllianceTeamNumbers: return True
-        elif team.number in match.blueAllianceTeamNumbers: return False
+        if team.number == -1 or team.number in match.redAllianceTeamNumbers: 
+            return True
+        elif team.number in match.blueAllianceTeamNumbers: 
+            return False
         else:
             raise ValueError(str(team.number) not in 'Q' + str(match.number))
 
-    #TIMD utility function
+    #Team in match data utility function
+
     def getTIMDsForTeam(self, team):
         return filter(lambda t: t.teamNumber == team.number, self.comp.TIMDs)
 
