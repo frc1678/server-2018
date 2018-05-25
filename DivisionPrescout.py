@@ -3,13 +3,13 @@ import os
 import random
 
 TBAC = TBACommunicator.TBACommunicator()
-key = [[],[5],[5,5],[4,3,3],[2,2,3,3],[2,2,2,2,2],[1,1,2,2,2,2],[1,1,1,1,2,2,2],[1,1,1,1,1,1,2,2]]
+key = [[], [5], [5, 5], [4, 3, 3], [2, 2, 3, 3], [2, 2, 2, 2, 2], [1, 1, 2, 2, 2, 2], [1, 1, 1, 1, 2, 2, 2], [1, 1, 1, 1, 1, 1, 2, 2]]
 teams = []
 teams = ['frc' + team for team in teams]
-path = '/home/etking/prescouting/'
+path = 'path/to/outputFile/'
 
 for team in teams:
-	events = [event['event_code'] for event in TBAC.makeTeamEventsRequest(team) if event['week'] < 6 and event['event_code'] != 'new' and event['event_code'] != 'okok' and event['event_code'] == 'iscmp']
+	events = [event['event_code'] for event in TBAC.makeTeamEventsRequest(team)]
 	urls = {}
 	print('Prescouting for ' + team.split('c')[1] + '...')
 	eventDict = {event : key[len(events)][index] for index, event in enumerate(events)}
