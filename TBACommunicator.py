@@ -1,4 +1,3 @@
-#Last Updated: 1/20/18
 import requests
 import json
 import utils
@@ -7,7 +6,8 @@ class TBACommunicator(object):
 	'''docstring for TBACommunicator'''
 	def __init__(self):
 		super(TBACommunicator, self).__init__()
-		self.code = 'new'
+		#self.code should be changed depending on the competition code, example : 'new' for Newton
+		self.code = 'TBA competition code'
 		self.year = 2018
 		self.key = str(self.year) + self.code
 		self.authCode = 'apikey'
@@ -17,7 +17,8 @@ class TBACommunicator(object):
 	def makeRequest(self, url):
 		return utils.makeASCIIFromJSON(requests.get(url, headers = {self.headerKey: self.headerValue}).json())
 
-	# Makes request with additional headers, sends back status code, sends back return headers if requested
+	#Makes request with additional headers, sends back status code, sends back return headers if requested
+
 	def makeAdvancedRequest(self, url, headers, shouldReturnHeaders):
 		headersDict = {self.headerKey: self.headerValue, self.authHeaderKey: self.authCode}
 		headersDict.update(headers)
