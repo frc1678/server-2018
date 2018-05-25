@@ -1,8 +1,7 @@
-#Last Updated 4/14/18
 import pyrebase
 
 class SettingsCommunicator(object):
-	'''docstring for PyrebaseCommunicator'''
+	'''docstring for SettingsCommunicator'''
 	def __init__(self):
 		super(SettingsCommunicator, self).__init__()
 		self.url = 'url'
