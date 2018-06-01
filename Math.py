@@ -1,4 +1,3 @@
-#Last Updated: 3/15/18
 import math
 import time
 import random
@@ -16,7 +15,7 @@ import multiprocessing
 import warnings
 from FirstTIMDProcess import FirstTIMDProcess
 from schemaUtils import SchemaUtils
-#from CrashReporter import reportOverestimate
+from CrashReporter import reportOverestimate
 import csv
 
 class Calculator(object):
@@ -33,8 +32,8 @@ class Calculator(object):
                                     'redDidFaceBoss' : ['red', 'faceTheBossRankingPoint', True], 
                                     'blueDidAutoQuest' : ['blue', 'autoQuestRankingPoint', True], 
                                     'redDidAutoQuest' : ['red', 'autoQuestRankingPoint', True],
-                                    #'blueScore' : ['blue', 'score', False],
-                                    #'redScore' : ['red', 'score', False],
+                                    'blueScore' : ['blue', 'score', False],
+                                    'redScore' : ['red', 'score', False],
                                     }
         self.ourTeamNum = 1678
         self.su = SchemaUtils(self.comp, self)
@@ -43,9 +42,9 @@ class Calculator(object):
         self.averageTeam.number = -1
         self.averageTeam.name = 'Average Team'
         self.calcTIMDs = []
-        self.pointsPerScaleCube = 15.80 #Backup in case of calc failure
-        self.pointsPerAllianceSwitchCube = 41.45
-        self.pointsPerOpponentSwitchCube = 10.71
+        self.pointsPerScaleCube = 0.0
+        self.pointsPerAllianceSwitchCube = 0.0
+        self.pointsPerOpponentSwitchCube = 0.0
         self.cachedTeamDatas = {}
         self.cachedComp = cache.CachedCompetitionData()
         self.cachedTeamDatas[self.averageTeam.number] = cache.CachedTeamData(**{'teamNumber': self.averageTeam.number})
@@ -62,7 +61,7 @@ class Calculator(object):
         missing = {k : v for k, v in incompleteData.items() if v}
         return missing if missing else None
 
-    #CALCULATED TEAM DATA - Hardcore Math
+    #CALCULATED TEAM DATA
 
     def getAverageForDataFunctionForTeam(self, team, dataFunction):
         validTIMDs = filter(lambda timd: dataFunction(timd) != None, self.su.getCompletedTIMDsForTeam(team))
@@ -130,7 +129,7 @@ class Calculator(object):
         alliance = self.su.getAllianceForMatch(match, allianceIsRed)
         return sum(map(lambda t: len(self.su.getCompletedTIMDsForTeam(t)), alliance))
 
-    #NON-SYSTEMATIC TEAM CALCS - When averages aren't good enough
+    #NON-SYSTEMATIC TEAM CALCULATIONS
 
     def getVaultTimeScore(self, team):
         vaultTime = team.calculatedData.avgAllVaultTime
@@ -225,7 +224,7 @@ class Calculator(object):
         except:
             return 0
 
-    #TIMD CALCS - We're just getting started
+    #TEAM IN MATCH CALCULATIONS
 
     def parkBackup(self, team, matches, matchNum, timd):
         team = 'frc' + str(team.number)
@@ -393,7 +392,7 @@ class Calculator(object):
         match = filter(lambda m: m['match_number'] == match.number, self.cachedComp.TBAMatches)[0]
         return match['score_breakdown']['red']['teleopSwitchOwnershipSec'] if allianceIsRed else match['score_breakdown']['blue']['teleopSwitchOwnershipSec']
 
-    #PREDICTIONS - The real juicy stuff
+    #PREDICTIONS
 
     def predictedParkForTeam(self, team):
         try:
@@ -484,7 +483,7 @@ class Calculator(object):
         endgame = min(90, ((30 * self.levitateProbabilityForAlliance(match, allianceIsRed)) + climb + park))
         return endgame
 
-    #ABILITIES AND POINT CALCULATIONS - Different abilities for teams and alliances
+    #ABILITIES AND POINT CALCULATIONS
 
     def getPointsPerVaultCube(self):
         return utils.avg([self.getPointsPerVaultCubeForMatch(match) for match in self.su.getCompletedMatchesInCompetition()])
@@ -565,29 +564,18 @@ class Calculator(object):
         return (total + scale + speed + agile)
 
     def getSecondPickAbilityForTeam(self, team):
-        print(team.number)
         total = 5.0 * (team.calculatedData.avgTotalCubesPlaced) 
-        print('total',total/5)
         excha = 5.5 * (team.calculatedData.avgNumExchangeInputTele)
-        print('exchange',excha/5.5)
         oppSw = 5.0 * (team.calculatedData.avgOpponentSwitchCubesTele)
-        print('opponent switch',oppSw/5)
         alSwA = 1.5 * (team.calculatedData.avgAllianceSwitchCubesAuto)
-        print('alliance switch auto',alSwA/1.5)
         alSwT = 1.0 * (team.calculatedData.avgAllianceSwitchCubesTele)
-        print('alliance switch tele',alSwT/1)
         other = 6.0 * (team.calculatedData.avgTotalCubesPlaced - (team.calculatedData.avgNumExchangeInputTele + team.calculatedData.avgOpponentSwitchCubesTele + team.calculatedData.avgAllianceSwitchCubesTele))
-        print('other',other/6)
         vTime = 5.0 * (team.calculatedData.vaultTimeScore)
-        print('vault time',vTime/5)
         speed = 0.05 * (team.calculatedData.RScoreSpeed)
-        print('speed',speed/.05)
         agile = 0.3 * (team.calculatedData.RScoreAgility)
-        print('agility',agile/.3)
-        print('final ability', (total + excha + oppSw + alSwA + alSwT + other + vTime + speed + agile))
         return (total + excha + oppSw + alSwA + alSwT + other + vTime + speed + agile)
 
-    #HEAVY PREDICTIONS AND ABILITIES - I'm in for a world of hurt
+    #HEAVY PREDICTIONS AND ABILITIES
 
     def predictedScoreForAllianceAuto(self, match, allianceIsRed):
         autoRun = 15 * self.predictedAutoRunForAlliance(match, allianceIsRed)
@@ -683,7 +671,7 @@ class Calculator(object):
         winChance = stats.t.cdf(tscoreRPs, df)
         return winChance if not math.isnan(winChance) else 0
 
-    #SEEDING - How each team seeds in the competition
+    #SEEDING
 
     def cumulativeParkAndClimbPointsForTeam(self, team):
         frcTeam = 'frc' + str(team.number)
@@ -738,6 +726,7 @@ class Calculator(object):
         return sum([match.calculatedData.actualRedRPs if team.number in match.redAllianceTeamNumbers else match.calculatedData.actualBlueRPs for match in self.su.getCompletedMatchesForTeam(team)])
     
     #CACHING
+
     def cacheFirstTeamData(self):
         print('> Caching First Team Data...')
         for team in self.comp.teams:
@@ -788,6 +777,7 @@ class Calculator(object):
             print(traceback.format_exc())
 
     #CALCULATIONS
+
     def getFirstCalculationsForAverageTeam(self):
         averageTeamDict(self)
 
@@ -865,7 +855,6 @@ class Calculator(object):
         if isData:
             startTime = time.time() #Gets time to later calculate time for a server cycle...
             self.cacheTBAData()
-            #self.addTBAcode(PBC)
             self.calcTIMDs = []
             for timd in self.comp.TIMDs:
                 #Does calculations for each timd
