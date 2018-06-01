@@ -1,10 +1,8 @@
 import utils
 import json
 import datetime
-import numpy as np
 import pyrebase
 from slackclient import SlackClient
-import time
 
 class PyrebaseCommunicator(object):
 	'''docstring for PyrebaseCommunicator'''
