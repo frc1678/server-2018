@@ -1,4 +1,3 @@
-#Last Updated: 1/4/18
 import DataModel
 import json
 import time
@@ -7,11 +6,6 @@ import numpy as np
 import pdb
 import firebaseCommunicator
 from collections import Counter
-
-########## Defining Util/Convenience Functions ############
-'''If there were too many more of these, or if this
-were actual server code, I would make a module, but
-for fake database creation purposes it is not worth it'''
 
 def stdList(lis):
 	return np.std(lis)
@@ -191,9 +185,9 @@ def extendListWithStrings(lis):
 	return returnList
 
 def sum_to_n(n, limit = None):
-	#Finds possible groupings of individuals (n of them) into a specified number of groups (size) with each group's maximum size of limit
-	#e.g. sum_to_n(6, 3) -> (2,2,2), (1,2,3)
-	#sum_to_n(6, 3, 3) -> (2,2,2)
+    #Creates six-index lists that include integers from 1 to limit.
+    #Later, it creates a new list of all of these lists if the numbers
+    #in the list add up to n, and returns that list.
     combos = []
     good = []
     if limit is None:
@@ -204,7 +198,7 @@ def sum_to_n(n, limit = None):
     			for x1 in range(1, limit):
     				for y2 in range(1, limit):
     					for z3 in range(1, limit):
-    						combos.append([x,y,z,x1,y2,z3])
+    						combos.append([x, y, z, x1, y2, z3])
     for lis in combos:
     	if sum(lis) == n:
     		good.append(lis)
