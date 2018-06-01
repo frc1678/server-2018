@@ -1,4 +1,3 @@
-#Last Updated: 3/15/18
 import pyrebase
 import numpy as np
 import utils
@@ -38,7 +37,6 @@ class DataChecker(multiprocessing.Process):
 	#Gets a common value for a list depending on the data type
 	def commonValue(self, vals, sprKing):
 		#If there are several types, they are probably misformatted bools (e.g. 0 or None for False), so attempt tries turning them into bools and trying again
-		
 		if len(set(map(type, vals))) != 1:
 			return self.attempt(vals, sprKing)
 		#If the values are bools, it goes to a function for bools
@@ -58,6 +56,7 @@ class DataChecker(multiprocessing.Process):
 		if map(type, vals).count(bool) > 0:
 			return self.commonValue(map(bool, vals), sprKing)
 
+	#Joins the startingPosition data point
 	def joinStartingPosition(self, vals, sprKing):
 		return 'left' if vals.count('left') > len(vals) / 2 else 'center' if vals.count('center') > len(vals) / 2 else 'right' if vals.count('right') > len(vals) / 2 else vals[sprKing]
 
@@ -65,6 +64,7 @@ class DataChecker(multiprocessing.Process):
 	def joinBools(self, bools, sprKing):
 		return utils.convertNoneToIdentity(utils.mode(bools), bools[sprKing])
 
+	#Takes the didPark data point from TBA if it is available
 	def consolidateParking(self, consolidation, matches, key, sprKing):
 		team = 'frc' + key.split('Q')[0]
 		matchNum = int(key.split('Q')[1])
@@ -78,6 +78,7 @@ class DataChecker(multiprocessing.Process):
 			didPark = self.commonValue(consolidation, sprKing)
 		return didPark	
 
+	#Takes the didMakeAutoRun data point from TBA if it is available
 	def consolidateAutoRun(self, consolidation, matches, key, sprKing):
 		team = 'frc' + key.split('Q')[0]
 		matchNum = int(key.split('Q')[1])
@@ -104,6 +105,7 @@ class DataChecker(multiprocessing.Process):
 				except:
 					return values[-1]
 
+	#Joins a list of booleans
 	def commonValueForBoolDict(self, consolidationList, sprKing):
 		conjunctionJunction = [[],[],[],[],[],[]]
 		for item in consolidationList:
@@ -170,7 +172,6 @@ class DataChecker(multiprocessing.Process):
 						else:
 							returnList[num][climbType].update({key: self.commonValue(consolidationDict[key], (len(consolidationDict[key]) - 1))})
 						
-				#Strange happenings in the down-low - Don't ask if you can't handle the truth
 				try:
 					if len(consolidationDict['partnerLiftType']) == 1:
 						returnList[num][climbType].update({'partnerLiftType': consolidationDict['partnerLiftType'][0]})
@@ -191,6 +192,7 @@ class DataChecker(multiprocessing.Process):
 					pass
 			return returnList
 
+	#Joins the vault data point 
 	def findCommonValuesForVault(self, lis, sprKing):
 		if lis:
 			modeListLength = utils.mode(map(len, lis))
@@ -202,7 +204,6 @@ class DataChecker(multiprocessing.Process):
 				elif len(aScout) > modeListLength:
 					aScout = aScout[0:modeListLength]
 			returnList = []
-			print('first')
 			for num in range(modeListLength):
 				returnList += [{}]
 				consolidationDict = {}
@@ -217,11 +218,8 @@ class DataChecker(multiprocessing.Process):
 							consolidationDict[key] += [aDict[num][key]]
 						except:
 							pass
-				print('here')
 				returnList[num].update({'cubes': self.commonValue(consolidationDict['cubes'], sprKing)})
-				print('wat')
 				times = [time for scout, time in enumerate(consolidationDict['time']) if consolidationDict['cubes'][scout] == returnList[num]['cubes']]
-				print('here')
 				try:
 					stdTimes = utils.stdList(times)
 					mean = utils.avg(times)
@@ -238,12 +236,14 @@ class DataChecker(multiprocessing.Process):
 						returnList[num].update({key: consolidationDict['time'][(len(consolidationDict['time']) - 1)]})
 			return returnList
 
+	#Counts how many cubes a robot placed in the vault from the vault data point
 	def totalVaultInput(self, vault):
 		totalCubes = 0
 		for cycle in vault:
 			totalCubes += cycle['cubes']
 		return totalCubes
 
+	#Joins lists of dicts
 	def findCommonValuesForKeys(self, lis, sprKing):
 		if lis:
 			modeListLength = utils.mode(map(len, lis))
@@ -371,9 +371,7 @@ class DataChecker(multiprocessing.Process):
 			elif k == 'vault':
 				#Gets a common value for lists of dicts (for cube values) and puts it into the combined TIMD
 				returnDict.update({k: self.findCommonValuesForVault(map(lambda tm: (tm.get(k) or []), self.consolidationGroups[key]), sprKing)})
-			elif k == 'mode':
-				pass
-			elif k == 'cycle':
+			elif k == 'mode' or k == 'cycle':
 				pass
 			elif k in constants:
 				#Constants should be the same across all tempTIMDs, so the common value is just the value in one of them
@@ -399,6 +397,7 @@ class DataChecker(multiprocessing.Process):
 		except:
 			return 0
 
+	#Creates a dictionary of all of the scouts' sprs
 	def getSPRList(self):
 		sprs = SC.firebase.child('SPRs').get().val()
 		return dict(sprs)
@@ -421,11 +420,12 @@ class DataChecker(multiprocessing.Process):
 				listToConsolidate += [0]
 		return listToConsolidate
 
-	#Consolidates tempTIMDs for the same team and match
+	#Gathers tempTIMDs for the current match
 	def getConsolidationGroups(self, tempTIMDs, curMatch):
 		actualKeys = list(set([key.split('-')[0] for key in tempTIMDs.keys()]))
 		return {key : [v for k, v in tempTIMDs.items() if k.split('-')[0] == key] for key in actualKeys if int(key.split('Q')[1]) > (int(curMatch) - 5)}
 
+	#Gathers all of the tempTIMDs for a full cycle
 	def getFullConsolidationGroups(self, tempTIMDs, curMatch):
 		actualKeys = list(set([key.split('-')[0] for key in tempTIMDs.keys()]))
 		return {key : [v for k, v in tempTIMDs.items() if k.split('-')[0] == key] for key in actualKeys}
@@ -438,7 +438,7 @@ class DataChecker(multiprocessing.Process):
 			time.sleep(5)
 			print('> No tempTIMDs to compute\n')
 			return
-		print(' Taken tempTIMDs from firebase...')
+		print('> TempTIMDs taken from firebase...')
 		matches = tbac.makeEventMatchesRequest()
 		curMatch = firebase.child('currentMatchNum').get().val()
 		if isFull:
