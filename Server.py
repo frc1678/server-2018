@@ -1,5 +1,4 @@
 #By Bryton Moeller (2015-2016)
-#Last Updated: 3/15/18
 import sys
 import traceback
 import DataModel
@@ -17,7 +16,7 @@ import APNServer
 import TBACommunicator
 import dataChecker
 
-#If an argument is passed when running the server, it skips confirmation
+#If an 'f' argument is passed when running the server, it skips confirmation
 forced = False
 if len(sys.argv) > 1:
 	if sys.argv[1] == '-f':
@@ -39,16 +38,13 @@ SC.firebase.child('isFull').set(0)
 #Scout assignment streams:
 
 #Note: availability child on firebase should have each scout with an availability of 1 or 0
-	#If that isn't the case, use ScoutRotator.tabletHandoutStream() for resetAvailability()
+#If that isn't the case, use ScoutRotator.tabletHandoutStream() for resetAvailability()
 
 #Use this if tablets need assigned to scouts by the server, and will then be given to the correct scouts
 #This means at the beginning of a competition day
 if len(sys.argv) > 1:
 	if sys.argv[1] == '-t':
 		scoutRotator.resetAvailability()
-
-#Use this for running the server again (e.g. after a crash) to avoid reassigning scouts or tablets
-#scoutRotator.alreadyAssignedStream()
 
 #Use this if you are restarting the server and need to reassign scouts but scouts already have tablets
 #Also useful for unexpected changes in availability
@@ -67,9 +63,10 @@ if forced != True:
 	print('                                          ')
 	while True:
 		confirmation = raw_input(' Do you wish to continue? [y/n] ')
-		if confirmation == 'y':
+		# '.lower()' used to allow for capital Y/N
+		if confirmation.lower() == 'y':
 			break
-		elif confirmation == 'n':
+		elif confirmation.lower() == 'n':
 			sys.exit()
 		else:
 			print(' ' + confirmation + ' is not a valid option. \n')
@@ -91,7 +88,7 @@ def calcCycle(data):
 	print('\033[1;32mCalcs Cycle For Match ' + str(cycle) + '...')
 	print('\033[0;37m')
 	while(True):
-		#updates all matches in firebase
+		#Updates all matches in firebase
 		try:
 			print('> Doing SPRs!')
 			scoutRotator.doSPRs()
@@ -105,7 +102,7 @@ def calcCycle(data):
 		except Exception as e:
 			print(e)
 			print(traceback.format_exc())
-	checkForMissingData() #opens missing_data.txt and prints all missing data if there is missing data each cycle
+	checkForMissingData() #Opens missing_data.txt and prints all missing data if there is missing data each cycle
 	try:
 		calculator.doCalculations(PBC, isFull)
 	except OSError:
@@ -113,7 +110,7 @@ def calcCycle(data):
 	except KeyboardInterrupt:
 		sys.exit()
 	except:
-		#reports error to slack
+		#Reports error to slack
 		if shouldSlack:
 			reportServerCrash(traceback.format_exc())
 		print(traceback.format_exc())
