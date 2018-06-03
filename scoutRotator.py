@@ -1,12 +1,7 @@
-#Last Updated: 2/15/18
-import pyrebase
-import DataModel
 import SPR
 import firebaseCommunicator
 import settingsCommunicator
-import time
 import traceback
-import CrashReporter
 import pprint
 import json
 
@@ -17,7 +12,8 @@ fb = PBC.firebase
 global oldMatchNum
 oldMatchNum = fb.child('currentMatchNum').get().val()
 
-scouts = "Aakash Aidan Amanda Anoushka Asha Calvin Carl Carter David Emily Erik Ethan Freddy Hanson Jack Janet Jon Justin Kenny Lasthenia Lyra Rolland Sam Stephen Teo Tim Zachary Zatara Zoe Backup1 Backup2 Backup3 Backup4 Backup5".split()
+#Replace these names with the names of scouts
+scouts = "John Jim Sam Karen Mary Xavier".split()
 numScouts = len(scouts)
 
 #Creates list of availability values in firebase for each scout
@@ -66,7 +62,6 @@ def doSPRsAndAssignments(data):
 			redTeams = fb.child('Matches').child(newMatchNumber).get().val()['redAllianceTeamNumbers']
 			#Grades scouts and assigns them to robots
 			newAssignments = SPR.deleteUnassigned(SPR.assignScoutsToRobots(available, redTeams + blueTeams, scoutDict, redTeams, blueTeams), available)
-			print(newAssignments)
 			#And it is put on firebase
 			fb.child('scouts/matches/match' + newMatchNumber).set(newAssignments)
 		cycle = fb.child('cycleCounter').get().val()
@@ -118,6 +113,7 @@ def sortScoutDisagreements():
 	pprint.pprint(sorted(totalDisagreements.items(), key = lambda scout: scout[1]))
 	pprint.pprint(sorted(SPR.sprs.items(), key = lambda scout: scout[1]))
 
+#Function for doing sprs without assigning scouts
 def doSPRs():
 	available = [k for (k, v) in fb.child('availability').get().val().items() if v == 1]
 	try:
