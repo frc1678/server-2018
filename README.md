@@ -2,13 +2,11 @@
 
 This is a guideline for handling and contributing to the 2018 season’s projects.
 
+## 2018 Season Information
+This year, the server was separated into two repositories, 'server-2018' and 'Scout-Manager-2018'
+This was due to the creation of the new bluetooth system in 3 weeks and the new QR system implemented in 2 weeks.  There wasn't enough time to intergrate the new system into the server.
 
-## Application Information
-
-
-## Use Notes
-
-
+Scout-Manager runs both the bluetooth file transfer system and QR code system (Including missing data and diagnostic notifications).
 
 ## Style Guide
 
@@ -85,7 +83,7 @@ See this [stackoverflow question](https://stackoverflow.com/questions/9562304/gi
  	 + If there are conflicts, fix them locally on your branch, push them, and then squash and merge.
 
 
-## Helpful Tips and Big error solutions
+## Helpful Tips and Error solutions
 
 ### Other remotes
 
@@ -98,10 +96,6 @@ If you have trouble doing something in python, or you don't understand the code,
 
 Also, to learn more about the server, check [this](https://goo.gl/gkbAEH) documentation out!
 
-### .DS_Store
-
-If you used `git pull origin master` to merge your code with the Github code and have made some changes yourself, type in `git status` and you will see an untracked file at the bottom, called .DS_Store. If you go to your server folder, you won't be able to find it. If you push, the .DS_Store file will be pushed along with your other changes! To delete this, type in `find . -name '.DS_Store' -type f -delete`
-
 ### No module named http_client
 
 If you come across this error while trying to run the server or anything in the server that uses six, I have come across a solution which worked for me. In terminal, type in the following:
@@ -110,4 +104,4 @@ That should work, but if it doesn't, then it should just be a pyrebase version p
 
 ### More help
 
-If you need more help, and nothing here has worked for you, or what you need is not on here, contact Kenny (me) or Ethan (@kzhou and @etalbert on Slack).
+If you need more help, and nothing here has worked for you, or what you need is not on here, contact a server programmer.
