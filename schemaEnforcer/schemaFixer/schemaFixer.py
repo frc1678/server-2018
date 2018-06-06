@@ -1,5 +1,4 @@
 # Created by Carl Csaposs
-# Last Updated: 2/3/18
 
 import pyrebase
 from Tkinter import Tk

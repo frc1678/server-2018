@@ -1,5 +1,4 @@
 # Created by Carl Csaposs
-# Last Updated: 2/15/18
 
 import pyrebase
 import time
@@ -9,6 +8,7 @@ import traceback
 from collections import OrderedDict
 
 epochTime = time.time()
+# Formats epochTime into a readable format
 startTime = str(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epochTime)))
 
 print("")
@@ -31,15 +31,17 @@ print("")
 # Needs correct firebase to compare against
 # Feature: ignores AppTokens, because, why not?
 
-# TODO:
-# Setup listener
 
+# Set partialCheck to True to only check certain keys
 partialCheck = False
 keys = ['TempTeamInMatchDatas'] # Ignored unless partialCheck == True
 
+# Only checks schema every 10 matches if True to avoid using too much data
 atCompetition = False
 bypassCompetitionLimit = False # Doesn't matter if not atCompetition
 
+# If True, doesn't slack discrepancies but allows for deletion/fixing
+# Uses different url for test database
 testMode = False
 
 if testMode:
@@ -64,7 +66,7 @@ with open('./apikey.txt', 'r') as f:
 	apikey = f.read()
 slack = SlackClient(apikey)
 
-# Use to find channel id first time (different script please)
+# Use to find channel id first time (put this in a different script)
 '''
 channels = slack.api_call('channels.list')
 channels = channels['channels']
@@ -132,11 +134,11 @@ deletion = {'key':{}, 'type':{}, 'list':{}}
 urls = {'good':'https://i.imgur.com/OKFB8sH.png', 'warning':'https://i.imgur.com/nTGQtC5.png', 'danger':'https://i.imgur.com/uNrneSF.png'}
 
 
-match0Checked = False
-slackTagCalvin = False
+match0Checked = False # Used for match 0 issue
+slackTagCalvin = False # Used to slack one of our teammates who doesn't check slack
 calvinUserID = 'U2VBKSMHD'
 
-
+# Input functions will call themselves if something other than 'y' or 'n' is given
 def backupInput():
 	x = raw_input("Should backup to restore file? (y/n) ")
 	if x == 'y' or x == 'Y':
@@ -179,8 +181,9 @@ def sendSlack(message, status):
         as_user = False,
         username = 'schemaEnforcer',
         icon_url = urls[status],
-        #thread_ts =,
         )
+
+# Used to send a thread message using the parent timestamp (not used)
 def slackTS(message, ts, status):
 	slack.api_call('chat.postMessage',
 		channel = '#2_schema_changes',
@@ -188,8 +191,10 @@ def slackTS(message, ts, status):
 		as_user = False,
 		username = 'schemaEnforcer',
 		icon_url = urls[status],
-		thread_ts = ts)
+		thread_ts = ts
+		)
 
+# Stores discrepancies for later
 def storeSlack(message, type):
 	storedSlack[type].append(message)
 
@@ -215,6 +220,7 @@ def shouldSlack():
 	else:
 		return shouldSlack()
 
+# Formats discrepancies into slack message
 def formatKeyWarning(key, pathList, value):
 	path = ""
 	for x in pathList:

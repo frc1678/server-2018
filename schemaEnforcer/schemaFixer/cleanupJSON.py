@@ -3,6 +3,9 @@ from Tkinter import Tk
 from tkFileDialog import askopenfilename
 
 # Removes information from a restore JSON file
+# If there's too many discrepancies or only a certain one should be targeted,
+# makes it easier to use schemaFixer.py
+
 
 # If true, will remove items in keyList from export
 # If false, will remove all items except those in keyList

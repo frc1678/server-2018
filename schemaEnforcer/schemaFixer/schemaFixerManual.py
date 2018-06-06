@@ -1,5 +1,6 @@
 # Created by Carl Csaposs
-# Last Updated: 2/3/18
+
+# Moves data that is sent to the incorrect location during competition
 
 import pyrebase
 import json

@@ -1,3 +1,5 @@
+# Gets the correct schema layout from a separate firebase for schemaEnforcer only
+
 import pyrebase
 import json
 
@@ -16,6 +18,7 @@ config = {
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
 
+# Gets all data from the database
 data = db.child("").get().val()
 
 

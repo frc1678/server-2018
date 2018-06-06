@@ -1,6 +1,6 @@
 schemaEnforcer
 
-(Some) Documentation: https://goo.gl/LUFB38
+Documentation: https://goo.gl/LUFB38
 
 Setup:
 Create directories: backups/, restores/, schemaFixer/,

@@ -1,3 +1,5 @@
+# Restores any data deleted by schemaEnforcer stored in a backup file in 'restores' directory
+
 import pyrebase
 from Tkinter import Tk
 from tkFileDialog import askopenfilename
